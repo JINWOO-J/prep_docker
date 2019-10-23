@@ -1,0 +1,14 @@
+.DS_Store
+json/*
+logs/*
+conf/*.py
+cert/*
+.idea/*
+.vscode/
+statdb/*
+__pycache__/
+*.py[cod]
+*$py.class
+data/*
+./envfile
+

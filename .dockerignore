@@ -1,0 +1,9 @@
+*__MACOSX*
+/__MACOSX/*
+### OSX template
+.DS_Store
+.AppleDouble
+.LSOverride
+/data*
+/test*
+

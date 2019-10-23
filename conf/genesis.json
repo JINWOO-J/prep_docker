@@ -1,0 +1,44 @@
+{
+    "transaction_data": {
+        "message": "P-Rep TestNet V3",
+        "accounts": [
+            {
+                "balance": "0x2961fff8ca4a62327800000",
+                "name": "god",
+                "address": "hx5a05b58a25a1e5ea0f1d5715e1f655dffc1fb30a"
+            },
+            {
+                "balance": "0x0",
+                "name": "treasury",
+                "address": "hx1000000000000000000000000000000000000000"
+            },
+            {
+                "balance": "0x2961fff8ca4a62327800000",
+                "name": "test_1",
+                "address": "hx6e1dd0d4432620778b54b2bbc21ac3df961adf89"
+            },{
+                "name": "jinwoo",
+                "address": "hx19c1579d25d429c088965421dc698ea2f5ea8dd9",
+                "balance": "0x2961fff8ca4a62327800000"
+            },
+            {
+                "name": "prep_test1",
+                "address": "hxed5a4393e35d2edcc7bcab4ffa603ef6e895097b",
+                "balance": "0x2961fff8ca4a62327800000"
+            },{
+                "name": "prep_test2",
+                "address": "hx72bff0f887ef183bde1391dc61375f096e75c74a",
+                "balance": "0x2961fff8ca4a62327800000"
+            },{
+                "name": "prep_test3",
+                "address": "hxa067296997056e507ac2296573472f3c750d8b62",
+                "balance": "0x2961fff8ca4a62327800000"
+            },{
+                "name": "genesis_node",
+                "address": "hx19c1579d25d429c088965421dc698ea2f5ea8dd9",
+                "balance": "0x56bc75e2d63100000"
+            }
+        ],
+        "nid": "0x50"
+    }
+}

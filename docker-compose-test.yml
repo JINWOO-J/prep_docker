@@ -1,0 +1,20 @@
+version: '3'
+services:
+   prep:
+      image: 'iconloop/prep-node:1905292100xdd3e5a'
+      network_mode: host
+      environment:
+         LOOPCHAIN_LOG_LEVEL: "SPAM"
+         DEFAULT_PATH: "/data/loopchain"
+         LOCAL_TEST: "true"
+         LOG_OUTPUT_TYPE: "file|console"
+#         ALLOW_MAKE_EMPTY_BLOCK: "true"
+         SERVICE_API: "http://20.20.1.254:9000/api/v3"
+         FIRST_PEER: "true"
+         NTP_REFRESH_TIME: "10"
+
+      volumes:
+         - ./data:/data
+      ports:
+         - 9000:9000
+         - 7100:7100

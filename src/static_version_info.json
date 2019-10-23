@@ -1,0 +1,27 @@
+{
+
+    "iconcommons": {
+        "url": "https://github.com/icon-project/icon-commons",
+        "revision": "v.1.1.2"
+    },
+    "earlgrey": {
+        "url": "https://github.com/icon-project/earlgrey",
+        "revision": "bbca2974a2604e0a7f33341ed3fe7510bb6f4f90"
+    },
+    "loopchain" : {
+        "url": "https://github.com/icon-project/loopchain",
+        "revision": "2.4.3"
+    },
+    "iconservice": {
+        "url": "https://github.com/icon-project/icon-service",
+        "revision": "v1.5.6"
+    },
+    "iconrpcserver": {
+        "url": "https://github.com/icon-project/icon-rpc-server",
+        "revision": "1.4.3"
+    },
+    "icon_rc": {
+        "url": "https://github.com/icon-project/rewardcalculator",
+        "revision": "v1.1.0-12-g361dab1"
+    }
+}
