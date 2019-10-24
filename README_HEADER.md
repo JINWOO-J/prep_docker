@@ -41,3 +41,8 @@ Step 5/44 : ENV USERID 24988
  ---> Running in cd88bf497d89
 Removing intermediate container cd88bf497d89
 ```
+
+## Entrypoint.sh diagram
+
+![entrypoint.sh](./imgs/entrypoint_diagram.jpg)
+
