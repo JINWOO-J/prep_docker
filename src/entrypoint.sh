@@ -60,8 +60,6 @@ export NEWRELIC_LICENSE=${NEWRELIC_LICENSE:-""} # for testnet
 export CONF_PATH=${CONF_PATH:-"/${APP_DIR}/conf"} # Setting the configure file path
 export CERT_PATH=${CERT_PATH:-"/${APP_DIR}/cert"} # Setting the certificate key file path
 
-export REDIRECT_PROTOCOL=${REDIRECT_PROTOCOL:-"http"}
-export SUBSCRIBE_USE_HTTPS=${SUBSCRIBE_USE_HTTPS:-"false"}
 export ICON_NID=${ICON_NID:-"0x50"}  # Setting the ICON Network ID number
 
 export ALLOW_MAKE_EMPTY_BLOCK=${ALLOW_MAKE_EMPTY_BLOCK:-"true"}
@@ -395,15 +393,7 @@ CPrint "P-REP package version info - ${APP_VERSION}"
 PIP_LIST=`pip list | egrep "loopchain|icon" | tr -d ''`
 CPrint "$PIP_LIST"
 
-if [[ "$SERVICE_API" == "https"* ]]; then
-    REDIRECT_PROTOCOL="https"
-    SUBSCRIBE_USE_HTTPS="true"
-fi
-CPrint "SERVICE_API = $SERVICE_API / SUBSCRIBE_USE_HTTPS=${SUBSCRIBE_USE_HTTPS}"
-
-##TODO 운영에서는 바껴야함
-
-CPrint "NETWORK_ENV=${NETWORK_ENV}, SERVICE=${SERVICE}, ENDPOINT_URL=${ENDPOINT_URL}"
+CPrint "NETWORK_ENV=${NETWORK_ENV}, SERVICE=${SERVICE}, ENDPOINT_URL=${ENDPOINT_URL}, SERVICE_API = $SERVICE_API"
 
 ## set builtinScoreOwner and block setting
 if [[ "$NETWORK_ENV" == "mainnet" ]]; then
@@ -486,7 +476,6 @@ jq --arg ICON_NID "$ICON_NID"  '.transaction_data.nid = "\($ICON_NID)"' $GENESIS
 
 jq --argjson LOAD_PEERS_FROM_IISS "$LOAD_PEERS_FROM_IISS" '.LOAD_PEERS_FROM_IISS = $LOAD_PEERS_FROM_IISS' $configure_json| sponge $configure_json
 
-#jq --argjson ROLE_SWITCH_BLOCK_HEIGHT "$ROLE_SWITCH_BLOCK_HEIGHT" ".CHANNEL_OPTION.icon_dex.role_switch_block_height = $ROLE_SWITCH_BLOCK_HEIGHT" $configure_json | sponge $configure_json
 
 IS_REG=`curl ${CURL_OPTION} ${SERVICE_API} -d '{"jsonrpc":"2.0","method":"icx_call","id":2696368077,"params":{"from":"hx0000000000000000000000000000000000000000","to":"cx0000000000000000000000000000000000000000","dataType":"call","data":{"method":"getPReps"}}}' |  \
  jq -r --arg PEER_ID "$PEER_ID" '.result.preps[] |select(.address=="\($PEER_ID)")|.grade'`
@@ -584,9 +573,6 @@ if [[ "${#RADIOSTATIONS}" -gt 0 ]];then
     done
     validationViewConfig "$configure_json"
 fi
-
-jq --argjson SUBSCRIBE_USE_HTTPS "$SUBSCRIBE_USE_HTTPS" '.SUBSCRIBE_USE_HTTPS = $SUBSCRIBE_USE_HTTPS' $configure_json| sponge $configure_json
-jq --arg REDIRECT_PROTOCOL "$REDIRECT_PROTOCOL" '.redirectProtocol = $REDIRECT_PROTOCOL' $iconrpcserver_json| sponge $iconrpcserver_json
 
 if [[ -f "${CHANNEL_MANAGE_DATA_PATH}" ]]; then
     jq --arg CHANNEL_MANAGE_DATA_PATH "$CHANNEL_MANAGE_DATA_PATH" '.CHANNEL_MANAGE_DATA_PATH = "\($CHANNEL_MANAGE_DATA_PATH)"' $configure_json| sponge $configure_json
