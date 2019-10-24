@@ -48,7 +48,7 @@ Removing intermediate container cd88bf497d89
 
 
 ## prep-node docker setting
-###### made date at 2019-10-24 10:13:52 
+###### made date at 2019-10-24 14:07:07 
 | Environment variable | Description|Default value| Allowed value|
 |--------|--------|-------|-------|
 | EXT\_IPADDR| Getting external IP address|s ifconfig.co`||
@@ -86,8 +86,6 @@ Removing intermediate container cd88bf497d89
 | NEWRELIC\_LICENSE| for testnet|||
 | CONF\_PATH| Setting the configure file path|/${APP\_DIR}/conf||
 | CERT\_PATH| Setting the certificate key file path|/${APP\_DIR}/cert||
-| REDIRECT\_PROTOCOL|http|http||
-| SUBSCRIBE\_USE\_HTTPS|false|false||
 | ICON\_NID| Setting the ICON Network ID number|0x50||
 | ALLOW\_MAKE\_EMPTY\_BLOCK|true|true||
 | CHANNEL\_BUILTIN| boolean (true/false)|true||

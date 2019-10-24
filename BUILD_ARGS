@@ -6,6 +6,6 @@
 --build-arg IS_LOCAL=true  
 --build-arg NAME=prep-node  
 --build-arg RABBITMQ_VERSION=3.7.17  
---build-arg REPO_HUB=iconloop  
+--build-arg REPO_HUB=jinwoo  
 --build-arg TAGNAME=1910211829xc2286d  
 --build-arg VERSION=1910211829xc2286d  
