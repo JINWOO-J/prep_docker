@@ -48,7 +48,7 @@ Removing intermediate container cd88bf497d89
 
 
 ## prep-node docker setting
-###### made date at 2019-10-24 14:07:07 
+###### made date at 2019-10-25 15:05:43 
 | Environment variable | Description|Default value| Allowed value|
 |--------|--------|-------|-------|
 | EXT\_IPADDR| Getting external IP address|s ifconfig.co`||
@@ -91,6 +91,8 @@ Removing intermediate container cd88bf497d89
 | CHANNEL\_BUILTIN| boolean (true/false)|true||
 | PEER\_NAME|`uname`|`uname`||
 | PRIVATE\_KEY\_FILENAME|my\_private.pem|my\_private.pem||
+| PRIVATE\_PATH| public cert key or keystore file location|${CERT\_PATH}/${PRIVATE\_KEY\_FILENAME}||
+| PRIVATE\_PASSWORD| private cert key  or keystore file password|test||
 | LOAD\_PEERS\_FROM\_IISS|true|true||
 | CHANNEL\_MANAGE\_DATA\_PATH|${CONF\_PATH}/channel\_manange\_data.json|${CONF\_PATH}/channel\_manange\_data.json||
 | CONFIG\_API\_SERVER|https://download.solidwallet.io|https://download.solidwallet.io||

@@ -68,12 +68,11 @@ export PEER_NAME=${PEER_NAME:-`uname`}
 
 export PRIVATE_KEY_FILENAME=${PRIVATE_KEY_FILENAME:-"my_private.pem"}
 
+export PRIVATE_PATH=${PRIVATE_PATH:-"${CERT_PATH}/${PRIVATE_KEY_FILENAME}"} # public cert key or keystore file location
+export PRIVATE_PASSWORD=${PRIVATE_PASSWORD:-"test"}  # private cert key  or keystore file password
+
 if [[ "${NETWORK_ENV}" == "PREP-TestNet" ]];then
     export PRIVATE_PATH=${PRIVATE_PATH:-"${CERT_PATH}/${IPADDR}_private.der"} # private cert key or keystore file location
-    export PRIVATE_PASSWORD=${PRIVATE_PASSWORD:-"test"}  # private cert key  or keystore file password
-else
-    export PRIVATE_PATH=${PRIVATE_PATH:-"${CERT_PATH}/${PRIVATE_KEY_FILENAME}"} # public cert key or keystore file location
-#    export PUBLIC_PATH=${PUBLIC_PATH:-"${CERT_PATH}/my_public.pem"} # private cert key or keystore file location
     export PRIVATE_PASSWORD=${PRIVATE_PASSWORD:-"test"}  # private cert key  or keystore file password
 fi
 
