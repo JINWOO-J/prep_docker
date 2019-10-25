@@ -1,5 +1,5 @@
 #!/bin/bash
-export EXT_IPADDR=`curl -s ifconfig.co` # Getting external IP address
+export EXT_IPADDR=${EXT_IPADDR:-`curl -s ifconfig.co`} # Getting external IP address 
 export IPADDR=${IPADDR:-"$EXT_IPADDR"}  # Setting the IP address 
 
 export LOCAL_TEST=${LOCAL_TEST:-"false"}
@@ -9,7 +9,7 @@ if [[ ${LOCAL_TEST} == "true" ]]; then
     echo  "===== LOCAL TEST = $IPADDR  ====="
 fi
 export TZ=${TZ:-"Asia/Seoul"}  # Setting the TimeZone Environment #[List of TZ name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
-export NETWORK_ENV=${NETWORK_ENV:-"PREP-TestNet"}  # Network Environment name
+export NETWORK_ENV=${NETWORK_ENV:-"PREP-TestNet"}  # Network Environment name  # mainnet or PREP-TestNet
 export SERVICE=${SERVICE:-"zicon"}               # Service Name
 export ENDPOINT_URL=${ENDPOINT_URL:-""}      #  ENDPOINT API URI #URI
 export FIND_NEIGHBOR=${FIND_NEIGHBOR:-"true"}          # Find fastest neighborhood PRrep

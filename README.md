@@ -48,14 +48,14 @@ Removing intermediate container cd88bf497d89
 
 
 ## prep-node docker setting
-###### made date at 2019-10-25 15:27:59 
+###### made date at 2019-10-25 17:32:53 
 | Environment variable | Description|Default value| Allowed value|
 |--------|--------|-------|-------|
-| EXT\_IPADDR| Getting external IP address|s ifconfig.co`||
+| EXT\_IPADDR| Getting external IP address|`curl -s ifconfig.co`||
 | IPADDR| Setting the IP address|$EXT\_IPADDR||
 | LOCAL\_TEST|false|false||
 | TZ| Setting the TimeZone Environment|Asia/Seoul|[List of TZ name](https://en.wikipedia.org/wiki/List\_of\_tz\_database\_time\_zones)|
-| NETWORK\_ENV| Network Environment name|PREP-TestNet||
+| NETWORK\_ENV| Network Environment name|PREP-TestNet| mainnet or PREP-TestNet|
 | SERVICE| Service Name|zicon||
 | ENDPOINT\_URL|  ENDPOINT API URI||URI|
 | FIND\_NEIGHBOR| Find fastest neighborhood PRrep|true||
