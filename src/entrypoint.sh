@@ -1,5 +1,5 @@
 #!/bin/bash
-export EXT_IPADDR=${EXT_IPADDR:-`curl -s ifconfig.co`} # Getting external IP address 
+export EXT_IPADDR=${EXT_IPADDR:-`curl -s ifconfig.co`} # Getting external IP address
 export IPADDR=${IPADDR:-"$EXT_IPADDR"}  # Setting the IP address 
 
 export LOCAL_TEST=${LOCAL_TEST:-"false"}
@@ -66,7 +66,7 @@ export ALLOW_MAKE_EMPTY_BLOCK=${ALLOW_MAKE_EMPTY_BLOCK:-"true"}
 export CHANNEL_BUILTIN=${CHANNEL_BUILTIN:-"true"} # boolean (true/false)
 export PEER_NAME=${PEER_NAME:-`uname`}
 
-export PRIVATE_KEY_FILENAME=${PRIVATE_KEY_FILENAME:-"my_private.pem"}
+export PRIVATE_KEY_FILENAME=${PRIVATE_KEY_FILENAME:-"YOUR_KEYSTORE_or_YOUR_CERTKEY"} # YOUR_KEYSTORE or YOUR_CERTKEY FILENAME
 
 export PRIVATE_PATH=${PRIVATE_PATH:-"${CERT_PATH}/${PRIVATE_KEY_FILENAME}"} # public cert key or keystore file location
 export PRIVATE_PASSWORD=${PRIVATE_PASSWORD:-"test"}  # private cert key  or keystore file password
