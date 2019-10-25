@@ -48,7 +48,7 @@ Removing intermediate container cd88bf497d89
 
 
 ## prep-node docker setting
-###### made date at 2019-10-25 18:03:26 
+###### made date at 2019-10-25 18:04:20 
 | Environment variable | Description|Default value| Allowed value|
 |--------|--------|-------|-------|
 | EXT\_IPADDR| Getting external IP address|`curl -s ifconfig.co`||
@@ -90,7 +90,7 @@ Removing intermediate container cd88bf497d89
 | ALLOW\_MAKE\_EMPTY\_BLOCK|true|true||
 | CHANNEL\_BUILTIN| boolean (true/false)|true||
 | PEER\_NAME|`uname`|`uname`||
-| PRIVATE\_KEY\_FILENAME||| YOUR\_KEYSTORE or YOUR\_CERTKEY FILENAME|
+| PRIVATE\_KEY\_FILENAME|YOUR\_KEYSTORE or YOUR\_CERTKEY FILENAME|| YOUR\_KEYSTORE or YOUR\_CERTKEY FILENAME|
 | PRIVATE\_PATH| public cert key or keystore file location|${CERT\_PATH}/${PRIVATE\_KEY\_FILENAME}||
 | PRIVATE\_PASSWORD| private cert key  or keystore file password|test||
 | LOAD\_PEERS\_FROM\_IISS|true|true||
