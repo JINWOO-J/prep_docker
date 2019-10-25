@@ -48,7 +48,7 @@ Removing intermediate container cd88bf497d89
 
 
 ## prep-node docker setting
-###### made date at 2019-10-25 15:05:43 
+###### made date at 2019-10-25 15:27:59 
 | Environment variable | Description|Default value| Allowed value|
 |--------|--------|-------|-------|
 | EXT\_IPADDR| Getting external IP address|s ifconfig.co`||
@@ -135,4 +135,5 @@ Removing intermediate container cd88bf497d89
 | USE\_SLACK|  if you want to use the slack|no||
 | SLACK\_URL|  slack's webhook URL|||
 | SLACK\_PREFIX| slack's prefix header message|||
+| IS\_BROADCAST\_MULTIPROCESSING|false|false||
 | CURL\_OPTION|default curl options|-s -S --fail --max-time 30||
