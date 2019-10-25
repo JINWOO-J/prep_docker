@@ -583,7 +583,8 @@ jq --arg PEER_NAME "$PEER_NAME" '.PEER_NAME = "\($PEER_NAME)"' $configure_json| 
 
 jq --argjson CHANNEL_BUILTIN "$CHANNEL_BUILTIN" '.CHANNEL_BUILTIN = $CHANNEL_BUILTIN' $configure_json| sponge $configure_json
 jq --argjson ALLOW_MAKE_EMPTY_BLOCK "$ALLOW_MAKE_EMPTY_BLOCK" '.ALLOW_MAKE_EMPTY_BLOCK = $ALLOW_MAKE_EMPTY_BLOCK' $configure_json| sponge $configure_json
- 
+jq --argjson IS_BROADCAST_MULTIPROCESSING "$IS_BROADCAST_MULTIPROCESSING" '.IS_BROADCAST_MULTIPROCESSING = $IS_BROADCAST_MULTIPROCESSING' $configure_json| sponge $configure_json
+
 jq --arg scoreRootPath "$scoreRootPath" '.scoreRootPath = "\($scoreRootPath)"' $iconservice_json| sponge $iconservice_json
 jq --arg stateDbRootPath "$stateDbRootPath" '.stateDbRootPath = "\($stateDbRootPath)"' $iconservice_json| sponge $iconservice_json
 
