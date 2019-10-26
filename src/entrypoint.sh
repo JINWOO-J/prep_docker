@@ -15,7 +15,7 @@ export ENDPOINT_URL=${ENDPOINT_URL:-""}      #  ENDPOINT API URI #URI
 export FIND_NEIGHBOR=${FIND_NEIGHBOR:-"true"}          # Find fastest neighborhood PRrep
 export FIND_NEIGHBOR_COUNT=${FIND_NEIGHBOR_COUNT:-5}   # neighborhood count
 
-if [[ ! -z "$ENDPOINT_URL" ]]; then
+if [[ "x${ENDPOINT_URL}" == "x" ]]; then
     if [[ "$NETWORK_ENV" == "mainnet" ]]; then
         ENDPOINT_URL="https://ctz.solidwallet.io"
         FIND_NEIGHBOR=false
@@ -416,7 +416,9 @@ else
     builtinScoreOwner="hx6e1dd0d4432620778b54b2bbc21ac3df961adf89"
     score_audit="false"
     if [[ ! -f ${PRIVATE_PATH} ]]; then
-        download_file $CONFIG_API_SERVER/cert/${IPADDR}_private.der $PRIVATE_PATH
+        PRIVATE_PATH="${PRIVATE_PATH}.der"
+        CPrint "Download key file - ${PRIVATE_PATH}"
+        download_file $CONFIG_API_SERVER/cert/${IPADDR}_private.der "${PRIVATE_PATH}"
     fi
 
     if [[ ${GENESIS_NODE} == "true" ]]; then
