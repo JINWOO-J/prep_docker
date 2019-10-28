@@ -402,7 +402,7 @@ if [[ "$NETWORK_ENV" == "mainnet" ]]; then
     termPeriod=43120
     blockValidationPenaltyThreshold=660
     CREP_ROOT_HASH="0xd421ad83f81a31abd7f6813bb6a3b92fa547bdb6d5abc98d2d0852c1a97bcca5"
-    jq --arg CREP_ROOT_HASH "$CREP_ROOT_HASH" '.crep_root_hash = "\($DEFAULT_STORAGE_PATH)"' $configure_json| sponge $configure_json
+    jq --arg CREP_ROOT_HASH "$CREP_ROOT_HASH" '.crep_root_hash = "\($CREP_ROOT_HASH)"' $configure_json| sponge $configure_json
 
     jq -M 'del(.CHANNEL_OPTION.icon_dex.block_versions."0.3")' $configure_json| sponge $configure_json
     jq '.CHANNEL_OPTION.icon_dex.hash_versions.genesis = 0' $configure_json| sponge $configure_json
