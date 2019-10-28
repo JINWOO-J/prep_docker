@@ -61,11 +61,10 @@ export CONF_PATH=${CONF_PATH:-"/${APP_DIR}/conf"} # Setting the configure file p
 export CERT_PATH=${CERT_PATH:-"/${APP_DIR}/cert"} # Setting the certificate key file path
 
 export ICON_NID=${ICON_NID:-"0x50"}  # Setting the ICON Network ID number
-
+export CREP_ROOT_HASH=${CREP_ROOT_HASH:-""}
 export ALLOW_MAKE_EMPTY_BLOCK=${ALLOW_MAKE_EMPTY_BLOCK:-"true"}
 export CHANNEL_BUILTIN=${CHANNEL_BUILTIN:-"true"} # boolean (true/false)
 export PEER_NAME=${PEER_NAME:-`uname`}
-
 export PRIVATE_KEY_FILENAME=${PRIVATE_KEY_FILENAME:-"YOUR_KEYSTORE_FILENAME"} # YOUR_KEYSTORE or YOUR_CERTKEY FILENAME # YOUR_KEYSTORE or YOUR_CERTKEY FILENAME
 
 export PRIVATE_PATH=${PRIVATE_PATH:-"${CERT_PATH}/${PRIVATE_KEY_FILENAME}"} # public cert key or keystore file location
@@ -402,6 +401,9 @@ if [[ "$NETWORK_ENV" == "mainnet" ]]; then
     iissCalculatePeriod=43200
     termPeriod=43120
     blockValidationPenaltyThreshold=660
+    CREP_ROOT_HASH="0xd421ad83f81a31abd7f6813bb6a3b92fa547bdb6d5abc98d2d0852c1a97bcca5"
+    jq --arg CREP_ROOT_HASH "$CREP_ROOT_HASH" '.crep_root_hash = "\($DEFAULT_STORAGE_PATH)"' $configure_json| sponge $configure_json
+
     jq -M 'del(.CHANNEL_OPTION.icon_dex.block_versions."0.3")' $configure_json| sponge $configure_json
     jq '.CHANNEL_OPTION.icon_dex.hash_versions.genesis = 0' $configure_json| sponge $configure_json
 
