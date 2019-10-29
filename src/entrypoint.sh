@@ -128,7 +128,7 @@ export USE_SLACK=${USE_SLACK:-"no"}  #  if you want to use the slack
 export SLACK_URL=${SLACK_URL:-""}    #  slack's webhook URL
 export SLACK_PREFIX=${SLACK_PREFIX:-""} # slack's prefix header message
 export IS_BROADCAST_MULTIPROCESSING=${IS_BROADCAST_MULTIPROCESSING:-"false"}
-
+export LEADER_COMPLAIN_RATIO=${LEADER_COMPLAIN_RATIO:-"0.67"}
 export CURL_OPTION=${CURL_OPTION:-"-s -S --fail --max-time 30"} #default curl options
 
 
@@ -466,6 +466,7 @@ if [[ ! -z $SWITCH_BH_VERSION3 ]]; then
     jq --argjson SWITCH_BH_VERSION3 "$SWITCH_BH_VERSION3" '.CHANNEL_OPTION.icon_dex.block_versions."0.3" = $SWITCH_BH_VERSION3' $configure_json| sponge $configure_json
 fi
 
+jq --arg LEADER_COMPLAIN_RATIO "$LEADER_COMPLAIN_RATIO" '.LEADER_COMPLAIN_RATIO = "\($LEADER_COMPLAIN_RATIO)"' $configure_json| sponge $configure_json
 jq --arg DEFAULT_STORAGE_PATH "$DEFAULT_STORAGE_PATH" '.DEFAULT_STORAGE_PATH = "\($DEFAULT_STORAGE_PATH)"' $configure_json| sponge $configure_json
 jq --arg LOOPCHAIN_LOG_LEVEL "$LOOPCHAIN_LOG_LEVEL" '.LOOPCHAIN_LOG_LEVEL = "\($LOOPCHAIN_LOG_LEVEL)"' $configure_json| sponge $configure_json
 jq --argjson TIMEOUT_FOR_LEADER_COMPLAIN "$TIMEOUT_FOR_LEADER_COMPLAIN" '.TIMEOUT_FOR_LEADER_COMPLAIN = $TIMEOUT_FOR_LEADER_COMPLAIN' $configure_json| sponge $configure_json
