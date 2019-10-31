@@ -660,8 +660,8 @@ else
                 if [[ -z "$FASTEST_START_POINT" ]]; then
                     KR_RES=`curl -o /dev/null -s --connect-timeout 3 -w %{time_total} https://icon-leveldb-backup.s3.amazonaws.com`
                     VA_RES=`curl -o /dev/null -s --connect-timeout 3 -w %{time_total} https://icon-leveldb-backup-va.s3.amazonaws.com`
-                    RESULT=`echo $KR_RES'>'$VA_RES | bc -l`
-                    if [[ ${RESULT} == 0 ]]; then
+                    RESULT=`echo $KR_RES $VA_RES | awk '{if ($1 < $2) print "True";else print "False";}'`
+                    if [[ "${RESULT}" == "True" ]]; then
                         DOWNLOAD_PREFIX="https://icon-leveldb-backup.s3.amazonaws.com/${NETWORK_NAME}"
                     else
                         CPrint "Download from virginia"
@@ -689,7 +689,6 @@ else
                 if [[ "${DEFAULT_PATH}/.score_data/score" != $scoreRootPath ]]; then
                     mv "${DEFAULT_PATH}/.score_data/score" $scoreRootPath
                 fi
-                mv $DEFAULT_PATH/.storage/*\:7100 $DEFAULT_STORAGE_PATH/db_${IPADDR}\:7100
                 mv $DEFAULT_PATH/.storage/*\:7100_icon_dex $DEFAULT_STORAGE_PATH/db_${IPADDR}\:7100_icon_dex
             fi
         fi
