@@ -658,7 +658,15 @@ else
                 rm -rf $DEFAULT_STORAGE_PATH/* $scoreRootPath/* $stateDbRootPath/* $DEFAULT_PATH/*
                 mkdir -p $DEFAULT_STORAGE_PATH $scoreRootPath $stateDbRootPath ${DEFAULT_PATH}
                 if [[ -z "$FASTEST_START_POINT" ]]; then
-                    DOWNLOAD_PREFIX="https://s3.ap-northeast-2.amazonaws.com/icon-leveldb-backup/${NETWORK_NAME}"
+                    KR_RES=`curl -o /dev/null -s --connect-timeout 3 -w %{time_total} https://icon-leveldb-backup.s3.amazonaws.com`
+                    VA_RES=`curl -o /dev/null -s --connect-timeout 3 -w %{time_total} https://icon-leveldb-backup-va.s3.amazonaws.com`
+                    RESULT=`echo $KR_RES'>'$VA_RES | bc -l`
+                    if [[ ${RESULT} == 0 ]]; then
+                        DOWNLOAD_PREFIX="https://icon-leveldb-backup.s3.amazonaws.com/${NETWORK_NAME}"
+                    else
+                        CPrint "Download from virginia"
+                        DOWNLOAD_PREFIX="https://icon-leveldb-backup-va.s3.amazonaws.com/${NETWORK_NAME}"
+                    fi
                     LASTEST_VERSION=`curl -k -s ${DOWNLOAD_PREFIX}/backup_list | head -n 1`
                     DOWNLOAD_FILENAME=`basename $LASTEST_VERSION`
                     DOWNLOAD_URL="${DOWNLOAD_PREFIX}/${LASTEST_VERSION}"
