@@ -655,7 +655,7 @@ else
                 DOWNLOAD_FILENAME=`ls ${DEFAULT_PATH}/*.gz`
                 CPrint "[PASS] Already file - ${DOWNLOAD_FILENAME}"
             else
-                rm -rf $DEFAULT_STORAGE_PATH/* $scoreRootPath/* $stateDbRootPath/* $DEFAULT_PATH/*
+                rm -rf $DEFAULT_STORAGE_PATH/* $scoreRootPath/* $stateDbRootPath/* 
                 mkdir -p $DEFAULT_STORAGE_PATH $scoreRootPath $stateDbRootPath ${DEFAULT_PATH}
                 if [[ -z "$FASTEST_START_POINT" ]]; then
                     KR_RES=`curl -o /dev/null -s --connect-timeout 3 -w %{time_total} https://icon-leveldb-backup.s3.amazonaws.com`
