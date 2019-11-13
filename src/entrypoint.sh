@@ -676,7 +676,31 @@ else
                     DOWNLOAD_URL="$FASTEST_START_POINT"
                 fi
                 CPrint "Start download - ${DOWNLOAD_URL}"
-                axel -q -k ${DOWNLOAD_URL} -o "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"
+                axel_option="-k -n 6 --verbose"
+                CPrint "axel ${axel_option} ${DOWNLOAD_URL} -o ${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"
+                axel ${axel_option} ${DOWNLOAD_URL} -o "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"  >> "${DEFAULT_LOG_PATH}/snapshot.$(date +%Y%m%d)" &
+                sleep 2;
+                CPrint "$(head -n 3 ${DEFAULT_LOG_PATH}/snapshot.$(date +%Y%m%d))"
+                while [[ 0 ]];
+                do
+                    proc_check=`ps -ef|grep axel| grep -v grep | wc -l`
+                    if [[ ${proc_check} == 0 ]];
+                    then
+                        CPrint "Completed download"
+                        break
+                    fi
+                    printf "."
+                    sleep 1;
+                done
+                ## check the file
+                axel_down_res=$(head -n3 ${DEFAULT_LOG_PATH}/snapshot.$(date +%Y%m%d))
+                is_file=$(echo ${axel_down_res} | grep "File" | wc -l)
+                is_unavailable=$(echo ${axel_down_res} | egrep "HTTP/1.0|Unable to" | wc -l)
+                CPrint "is_file = ${is_file}, is_unavailable = ${is_unavailable}"
+                if [[ "${is_unavailable}" == "1" ]] || [[ "${is_file}" == "0" ]];then
+                    CPrint "Failed to download"
+                fi
+                CPrint "$(tail -n1 ${DEFAULT_LOG_PATH}/snapshot.$(date +%Y%m%d))"
                 PrintOK "Download $LASTEST_VERSION(${DEFAULT_PATH}/${BASENAME})  to $DEFAULT_PATH" $?
 
                 tar -I pigz -xf ${DEFAULT_PATH}/${DOWNLOAD_FILENAME} -C ${DEFAULT_PATH}
