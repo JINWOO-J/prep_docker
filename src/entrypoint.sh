@@ -362,6 +362,21 @@ function find_neighbor_func(){
     fi
 }
 
+function ntp_check(){
+    CPrint "Time synchronization with NTP / NTP SERVER: ${NTP_SERVER}"
+    ntpdate ${NTP_SERVER}
+    if [[ $? == 0 ]]; then
+        Cprint "Success Time Synchronization!!" "GREEN"
+    else
+        ntpdate 169.254.169.123   ## AWS NTP NTP_SERVER
+        if [[ $? == 0 ]]; then
+            Cprint "Success Time Synchronization!! with AWS NTP Server" "GREEN"
+        else
+            Cprint "[FAIL] Time Synchronization!!" "RED"
+        fi
+    fi
+}
+
 
 mkdir -p ${DEFAULT_PATH}
 
@@ -375,8 +390,7 @@ CPrint "scoreRootPath=${scoreRootPath}"
 CPrint "stateDbRootPath=${stateDbRootPath}"
 
 
-CPrint "Time synchronization with NTP / NTP SERVER: ${NTP_SERVER}"
-ntpdate ${NTP_SERVER}
+ntp_check;
 
 shopt -s nocasematch
 if [[ "${NETWORK_ENV}" == *"testnet"* ]];then
@@ -832,7 +846,7 @@ if [[ "${HEALTH_ENV_CHECK}" == "true" ]]; then
         getBlockCheck;
 
         if [[ "${USE_NTP_SYNC}" == "true" ]]; then
-            ntpdate ${NTP_SERVER}
+            ntp_check;
         fi
     done
 else
@@ -841,7 +855,7 @@ else
     do
         if [[ "${USE_NTP_SYNC}" == "true" ]]; then
             sleep ${NTP_REFRESH_TIME};
-            ntpdate ${NTP_SERVER};
+            ntp_check;
         else
             sleep 10;
         fi
