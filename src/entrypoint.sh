@@ -366,8 +366,6 @@ function find_neighbor_func(){
 mkdir -p ${DEFAULT_PATH}
 
 
-
-
 CPrint "Your IP: $IPADDR"
 CPrint "RPC_PORT: $RPC_PORT / RPC_WORKER: $RPC_WORKER "
 CPrint "DEFAULT_PATH=$DEFAULT_PATH in Docker Container"
@@ -375,8 +373,6 @@ CPrint "DEFAULT_LOG_PATH=${DEFAULT_LOG_PATH}"
 CPrint "DEFAULT_STORAGE_PATH=${DEFAULT_STORAGE_PATH}"
 CPrint "scoreRootPath=${scoreRootPath}"
 CPrint "stateDbRootPath=${stateDbRootPath}"
-
-
 
 
 CPrint "Time synchronization with NTP / NTP SERVER: ${NTP_SERVER}"
@@ -655,7 +651,7 @@ else
                 DOWNLOAD_FILENAME=`ls ${DEFAULT_PATH}/*.gz`
                 CPrint "[PASS] Already file - ${DOWNLOAD_FILENAME}"
             else
-                rm -rf $DEFAULT_STORAGE_PATH/* $scoreRootPath/* $stateDbRootPath/* 
+                rm -rf $DEFAULT_STORAGE_PATH/* $scoreRootPath/* $stateDbRootPath/*
                 mkdir -p $DEFAULT_STORAGE_PATH $scoreRootPath $stateDbRootPath ${DEFAULT_PATH}
                 if [[ -z "$FASTEST_START_POINT" ]]; then
                     KR_RES=`curl -o /dev/null -s --connect-timeout 3 -w %{time_total} https://icon-leveldb-backup.s3.amazonaws.com`
