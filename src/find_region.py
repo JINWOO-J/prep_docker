@@ -1,5 +1,4 @@
 #!/usr/bin/env python3.7
-import asyncio
 from collections import defaultdict
 from multiprocessing.pool import ThreadPool
 import time
