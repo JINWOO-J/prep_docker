@@ -1,7 +1,6 @@
 #!/usr/bin/env python3.7
 from collections import defaultdict
 from multiprocessing.pool import ThreadPool
-import time
 import requests
 import sys
 import argparse
@@ -38,7 +37,7 @@ def findFastestRegion():
     last_latency = {}
     for i, p in results.items():
         data = p['data'].get()
-        if time is not None:
+        if data.get("time"):
             if len(last_latency) == 0:
                 last_latency = data
             if last_latency.get("time", 99999) >= data.get("time"):
