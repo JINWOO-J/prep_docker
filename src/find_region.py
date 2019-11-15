@@ -23,7 +23,6 @@ def findFastestRegion():
     results = {}
     pool = ThreadPool(6)
     i = 0
-
     for region_name, region_code in region_info.items():
         URL=f'https://icon-leveldb-backup{region_code}.amazonaws.com/route_check'
         exec_func = "getTime"
