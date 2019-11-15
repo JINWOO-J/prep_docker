@@ -45,14 +45,14 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 && \
     mkdir -p /usr/share/man/man1 /usr/share/man/man7 && \
     apt update && \
     apt install -y $INSTALL_PACKAGE && \
-    apt update && \
-    apt-get install -y $INSTALL_PACKAGE && \
-    if [ !-f "/src/rabbitmq-server_${RABBITMQ_VERSION}-1_all.deb" ]; then \
+    dpkg -i /src/erlang-solutions_1.0_all.deb || exit 1; \
+    if [ ! -f "/src/rabbitmq-server_${RABBITMQ_VERSION}-1_all.deb" ]; then \
         wget --no-check-certificate https://github.com/rabbitmq/rabbitmq-server/releases/download/v${RABBITMQ_VERSION}/rabbitmq-server_${RABBITMQ_VERSION}-1_all.deb -P /src/ ; \
     fi;\
     apt update && \
     apt-get install -y $ERLANG_PACKAGE && \
-    dpkg -i /src/rabbitmq-server_${RABBITMQ_VERSION}-1_all.deb && rm -f /src/rabbitmq-server* ; \
+    dpkg -i /src/rabbitmq-server_${RABBITMQ_VERSION}-1_all.deb || exit 1; \
+    rm -f /src/rabbitmq-server* ; \
     mkdir -p $APP_DIR && \
     mkdir -p $APP_DIR/whl && \
     mkdir -p $APP_DIR/cert && \
