@@ -1,4 +1,5 @@
 .DS_Store
+BUILD_ARGS
 json/*
 logs/*
 conf/*.py
