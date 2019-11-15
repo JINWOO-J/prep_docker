@@ -20,9 +20,22 @@ ENV DOCKERIZE_VERSION $DOCKERIZE_VERSION
 ENV GOPATH=/go \
     GOROOT=/usr/local/go
 ENV PATH $GOROOT/bin:$GOPATH:$PATH
+ENV INSTALL_PACKAGE="make gcc libssl-dev zlib1g-dev \
+libbz2-dev libreadline-dev libsqlite3-dev \
+wget curl llvm libncurses5-dev libncursesw5-dev \
+xz-utils tk-dev libffi-dev liblzma-dev automake \
+libtool unzip jq netcat moreutils libsecp256k1-dev \
+git gnupg2 socat ntp  logrotate ntpdate vim procps \
+iproute2 lsof jq pigz axel monit gawk"
+ENV ERLANG_PACKAGE="erlang-base erlang-asn1 erlang-crypto \
+erlang-eldap erlang-ftp erlang-inets \
+erlang-mnesia erlang-os-mon erlang-parsetools \
+erlang-public-key  erlang-runtime-tools erlang-snmp \
+erlang-ssl  erlang-syntax-tools erlang-tftp \
+erlang-tools erlang-xmerl"
+ENV DELETE_PACKAGE="gcc gcc-6 g++* g++-6* make git automake"
 COPY src /src
 COPY src/pip.conf /etc/
-#COPY /src/erlang /etc/apt/preferences.d/erlang
 COPY src/erlang /etc/apt/preferences.d/erlang
 COPY conf $APP_DIR/conf
 COPY conf $APP_DIR/conf_back
@@ -31,20 +44,14 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 && \
     sed -i.bak -re "s/([a-z]{2}.)?archive.ubuntu.com|security.ubuntu.com|deb.debian.org|security\-cdn.debian.org|security.debian.org/mirror.kakao.com/g" /etc/apt/sources.list && \
     mkdir -p /usr/share/man/man1 /usr/share/man/man7 && \
     apt update && \
-    apt install -y make gcc libssl-dev zlib1g-dev libbz2-dev \
-    libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
-    xz-utils tk-dev libffi-dev liblzma-dev automake libtool unzip jq netcat moreutils  \
-    libsecp256k1-dev git gnupg2 socat ntp  logrotate ntpdate vim procps iproute2 lsof jq pigz axel monit gawk ; \
-    dpkg -i /src/erlang-solutions_1.0_all.deb && \
+    apt install -y $INSTALL_PACKAGE && \
     apt update && \
-    apt-get install -y erlang-base \
-                       erlang-asn1 erlang-crypto erlang-eldap erlang-ftp erlang-inets \
-                       erlang-mnesia erlang-os-mon erlang-parsetools erlang-public-key \
-                       erlang-runtime-tools erlang-snmp erlang-ssl \
-                       erlang-syntax-tools erlang-tftp erlang-tools erlang-xmerl && \
+    apt-get install -y $INSTALL_PACKAGE && \
     if [ !-f "/src/rabbitmq-server_${RABBITMQ_VERSION}-1_all.deb" ]; then \
         wget --no-check-certificate https://github.com/rabbitmq/rabbitmq-server/releases/download/v${RABBITMQ_VERSION}/rabbitmq-server_${RABBITMQ_VERSION}-1_all.deb -P /src/ ; \
     fi;\
+    apt update && \
+    apt-get install -y $ERLANG_PACKAGE && \
     dpkg -i /src/rabbitmq-server_${RABBITMQ_VERSION}-1_all.deb && rm -f /src/rabbitmq-server* ; \
     mkdir -p $APP_DIR && \
     mkdir -p $APP_DIR/whl && \
@@ -76,14 +83,7 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 && \
         make install DST_DIR=/usr/local/bin ; \
         cd .. && rm -rf rewardcalculator /usr/local/go ; \
     fi ; \
-    apt-get purge -y --auto-remove gcc && \
-    apt-get purge -y --auto-remove gcc-6 && \
-    apt-get purge -y --auto-remove g++* && \
-    apt-get purge -y --auto-remove g++-6* && \
-    apt-get purge -y --auto-remove make && \
-    apt-get purge -y --auto-remove git && \
-    apt-get purge -y --auto-remove automake && \
-    rm -rf /var/local/lib/python3.7/site-packages && \
+    apt-get purge -y --auto-remove $DELETE_PACKAGE && \
     rm -rf /var/lib/apt/lists/*
 
 EXPOSE 9000
