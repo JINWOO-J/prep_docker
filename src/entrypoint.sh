@@ -130,7 +130,7 @@ export SLACK_PREFIX=${SLACK_PREFIX:-""} # slack's prefix header message
 export IS_BROADCAST_MULTIPROCESSING=${IS_BROADCAST_MULTIPROCESSING:-"false"}
 # export LEADER_COMPLAIN_RATIO=${LEADER_COMPLAIN_RATIO:-"0.67"}
 export CURL_OPTION=${CURL_OPTION:-"-s -S --fail --max-time 30"} #default curl options
-
+export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 
 #for bash prompt without entrypoint
 
@@ -166,6 +166,7 @@ function getBlockCheck(){
             fi
         else
             cp ${NOW_COUNT_FILE} ${PREV_COUNT_FILE}
+            echo "" > ${ERROR_COUNT_FILE}
         fi
     fi
 }
@@ -362,10 +363,23 @@ function find_neighbor_func(){
     fi
 }
 
+function ntp_check(){
+    CPrint "Time synchronization with NTP / NTP SERVER: ${NTP_SERVER}"
+    ntpdate ${NTP_SERVER}
+    if [[ $? == 0 ]]; then
+        CPrint "Success Time Synchronization!!" "GREEN"
+    else
+        ntpdate 169.254.169.123   ## AWS NTP NTP_SERVER
+        if [[ $? == 0 ]]; then
+            CPrint "Success Time Synchronization!! with AWS NTP Server" "GREEN"
+        else
+            CPrint "[FAIL] Time Synchronization!!" "RED"
+        fi
+    fi
+}
+
 
 mkdir -p ${DEFAULT_PATH}
-
-
 
 
 CPrint "Your IP: $IPADDR"
@@ -377,10 +391,7 @@ CPrint "scoreRootPath=${scoreRootPath}"
 CPrint "stateDbRootPath=${stateDbRootPath}"
 
 
-
-
-CPrint "Time synchronization with NTP / NTP SERVER: ${NTP_SERVER}"
-ntpdate ${NTP_SERVER}
+ntp_check;
 
 shopt -s nocasematch
 if [[ "${NETWORK_ENV}" == *"testnet"* ]];then
@@ -607,13 +618,6 @@ if [[ "${AMQP_TARGET}" ]];then
     jq --arg amqpTarget "$AMQP_TARGET" '.amqpTarget = "\($amqpTarget)"' $iconrpcserver_json| sponge $iconrpcserver_json
 fi
 
-## check config file 
-for config in "$configure_json" "$iconrpcserver_json" "$iconservice_json" "$CHANNEL_MANAGE_DATA_PATH";
-do      
-    validationViewConfig "$config"
-done
-
-
 for item in "iconservice" "iconrpcserver";
 do  
     CONFIG_FILE="${CONF_PATH}/${item}.json"
@@ -622,6 +626,17 @@ do
     jq --arg DEFAULT_LOG_PATH "$DEFAULT_LOG_PATH/${item}.log" '.log.filePath = "\($DEFAULT_LOG_PATH)"' $CONFIG_FILE | sponge $CONFIG_FILE
 done
 
+if [[ ! -z "${USER_DEFINED_ENV}" ]]; then
+    CPrint "Add USER_DEFINED_ENV"
+    CPrint "$(/src/genconfig.py)"
+fi
+
+
+## check config file
+for config in "$configure_json" "$iconrpcserver_json" "$iconservice_json" "$CHANNEL_MANAGE_DATA_PATH";
+do
+    validationViewConfig "$config"
+done
 
 cd /$APP_DIR
 echo $#
@@ -655,18 +670,12 @@ else
                 DOWNLOAD_FILENAME=`ls ${DEFAULT_PATH}/*.gz`
                 CPrint "[PASS] Already file - ${DOWNLOAD_FILENAME}"
             else
-                rm -rf $DEFAULT_STORAGE_PATH/* $scoreRootPath/* $stateDbRootPath/* 
+                rm -rf $DEFAULT_STORAGE_PATH/* $scoreRootPath/* $stateDbRootPath/*
                 mkdir -p $DEFAULT_STORAGE_PATH $scoreRootPath $stateDbRootPath ${DEFAULT_PATH}
                 if [[ -z "$FASTEST_START_POINT" ]]; then
-                    KR_RES=`curl -o /dev/null -s --connect-timeout 3 -w %{time_total} https://icon-leveldb-backup.s3.amazonaws.com`
-                    VA_RES=`curl -o /dev/null -s --connect-timeout 3 -w %{time_total} https://icon-leveldb-backup-va.s3.amazonaws.com`
-                    RESULT=`echo $KR_RES $VA_RES | awk '{if ($1 < $2) print "True";else print "False";}'`
-                    if [[ "${RESULT}" == "True" ]]; then
-                        DOWNLOAD_PREFIX="https://icon-leveldb-backup.s3.amazonaws.com/${NETWORK_NAME}"
-                    else
-                        CPrint "Download from virginia"
-                        DOWNLOAD_PREFIX="https://icon-leveldb-backup-va.s3.amazonaws.com/${NETWORK_NAME}"
-                    fi
+                    FAST_S3_REGION=`/src/find_region.py`
+                    CPrint "Download from [  $FAST_S3_REGION  ]" "GREEN"
+                    DOWNLOAD_PREFIX="$FAST_S3_REGION/${NETWORK_NAME}"
                     LASTEST_VERSION=`curl -k -s ${DOWNLOAD_PREFIX}/backup_list | head -n 1`
                     DOWNLOAD_FILENAME=`basename $LASTEST_VERSION`
                     DOWNLOAD_URL="${DOWNLOAD_PREFIX}/${LASTEST_VERSION}"
@@ -836,7 +845,7 @@ if [[ "${HEALTH_ENV_CHECK}" == "true" ]]; then
         getBlockCheck;
 
         if [[ "${USE_NTP_SYNC}" == "true" ]]; then
-            ntpdate ${NTP_SERVER}
+            ntp_check;
         fi
     done
 else
@@ -845,7 +854,7 @@ else
     do
         if [[ "${USE_NTP_SYNC}" == "true" ]]; then
             sleep ${NTP_REFRESH_TIME};
-            ntpdate ${NTP_SERVER};
+            ntp_check;
         else
             sleep 10;
         fi
