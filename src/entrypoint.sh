@@ -130,7 +130,7 @@ export SLACK_PREFIX=${SLACK_PREFIX:-""} # slack's prefix header message
 export IS_BROADCAST_MULTIPROCESSING=${IS_BROADCAST_MULTIPROCESSING:-"false"}
 # export LEADER_COMPLAIN_RATIO=${LEADER_COMPLAIN_RATIO:-"0.67"}
 export CURL_OPTION=${CURL_OPTION:-"-s -S --fail --max-time 30"} #default curl options
-
+export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 
 #for bash prompt without entrypoint
 
@@ -617,13 +617,6 @@ if [[ "${AMQP_TARGET}" ]];then
     jq --arg amqpTarget "$AMQP_TARGET" '.amqpTarget = "\($amqpTarget)"' $iconrpcserver_json| sponge $iconrpcserver_json
 fi
 
-## check config file 
-for config in "$configure_json" "$iconrpcserver_json" "$iconservice_json" "$CHANNEL_MANAGE_DATA_PATH";
-do      
-    validationViewConfig "$config"
-done
-
-
 for item in "iconservice" "iconrpcserver";
 do  
     CONFIG_FILE="${CONF_PATH}/${item}.json"
@@ -632,6 +625,16 @@ do
     jq --arg DEFAULT_LOG_PATH "$DEFAULT_LOG_PATH/${item}.log" '.log.filePath = "\($DEFAULT_LOG_PATH)"' $CONFIG_FILE | sponge $CONFIG_FILE
 done
 
+if [[ ! -z "${USER_DEFINED_ENV}" ]]; then
+    echo "Add USER_DEFINED_ENV"
+    /src/genconfig.py
+fi
+
+## check config file
+for config in "$configure_json" "$iconrpcserver_json" "$iconservice_json" "$CHANNEL_MANAGE_DATA_PATH";
+do
+    validationViewConfig "$config"
+done
 
 cd /$APP_DIR
 echo $#
