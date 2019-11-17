@@ -366,13 +366,13 @@ function ntp_check(){
     CPrint "Time synchronization with NTP / NTP SERVER: ${NTP_SERVER}"
     ntpdate ${NTP_SERVER}
     if [[ $? == 0 ]]; then
-        Cprint "Success Time Synchronization!!" "GREEN"
+        CPrint "Success Time Synchronization!!" "GREEN"
     else
         ntpdate 169.254.169.123   ## AWS NTP NTP_SERVER
         if [[ $? == 0 ]]; then
-            Cprint "Success Time Synchronization!! with AWS NTP Server" "GREEN"
+            CPrint "Success Time Synchronization!! with AWS NTP Server" "GREEN"
         else
-            Cprint "[FAIL] Time Synchronization!!" "RED"
+            CPrint "[FAIL] Time Synchronization!!" "RED"
         fi
     fi
 }
@@ -626,9 +626,11 @@ do
 done
 
 if [[ ! -z "${USER_DEFINED_ENV}" ]]; then
-    echo "Add USER_DEFINED_ENV"
-    /src/genconfig.py
+    CPrint "Add USER_DEFINED_ENV"
+    CPrint "$(/src/genconfig.py)"
 fi
+
+exit 0
 
 ## check config file
 for config in "$configure_json" "$iconrpcserver_json" "$iconservice_json" "$CHANNEL_MANAGE_DATA_PATH";
