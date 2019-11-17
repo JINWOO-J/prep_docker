@@ -1,0 +1,33 @@
+version: '3'
+services:
+   prep:
+      image: iconloop/prep-node:1911121115x323d60-dev
+      container_name: "user_defined_env"
+      entrypoint: bash -c "while [ 0 ]; do sleep 3; done"
+      network_mode: host
+      environment:
+         LOOPCHAIN_LOG_LEVEL: "DEBUG"
+         LOCAL_TEST: "true"
+         LOG_OUTPUT_TYPE: "file"
+         USER_DEFINED_ENV: | #join with newline  # position=value|config_file
+            .channel.intconf=10|configure_json
+            .channel.intstring="16"| configure_json
+            .channel.space1=10yy| configure_json
+            .channel.space2= dyyp10yy| configure_json
+            .channel.space3= dy yp10yy | configure_json
+            .channel.boolean1=True| configure_json
+            .channel.boolean2=False| configure_json
+            .channel.boolean3=TRUE| configure_json
+            .channel.string=TRUEFF| configure_json
+            .channel.string2=jinwoo|configure_json
+            .iconservice.conf=10|iconservice_json
+            .iconrpc.conf=10|iconrpcserver_json
+         configure_json: "/prep_peer/conf/configure.json"
+         iconservice_json: "/prep_peer/conf/iconservice.json"
+         iconrpcserver_json: "/prep_peer/conf/iconrpcserver.json"
+
+      volumes:
+         - ./src:/src
+         - ./cert:/cert # Automatically generate cert key files here
+
+
