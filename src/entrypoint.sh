@@ -166,7 +166,7 @@ function getBlockCheck(){
             fi
         else
             cp ${NOW_COUNT_FILE} ${PREV_COUNT_FILE}
-#            echo "" > ${ERROR_COUNT_FILE}
+            echo "" > ${ERROR_COUNT_FILE}
         fi
     fi
 }
