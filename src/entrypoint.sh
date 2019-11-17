@@ -166,6 +166,7 @@ function getBlockCheck(){
             fi
         else
             cp ${NOW_COUNT_FILE} ${PREV_COUNT_FILE}
+#            echo "" > ${ERROR_COUNT_FILE}
         fi
     fi
 }
@@ -630,7 +631,6 @@ if [[ ! -z "${USER_DEFINED_ENV}" ]]; then
     CPrint "$(/src/genconfig.py)"
 fi
 
-exit 0
 
 ## check config file
 for config in "$configure_json" "$iconrpcserver_json" "$iconservice_json" "$CHANNEL_MANAGE_DATA_PATH";
