@@ -5,7 +5,7 @@ import argparse
 from timeit import default_timer
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
-from random import randint
+from datetime import *
 
 results = []
 TIMEOUT = 5
@@ -20,25 +20,33 @@ region_info = {
     "Frankfurt": "-ff.s3",
 }
 
-
 AWSRegions = {
+    "Seoul": "ap-northeast-2",
+    "Tokyo": "ap-northeast-1",
     "Virginia": "us-east-1",
+    "Hongkong": "ap-east-1",
+    "Singapore": "ap-southeast-1",
+    "Mumbai": "ap-south-1",
+    "Frankfurt": "eu-central-1",
     "Ohio": "us-east-2",
     "California": "us-west-1",
     "US-West": "us-west-2",
     "Ceentral":"ca-central-1",
     "Ireland": "eu-west-1",
-    "Frankfurt": "eu-central-1",
     "London": "eu-west-2",
-    "Hongkong": "ap-east-1",
-    "Tokyo": "ap-northeast-1",
-    "Seoul": "ap-northeast-2",
-    "Singapore": "ap-southeast-1",
-    "Mumbai": "ap-south-1",
     "Sydney": "ap-southeast-2",
     "São Paulo": "sa-east-1",
     "Beijing": "cn-north-1",
 }
+
+def todaydate(type=None):
+    if type is None:
+        return '%s' % datetime.now().strftime("%Y%m%d")
+    elif type == "log":
+        return '%s' % datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+    elif type == "ms":
+        return '%s' % datetime.now().strftime("%Y%m%d_%H%M%S.%f")[:-3]
+
 
 def getTime(url, name="NULL"):
     START_TIME = default_timer()
@@ -66,10 +74,10 @@ async def findFastestRegion(region_info):
         # with requests.Session() as session:
         loop = asyncio.get_event_loop()
         for region_name, region_code in region_info.items():
-            URL=f'https://icon-leveldb-backup{region_code}.amazonaws.com/route_check'
+            URL=f'https://icon-leveldb-backup{region_code}.amazonaws.com/route_check?x=%s' % todaydate("ms")
             tasks.append(loop.run_in_executor(executor, getTime, *(URL, region_name)))
         for region_name, region_code in AWSRegions.items():
-            URL=f'https://s3.{AWSRegions.get(region_name)}.amazonaws.com/ping?x=%s' % randint(1, 100)
+            URL=f'https://s3.{AWSRegions.get(region_name)}.amazonaws.com/ping?x=%s' % todaydate("ms")
             tasks.append(loop.run_in_executor(executor, getTime, *(URL, region_name)))
 
         await asyncio.gather(*tasks)
@@ -92,7 +100,7 @@ def main():
     future = asyncio.ensure_future(findFastestRegion(region_info))
     loop.run_until_complete(future)
 
-    sort_data = sorted( results, key=(lambda x: x['run_time']), reverse=False )
+    sort_data = sorted(results, key=(lambda x: x['run_time']), reverse=False)
     return_data = []
 
     for i, v in enumerate(sort_data):
@@ -109,6 +117,7 @@ def main():
             print(f"{return_data[0].get('name')} / {results[0].get('url')} / {results[0].get('run_time')} ")
     else:
         sys.exit(127)
+
 
 if __name__ == '__main__':
     main()
