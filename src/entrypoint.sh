@@ -673,7 +673,7 @@ else
                 rm -rf $DEFAULT_STORAGE_PATH/* $scoreRootPath/* $stateDbRootPath/*
                 mkdir -p $DEFAULT_STORAGE_PATH $scoreRootPath $stateDbRootPath ${DEFAULT_PATH}
                 if [[ -z "$FASTEST_START_POINT" ]]; then
-                    FAST_S3_REGION=`/src/find_region.py`
+                    FAST_S3_REGION=`/src/find_region_async.py`
                     CPrint "Download from [  $FAST_S3_REGION  ]" "GREEN"
                     DOWNLOAD_PREFIX="$FAST_S3_REGION/${NETWORK_NAME}"
                     LASTEST_VERSION=`curl -k -s ${DOWNLOAD_PREFIX}/backup_list | head -n 1`
