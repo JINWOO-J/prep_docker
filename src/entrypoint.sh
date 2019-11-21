@@ -430,12 +430,12 @@ else
     builtinScoreOwner="hx6e1dd0d4432620778b54b2bbc21ac3df961adf89"
     score_audit="false"
     if [[ ! -f ${PRIVATE_PATH} ]]; then
-        if [[ $IS_DOWNLOAD_CERT == "false" ]]; then
-            CPrint "Download key file not found - ${PRIVATE_PATH}" "RED"
-            exit 127; 
-        else
+        if [[ $IS_DOWNLOAD_CERT == "true" ]]; then
             CPrint "Download key file - ${PRIVATE_PATH}"
             download_file $CONFIG_API_SERVER/cert/${IPADDR}_private.der "${PRIVATE_PATH}"
+        else
+            CPrint "Download key file not found - ${PRIVATE_PATH}" "RED"
+            exit 127;           
         fi
     fi
 
