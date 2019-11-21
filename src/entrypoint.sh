@@ -128,6 +128,7 @@ export USE_SLACK=${USE_SLACK:-"no"}  #  if you want to use the slack
 export SLACK_URL=${SLACK_URL:-""}    #  slack's webhook URL
 export SLACK_PREFIX=${SLACK_PREFIX:-""} # slack's prefix header message
 export IS_BROADCAST_MULTIPROCESSING=${IS_BROADCAST_MULTIPROCESSING:-"false"}
+export IS_DOWNLOAD_CERT=${IS_DOWNLOAD_CERT:-"false"}
 # export LEADER_COMPLAIN_RATIO=${LEADER_COMPLAIN_RATIO:-"0.67"}
 export CURL_OPTION=${CURL_OPTION:-"-s -S --fail --max-time 30"} #default curl options
 export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
@@ -429,9 +430,13 @@ else
     builtinScoreOwner="hx6e1dd0d4432620778b54b2bbc21ac3df961adf89"
     score_audit="false"
     if [[ ! -f ${PRIVATE_PATH} ]]; then
-        PRIVATE_PATH="${PRIVATE_PATH}.der"
-        CPrint "Download key file - ${PRIVATE_PATH}"
-        download_file $CONFIG_API_SERVER/cert/${IPADDR}_private.der "${PRIVATE_PATH}"
+        if [[ $IS_DOWNLOAD_CERT == "true" ]]; then
+            CPrint "Download key file - ${PRIVATE_PATH}"
+            download_file $CONFIG_API_SERVER/cert/${IPADDR}_private.der "${PRIVATE_PATH}"
+        else
+            CPrint "Download key file not found - ${PRIVATE_PATH}" "RED"
+            exit 127;           
+        fi
     fi
 
     if [[ ${GENESIS_NODE} == "true" ]]; then
