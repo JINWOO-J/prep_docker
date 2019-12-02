@@ -426,6 +426,9 @@ elif [[ "$NETWORK_ENV" == "testnet" ]]; then
     termPeriod=43120
     blockValidationPenaltyThreshold=660
     jq -M 'del(.CHANNEL_OPTION.icon_dex.block_versions."0.3")' $configure_json| sponge $configure_json
+    if [[ "$CREP_ROOT_HASH" ]]; then
+        jq --arg CREP_ROOT_HASH "$CREP_ROOT_HASH" '.CHANNEL_OPTION.icon_dex.crep_root_hash = "\($CREP_ROOT_HASH)"' $configure_json| sponge $configure_json
+    fi
 else
     builtinScoreOwner="hx6e1dd0d4432620778b54b2bbc21ac3df961adf89"
     score_audit="false"
@@ -437,6 +440,10 @@ else
             CPrint "Download key file not found - ${PRIVATE_PATH}" "RED"
             exit 127;           
         fi
+    fi
+
+    if [[ "$CREP_ROOT_HASH" ]]; then
+        jq --arg CREP_ROOT_HASH "$CREP_ROOT_HASH" '.CHANNEL_OPTION.icon_dex.crep_root_hash = "\($CREP_ROOT_HASH)"' $configure_json| sponge $configure_json
     fi
 
     if [[ ${GENESIS_NODE} == "true" ]]; then
