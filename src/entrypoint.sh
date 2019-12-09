@@ -81,6 +81,7 @@ export CONFIG_API_SERVER=${CONFIG_API_SERVER:-"https://download.solidwallet.io"}
 export GENESIS_DATA_PATH=${GENESIS_DATA_PATH:-"${CONF_PATH}/genesis.json"}
 export BLOCK_VERSIONS=${BLOCK_VERSIONS:-""}
 export SWITCH_BH_VERSION3=${SWITCH_BH_VERSION3:-""}
+export SWITCH_BH_VERSION4=${SWITCH_BH_VERSION4:-""}
 
 export RADIOSTATIONS=${RADIOSTATIONS:-""}
 export SHUTDOWN_TIMER=${SHUTDOWN_TIMER:-7200} # SHUTDOWN_TIMER for citizen
@@ -448,6 +449,12 @@ else
     fi
 fi
 
+if [[ "$NETWORK_ENV" != "mainnet" ]]; then
+    if [[ "$CREP_ROOT_HASH" ]]; then
+        jq --arg CREP_ROOT_HASH "$CREP_ROOT_HASH" '.CHANNEL_OPTION.icon_dex.crep_root_hash = "\($CREP_ROOT_HASH)"' $configure_json| sponge $configure_json
+    fi
+fi
+
 if [[ $NETWORK_ENV == "mainnet" || $NETWORK_ENV == "testnet" ]];then
 
     if [[  ! -f "${PRIVATE_PATH}"  ]]; then
@@ -480,6 +487,11 @@ jq --argjson SHUTDOWN_TIMER "$SHUTDOWN_TIMER" '.SHUTDOWN_TIMER = $SHUTDOWN_TIMER
 if [[ ! -z $SWITCH_BH_VERSION3 ]]; then
     CPrint "SWITCH_BH_VERSION3 = ${SWITCH_BH_VERSION3}"
     jq --argjson SWITCH_BH_VERSION3 "$SWITCH_BH_VERSION3" '.CHANNEL_OPTION.icon_dex.block_versions."0.3" = $SWITCH_BH_VERSION3' $configure_json| sponge $configure_json
+fi
+
+if [[ ! -z $SWITCH_BH_VERSION4 ]]; then
+    CPrint "SWITCH_BH_VERSION4 = ${SWITCH_BH_VERSION4}"
+    jq --argjson SWITCH_BH_VERSION4 "$SWITCH_BH_VERSION4" '.CHANNEL_OPTION.icon_dex.block_versions."0.4" = $SWITCH_BH_VERSION4' $configure_json| sponge $configure_json
 fi
 
 # jq --arg LEADER_COMPLAIN_RATIO "$LEADER_COMPLAIN_RATIO" '.LEADER_COMPLAIN_RATIO = "\($LEADER_COMPLAIN_RATIO)"' $configure_json| sponge $configure_json
