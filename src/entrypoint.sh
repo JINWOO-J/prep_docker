@@ -427,9 +427,6 @@ elif [[ "$NETWORK_ENV" == "testnet" ]]; then
     termPeriod=43120
     blockValidationPenaltyThreshold=660
     jq -M 'del(.CHANNEL_OPTION.icon_dex.block_versions."0.3")' $configure_json| sponge $configure_json
-    if [[ "$CREP_ROOT_HASH" ]]; then
-        jq --arg CREP_ROOT_HASH "$CREP_ROOT_HASH" '.CHANNEL_OPTION.icon_dex.crep_root_hash = "\($CREP_ROOT_HASH)"' $configure_json| sponge $configure_json
-    fi
 else
     builtinScoreOwner="hx6e1dd0d4432620778b54b2bbc21ac3df961adf89"
     score_audit="false"
@@ -443,16 +440,18 @@ else
         fi
     fi
 
-    if [[ "$CREP_ROOT_HASH" ]]; then
-        jq --arg CREP_ROOT_HASH "$CREP_ROOT_HASH" '.CHANNEL_OPTION.icon_dex.crep_root_hash = "\($CREP_ROOT_HASH)"' $configure_json| sponge $configure_json
-    fi
-
     if [[ ${GENESIS_NODE} == "true" ]]; then
         if [[ -f ${CHANNEL_MANAGE_DATA_PATH} ]]; then
             CPrint "Already channel_manage_data.json ${CHANNEL_MANAGE_DATA_PATH}" "green"
         else
             download_file $CONFIG_API_SERVER/conf/${SERVICE}_channel_manage_data.json $CHANNEL_MANAGE_DATA_PATH
         fi
+    fi
+fi
+
+if [[ "$NETWORK_ENV" != "mainnet" ]]; then
+    if [[ "$CREP_ROOT_HASH" ]]; then
+        jq --arg CREP_ROOT_HASH "$CREP_ROOT_HASH" '.CHANNEL_OPTION.icon_dex.crep_root_hash = "\($CREP_ROOT_HASH)"' $configure_json| sponge $configure_json
     fi
 fi
 
