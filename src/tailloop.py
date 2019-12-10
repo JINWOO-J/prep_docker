@@ -474,7 +474,6 @@ def main():
             # print(line.decode().strip())
 
     elif args.command == "tail":
-
         f = subprocess.Popen(['tail', '-F', filename],
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         p = select.poll()
@@ -489,7 +488,7 @@ def main():
                 else:
                     print(line)
             time.sleep(0.01)
-    #
+
 
 
 REGEX_DATA = """

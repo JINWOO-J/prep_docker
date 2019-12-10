@@ -23,13 +23,45 @@ REPO_HUB = iconloop
 NAME= prep-node
 endif
 
+TAGNAME = $(VERSION)
+
+ifeq ($(findstring $(MAKECMDGOALS) , bash),)
+	VERSION:=1912021444x78adc5-dev
+	LOOPCHAIN_LOG_LEVEL:="DEBUG"
+	ICON_LOG_LEVEL:="DEBUG"
+    IS_DOWNLOAD_CERT:="false"
+    PRIVATE_KEY_FILENAME:="YOUR_KEYSTORE_FILENAME.der"
+    NGINX_THROTTLE_BY_IP_VAR:="\$$binary_remote_addr"
+	TIMEOUT_FOR_LEADER_COMPLAIN:=60
+	blockValidationPenaltyThreshold:=10
+	LOCAL_TEST:="true"
+	LOG_OUTPUT_TYPE:="file|console"
+	ENDPOINT_URL:="http://20.20.3.26:8000"
+	FIND_NEIGHBOR:="true"
+	GENESIS_NODE:="false"
+	NTP_REFRESH_TIME:="30"
+	mainPRepCount:= 6
+	LOG_OUTPUT_TYPE:="file|console"
+	SERVICE:="prep"
+	mainAndSubPRepCount:= 20
+	decentralizeTrigger:= 0.0001
+	# decentralizeTrigger: 0
+	iissCalculatePeriod:= 60
+	termPeriod:= 60
+	HEALTH_CHECK_INTERVAL:= 30
+	HELL_LIMIT:= 3000
+	ERROR_LIMIT:= 10
+	CREP_ROOT_HASH:="0xe4bd136b3d42c765a284b8948859fff45f58045a24e42bb02663b54a9c226550"
+endif
+
+
 define colorecho
       @tput setaf 6
       @echo $1
       @tput sgr0
 endef
 
-TAGNAME = $(VERSION)
+
 
 NO_COLOR=\x1b[0m
 OK_COLOR=\x1b[32;01m
@@ -39,7 +71,8 @@ OK_STRING=$(OK_COLOR)[OK]$(NO_COLOR)
 ERROR_STRING=$(ERROR_COLOR)[ERRORS]$(NO_COLOR)
 WARN_STRING=$(WARN_COLOR)[WARNINGS]$(NO_COLOR)
 
-.PHONY: all build push test tag_latest release ssh
+
+.PHONY: all build push test tag_latest release ssh bash
 
 all: build change_docker
 hub: push_hub tag_latest
@@ -47,7 +80,20 @@ hub: push_hub tag_latest
 print_version:
 	@echo "$(OK_COLOR) VERSION-> $(VERSION)  REPO-> $(REPO_HUB)/$(NAME):$(TAGNAME) $(NO_COLOR) IS_LOCAL: $(IS_LOCAL)"
 
-
+make_debug_mode:
+	@$(shell echo "$(OK_COLOR) ----- DEBUG Environment ----- \n $(NO_COLOR)" >&2)\
+		$(shell echo "" > DEBUG_ARGS) \
+			$(foreach V, \
+				$(sort $(.VARIABLES)), \
+				$(if  \
+					$(filter-out environment% default automatic, $(origin $V) ), \
+						$($V=$($V)) \
+					$(if $(filter-out "SHELL" "%_COLOR" "%_STRING" "MAKE%" "colorecho" ".DEFAULT_GOAL" "CURDIR", "$V" ),  \
+						$(shell echo '$(OK_COLOR)  $V=$(WARN_COLOR)$($V) $(NO_COLOR) ' >&2;) \
+						$(shell echo '-e $V=$($V)  ' >> DEBUG_ARGS)\
+					)\
+				)\
+			)
 
 make_build_args:
 	@$(shell echo "$(OK_COLOR) ----- Build Environment ----- \n $(NO_COLOR)" >&2)\
@@ -123,8 +169,8 @@ build_hub: print_version
 		git push origin --tags
 		curl -H "Content-Type: application/json" --data '{"build": true,"source_type": "Tag", "source_name": "$(VERSION)"}' -X POST https://registry.hub.docker.com/u/${REPO_HUB}/${NAME}/trigger/${TRIGGERKEY}/
 
-bash: make_build_args print_version
-		docker run -p 9000:9000 -p 7100:7100 -e IPADDR="20.20.1.123" -it -v $(PWD)/cert:/prep_peer/cert -v $(PWD)/data:/data -e VERSION=$(TAGNAME) -v $(PWD)/src:/src --entrypoint /bin/bash --name $(NAME) --rm $(REPO_HUB)/$(NAME):$(TAGNAME)
+bash: make_debug_mode print_version
+		docker run  $(shell cat DEBUG_ARGS) -p 9000:9000 -p 7100:7100 -it -v $(PWD)/cert:/prep_peer/cert -v $(PWD)/data:/data -e VERSION=$(TAGNAME) -v $(PWD)/src:/src --entrypoint /bin/bash --name $(NAME) --rm $(REPO_HUB)/$(NAME):$(TAGNAME)
 
 list:
 		@echo "$(OK_COLOR) Tag List - $(REPO_HUB)/$(NAME) $(NO_COLOR)"

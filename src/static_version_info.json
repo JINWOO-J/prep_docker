@@ -10,18 +10,18 @@
     },
     "loopchain" : {
         "url": "https://github.com/icon-project/loopchain",
-        "revision": "2.4.3"
+        "revision": "2.4.16"
     },
     "iconservice": {
         "url": "https://github.com/icon-project/icon-service",
-        "revision": "v1.5.6"
+        "revision": "v1.5.18"
     },
     "iconrpcserver": {
         "url": "https://github.com/icon-project/icon-rpc-server",
-        "revision": "1.4.3"
+        "revision": "1.4.6"
     },
     "icon_rc": {
         "url": "https://github.com/icon-project/rewardcalculator",
-        "revision": "v1.1.0-12-g361dab1"
+        "revision": "v1.1.3"
     }
 }
