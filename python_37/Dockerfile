@@ -34,6 +34,7 @@ erlang-public-key  erlang-runtime-tools erlang-snmp \
 erlang-ssl  erlang-syntax-tools erlang-tftp \
 erlang-tools erlang-xmerl"
 ENV DELETE_PACKAGE="gcc gcc-6 g++* g++-6* make git automake"
+ENV PIP3_PACKAGE="cryptography tbears iconsdk python-hosts halo termcolor"
 COPY src /src
 COPY src/pip.conf /etc/
 COPY src/erlang /etc/apt/preferences.d/erlang
@@ -70,7 +71,7 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 && \
             then exit 127; \
         fi;\
     done && \
-    pip install tbears iconsdk python-hosts halo termcolor && \
+    pip install $PIP3_PACKAGE  && \
     if [ "x$RC_BUILD" != "x" ];then \
         wget https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz ; \
         tar zxf go${GO_VERSION}.linux-amd64.tar.gz ; \
