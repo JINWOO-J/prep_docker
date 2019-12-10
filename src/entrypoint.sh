@@ -415,8 +415,8 @@ if [[ "$NETWORK_ENV" == "mainnet" ]]; then
     termPeriod=43120
     blockValidationPenaltyThreshold=660
     CREP_ROOT_HASH="0xd421ad83f81a31abd7f6813bb6a3b92fa547bdb6d5abc98d2d0852c1a97bcca5"
+    SWITCH_BH_VERSION3=10324749
     jq --arg CREP_ROOT_HASH "$CREP_ROOT_HASH" '.CHANNEL_OPTION.icon_dex.crep_root_hash = "\($CREP_ROOT_HASH)"' $configure_json| sponge $configure_json
-
     jq -M 'del(.CHANNEL_OPTION.icon_dex.block_versions."0.3")' $configure_json| sponge $configure_json
     jq '.CHANNEL_OPTION.icon_dex.hash_versions.genesis = 0' $configure_json| sponge $configure_json
 
@@ -426,6 +426,7 @@ elif [[ "$NETWORK_ENV" == "testnet" ]]; then
     iissCalculatePeriod=43200
     termPeriod=43120
     blockValidationPenaltyThreshold=660
+    SWITCH_BH_VERSION3=2698900
     jq -M 'del(.CHANNEL_OPTION.icon_dex.block_versions."0.3")' $configure_json| sponge $configure_json
 else
     builtinScoreOwner="hx6e1dd0d4432620778b54b2bbc21ac3df961adf89"
