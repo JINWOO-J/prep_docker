@@ -72,8 +72,7 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 && \
     if [ ! -f "/usr/local/bin/icon_rc" ]; then \
         echo "icon_rc not found"; \
         exit 127;\
-    fi;
-
+    fi; \
     for FILE in $WHL_LIST; \
         do pip3 install $FILE; \
         if [ $? != 0 ]; \
