@@ -59,12 +59,20 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 && \
     mkdir -p $APP_DIR/cert && \
     if [ "x$DOWNLOAD_PACKAGE" != "x" ]; then  \
         ls /$APP_DIR/whl/ ; \
-        wget $DOWNLOAD_PACKAGE -O /$APP_DIR/whl/DOWNLOAD.tar.gz ; \
+        wget $DOWNLOAD_PACKAGE -O /$APP_DIR/whl/DOWNLOAD.tar.gz || exit 1; \
         tar zxvf /$APP_DIR/whl/*.gz --strip 1 -C /$APP_DIR/whl/ ; \
-        cp /$APP_DIR/whl/icon_rc /usr/local/bin ; \
+#        cp /$APP_DIR/whl/icon_rc /usr/local/bin ; \
     fi ; \
     pip install --upgrade pip && \
     WHL_LIST=`find /$APP_DIR/ -name "*.whl"` && \
+    ICON_RC=`find /$APP_DIR/ -name "icon_rc"` && \
+    if [ "x${ICON_RC}" != "x" ]; then \
+        cp $ICON_RC /usr/local/bin  || exit 1;
+    else \
+        echo "icon_rc not found"; \
+        exit 127;\
+    fi; \
+
     for FILE in $WHL_LIST; \
         do pip3 install $FILE; \
         if [ $? != 0 ]; \

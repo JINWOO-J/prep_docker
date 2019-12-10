@@ -25,34 +25,34 @@ endif
 
 TAGNAME = $(VERSION)
 
-ifeq ($(findstring $(MAKECMDGOALS) , bash),)
-	VERSION:=1912021444x78adc5-dev
-	LOOPCHAIN_LOG_LEVEL:="DEBUG"
-	ICON_LOG_LEVEL:="DEBUG"
-    IS_DOWNLOAD_CERT:="false"
-    PRIVATE_KEY_FILENAME:="YOUR_KEYSTORE_FILENAME.der"
-    NGINX_THROTTLE_BY_IP_VAR:="\$$binary_remote_addr"
-	TIMEOUT_FOR_LEADER_COMPLAIN:=60
-	blockValidationPenaltyThreshold:=10
-	LOCAL_TEST:="true"
-	LOG_OUTPUT_TYPE:="file|console"
-	ENDPOINT_URL:="http://20.20.3.26:8000"
-	FIND_NEIGHBOR:="true"
-	GENESIS_NODE:="false"
-	NTP_REFRESH_TIME:="30"
-	mainPRepCount:= 6
-	LOG_OUTPUT_TYPE:="file|console"
-	SERVICE:="prep"
-	mainAndSubPRepCount:= 20
-	decentralizeTrigger:= 0.0001
-	# decentralizeTrigger: 0
-	iissCalculatePeriod:= 60
-	termPeriod:= 60
-	HEALTH_CHECK_INTERVAL:= 30
-	HELL_LIMIT:= 3000
-	ERROR_LIMIT:= 10
-	CREP_ROOT_HASH:="0xe4bd136b3d42c765a284b8948859fff45f58045a24e42bb02663b54a9c226550"
-endif
+#ifeq ($(findstring $(MAKECMDGOALS) , bash),)
+#	VERSION:=1912021444x78adc5-dev
+#	LOOPCHAIN_LOG_LEVEL:="DEBUG"
+#	ICON_LOG_LEVEL:="DEBUG"
+#    IS_DOWNLOAD_CERT:="false"
+#    PRIVATE_KEY_FILENAME:="YOUR_KEYSTORE_FILENAME.der"
+#    NGINX_THROTTLE_BY_IP_VAR:="\$$binary_remote_addr"
+#	TIMEOUT_FOR_LEADER_COMPLAIN:=60
+#	blockValidationPenaltyThreshold:=10
+#	LOCAL_TEST:="true"
+#	LOG_OUTPUT_TYPE:="file|console"
+#	ENDPOINT_URL:="http://20.20.3.26:8000"
+#	FIND_NEIGHBOR:="true"
+#	GENESIS_NODE:="false"
+#	NTP_REFRESH_TIME:="30"
+#	mainPRepCount:= 6
+#	LOG_OUTPUT_TYPE:="file|console"
+#	SERVICE:="prep"
+#	mainAndSubPRepCount:= 20
+#	decentralizeTrigger:= 0.0001
+#	# decentralizeTrigger: 0
+#	iissCalculatePeriod:= 60
+#	termPeriod:= 60
+#	HEALTH_CHECK_INTERVAL:= 30
+#	HELL_LIMIT:= 3000
+#	ERROR_LIMIT:= 10
+#	CREP_ROOT_HASH:="0xe4bd136b3d42c765a284b8948859fff45f58045a24e42bb02663b54a9c226550"
+#endif
 
 
 define colorecho
