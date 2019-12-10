@@ -67,7 +67,7 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 && \
     WHL_LIST=`find /$APP_DIR/ -name "*.whl"` && \
     ICON_RC=`find /$APP_DIR/ -name "icon_rc"` && \
     if [ "x${ICON_RC}" != "x" ]; then \
-        cp $ICON_RC /usr/local/bin  || exit 1;
+        cp $ICON_RC /usr/local/bin  || exit 1;\
     fi; \
     if [ ! -f "/usr/local/bin/icon_rc" ]; then \
         echo "icon_rc not found"; \
