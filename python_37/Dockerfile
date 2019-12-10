@@ -68,10 +68,12 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 && \
     ICON_RC=`find /$APP_DIR/ -name "icon_rc"` && \
     if [ "x${ICON_RC}" != "x" ]; then \
         cp $ICON_RC /usr/local/bin  || exit 1;
-    else
+    fi; \
+    if [ ! -f "/usr/local/bin/icon_rc" ]; then \
         echo "icon_rc not found"; \
         exit 127;\
-    fi; \
+    fi;
+
     for FILE in $WHL_LIST; \
         do pip3 install $FILE; \
         if [ $? != 0 ]; \
