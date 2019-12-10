@@ -1,5 +1,5 @@
 #!/bin/bash
-export EXT_IPADDR=${EXT_IPADDR:-`curl -s ifconfig.co`} # Getting external IP address
+export EXT_IPADDR=${EXT_IPADDR:-`curl -s http://checkip.amazonaws.com`} # Getting external IP address
 export IPADDR=${IPADDR:-"$EXT_IPADDR"}  # Setting the IP address 
 
 export LOCAL_TEST=${LOCAL_TEST:-"false"}

@@ -34,6 +34,7 @@ erlang-public-key  erlang-runtime-tools erlang-snmp \
 erlang-ssl  erlang-syntax-tools erlang-tftp \
 erlang-tools erlang-xmerl"
 ENV DELETE_PACKAGE="gcc gcc-6 g++* g++-6* make git automake"
+ENV PIP3_PACKAGE="cryptography tbears iconsdk python-hosts halo termcolor"
 COPY src /src
 COPY src/pip.conf /etc/
 COPY src/erlang /etc/apt/preferences.d/erlang
@@ -58,19 +59,27 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 && \
     mkdir -p $APP_DIR/cert && \
     if [ "x$DOWNLOAD_PACKAGE" != "x" ]; then  \
         ls /$APP_DIR/whl/ ; \
-        wget $DOWNLOAD_PACKAGE -O /$APP_DIR/whl/DOWNLOAD.tar.gz ; \
+        wget $DOWNLOAD_PACKAGE -O /$APP_DIR/whl/DOWNLOAD.tar.gz || exit 1; \
         tar zxvf /$APP_DIR/whl/*.gz --strip 1 -C /$APP_DIR/whl/ ; \
-        cp /$APP_DIR/whl/icon_rc /usr/local/bin ; \
+#        cp /$APP_DIR/whl/icon_rc /usr/local/bin ; \
     fi ; \
     pip install --upgrade pip && \
     WHL_LIST=`find /$APP_DIR/ -name "*.whl"` && \
+    ICON_RC=`find /$APP_DIR/ -name "icon_rc"` && \
+    if [ "x${ICON_RC}" != "x" ]; then \
+        cp $ICON_RC /usr/local/bin  || exit 1;\
+    fi; \
+    if [ ! -f "/usr/local/bin/icon_rc" ]; then \
+        echo "icon_rc not found"; \
+        exit 127;\
+    fi; \
     for FILE in $WHL_LIST; \
         do pip3 install $FILE; \
         if [ $? != 0 ]; \
             then exit 127; \
         fi;\
     done && \
-    pip install tbears iconsdk python-hosts halo termcolor && \
+    pip install $PIP3_PACKAGE  && \
     if [ "x$RC_BUILD" != "x" ];then \
         wget https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz ; \
         tar zxf go${GO_VERSION}.linux-amd64.tar.gz ; \
