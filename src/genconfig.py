@@ -61,10 +61,6 @@ class dotdictify(dict):
 
         elif key is not None and '.' in key:
             myKey, restOfKey = key.split('.', 1)
-            print(myKey,restOfKey)
-
-            print( f"{key[0]} /  {key[-1]}")
-
             target = self.setdefault(myKey, dotdictify())
             if not isinstance(target, dotdictify):
                 raise KeyError
@@ -254,8 +250,6 @@ def main():
                     merge_json = merge_dicts( prev_json, changed_json)
                 else:
                     print(f"{config_group} file or environment not found")
-
-            dump(merge_json)
             if config_file:
                 writeJson(config_file, merge_json)
 
