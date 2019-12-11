@@ -90,7 +90,7 @@ make_debug_mode:
 					$(filter-out environment% default automatic, $(origin $V) ), \
 						$($V=$($V)) \
 					$(if $(filter-out "SHELL" "%_COLOR" "%_STRING" "MAKE%" "colorecho" ".DEFAULT_GOAL" "CURDIR", "$V" ),  \
-						$(shell echo '$(OK_COLOR)  $V=$(WARN_COLOR)$($V) $(NO_COLOR) ' >&2;) \
+						$(shell echo '$(OK_COLOR)  $V = $(WARN_COLOR)$($V) $(NO_COLOR) ' >&2;) \
 						$(shell echo '-e $V=$($V)  ' >> DEBUG_ARGS)\
 					)\
 				)\
@@ -105,7 +105,7 @@ make_build_args:
 				 $(filter-out environment% default automatic, $(origin $V) ), \
 				 	 $($V=$($V)) \
 				 $(if $(filter-out "SHELL" "%_COLOR" "%_STRING" "MAKE%" "colorecho" ".DEFAULT_GOAL" "CURDIR", "$V" ),  \
-					$(shell echo '$(OK_COLOR)  $V=$(WARN_COLOR)$($V) $(NO_COLOR) ' >&2;) \
+					$(shell echo '$(OK_COLOR)  $V = $(WARN_COLOR)$($V) $(NO_COLOR) ' >&2;) \
 				 	$(shell echo "--build-arg $V=$($V)  " >> BUILD_ARGS)\
 				  )\
 			  )\
