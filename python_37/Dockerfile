@@ -34,7 +34,7 @@ erlang-public-key  erlang-runtime-tools erlang-snmp \
 erlang-ssl  erlang-syntax-tools erlang-tftp \
 erlang-tools erlang-xmerl"
 ENV DELETE_PACKAGE="gcc gcc-6 g++* g++-6* make git automake"
-ENV PIP3_PACKAGE="cryptography tbears iconsdk python-hosts halo termcolor"
+ENV PIP3_PACKAGE="tbears iconsdk python-hosts halo termcolor"
 COPY src /src
 COPY src/pip.conf /etc/
 COPY src/erlang /etc/apt/preferences.d/erlang
