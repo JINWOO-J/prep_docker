@@ -53,6 +53,8 @@ ifeq ($(MAKECMDGOALS) , bash)
 	HELL_LIMIT:= 3000
 	ERROR_LIMIT:= 10
 	CREP_ROOT_HASH:="0xe4bd136b3d42c765a284b8948859fff45f58045a24e42bb02663b54a9c226550"
+	configure_json:="/prep_peer/conf/configure.json"
+	USER_DEFINED_ENV:= ".channel.intconf.\"0.3\"=10|configure_json"
 endif
 
 
@@ -171,7 +173,9 @@ build_hub: print_version
 		curl -H "Content-Type: application/json" --data '{"build": true,"source_type": "Tag", "source_name": "$(VERSION)"}' -X POST https://registry.hub.docker.com/u/${REPO_HUB}/${NAME}/trigger/${TRIGGERKEY}/
 
 bash: make_debug_mode print_version
-		docker run  $(shell cat DEBUG_ARGS) -p 9000:9000 -p 7100:7100 -it -v $(PWD)/cert:/prep_peer/cert -v $(PWD)/data:/data -e VERSION=$(TAGNAME) -v $(PWD)/src:/src --entrypoint /bin/bash --name $(NAME) --rm $(REPO_HUB)/$(NAME):$(TAGNAME)
+		docker run  $(shell cat DEBUG_ARGS) -p 9000:9000 -p 7100:7100 -it -v $(PWD)/cert:/prep_peer/cert \
+		-v $(PWD)/data:/data -e VERSION=$(TAGNAME) -v $(PWD)/src:/src --entrypoint /bin/bash \
+		--name $(NAME) --rm $(REPO_HUB)/$(NAME):$(TAGNAME)
 
 list:
 		@echo "$(OK_COLOR) Tag List - $(REPO_HUB)/$(NAME) $(NO_COLOR)"
