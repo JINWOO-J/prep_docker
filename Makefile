@@ -25,7 +25,8 @@ endif
 
 TAGNAME = $(VERSION)
 
-ifeq ($(findstring $(MAKECMDGOALS) , dbash),)
+ifeq ($(MAKECMDGOALS) , bash)
+#ifeq ($(findstring $(MAKECMDGOALS) , dbash),)
 	VERSION:=1912021444x78adc5-dev
 	LOOPCHAIN_LOG_LEVEL:="DEBUG"
 	ICON_LOG_LEVEL:="DEBUG"
@@ -81,7 +82,7 @@ print_version:
 	@echo "$(OK_COLOR) VERSION-> $(VERSION)  REPO-> $(REPO_HUB)/$(NAME):$(TAGNAME) $(NO_COLOR) IS_LOCAL: $(IS_LOCAL)"
 
 make_debug_mode:
-	@$(shell echo "$(OK_COLOR) ----- DEBUG Environment ----- \n $(NO_COLOR)" >&2)\
+	@$(shell echo "$(OK_COLOR) ----- DEBUG Environment ----- $(MAKECMDGOALS)  \n $(NO_COLOR)" >&2)\
 		$(shell echo "" > DEBUG_ARGS) \
 			$(foreach V, \
 				$(sort $(.VARIABLES)), \
@@ -169,7 +170,7 @@ build_hub: print_version
 		git push origin --tags
 		curl -H "Content-Type: application/json" --data '{"build": true,"source_type": "Tag", "source_name": "$(VERSION)"}' -X POST https://registry.hub.docker.com/u/${REPO_HUB}/${NAME}/trigger/${TRIGGERKEY}/
 
-dbash: make_debug_mode print_version
+bash: make_debug_mode print_version
 		docker run  $(shell cat DEBUG_ARGS) -p 9000:9000 -p 7100:7100 -it -v $(PWD)/cert:/prep_peer/cert -v $(PWD)/data:/data -e VERSION=$(TAGNAME) -v $(PWD)/src:/src --entrypoint /bin/bash --name $(NAME) --rm $(REPO_HUB)/$(NAME):$(TAGNAME)
 
 list:
