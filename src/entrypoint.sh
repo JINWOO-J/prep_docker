@@ -702,9 +702,9 @@ else
                 CPrint "Start download - ${DOWNLOAD_URL}"
                 axel_option="-k -n 6 --verbose"
                 CPrint "axel ${axel_option} ${DOWNLOAD_URL} -o ${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"
-                axel ${axel_option} ${DOWNLOAD_URL} -o "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"  >> "${DEFAULT_LOG_PATH}/snapshot.$(date +%Y%m%d)" &
-                sleep 2;
                 snapshot_log="snapshot.$(date +%Y%m%d%H%M%S)"
+                axel ${axel_option} ${DOWNLOAD_URL} -o "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"  >> "${DEFAULT_LOG_PATH}/${snapshot_log}" &
+                sleep 2;
                 CPrint "$(head -n 3 ${DEFAULT_LOG_PATH}/${snapshot_log})"
                 while [[ true ]];
                 do
