@@ -1,13 +1,14 @@
 #!/bin/bash
-export EXT_IPADDR=${EXT_IPADDR:-`curl -s http://checkip.amazonaws.com`} # Getting external IP address
+export CURL_OPTION=${CURL_OPTION:-"-s -S --fail --max-time 30"} #default curl options
+export EXT_IPADDR=${EXT_IPADDR:-$(curl ${CURL_OPTION} http://checkip.amazonaws.com)} # Getting external IP address
 export IPADDR=${IPADDR:-"$EXT_IPADDR"}  # Setting the IP address 
-
 export LOCAL_TEST=${LOCAL_TEST:-"false"}
 if [[ ${LOCAL_TEST} == "true" ]]; then
-    export HOST_IP=`/sbin/ip -o -4 addr list eth0 | awk '{print $4}' | cut -d/ -f1`
+    HOST_IP=$(/sbin/ip -o -4 addr list eth0 | awk '{print $4}' | cut -d/ -f1)
     IPADDR=$HOST_IP
     echo  "===== LOCAL TEST = $IPADDR  ====="
 fi
+
 export TZ=${TZ:-"Asia/Seoul"}  # Setting the TimeZone Environment #[List of TZ name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
 export NETWORK_ENV=${NETWORK_ENV:-"PREP-TestNet"}  # Network Environment name  # mainnet or PREP-TestNet
 export SERVICE=${SERVICE:-"zicon"}               # Service Name
@@ -24,7 +25,7 @@ if [[ "x${ENDPOINT_URL}" == "x" ]]; then
         ENDPOINT_URL="https://test-ctz.solidwallet.io"
         FIND_NEIGHBOR=false
         SERVICE="testnet"
-    elif [[ `echo $SERVICE | grep -i "icon" | wc -l` ]];then
+    elif [[ $(echo $SERVICE | grep -i "icon" | wc -l) ]];then
         ENDPOINT_URL="https://${SERVICE}.net.solidwallet.io"
     fi
 fi
@@ -64,7 +65,7 @@ export ICON_NID=${ICON_NID:-"0x50"}  # Setting the ICON Network ID number
 export CREP_ROOT_HASH=${CREP_ROOT_HASH:-""}
 export ALLOW_MAKE_EMPTY_BLOCK=${ALLOW_MAKE_EMPTY_BLOCK:-"true"}
 export CHANNEL_BUILTIN=${CHANNEL_BUILTIN:-"true"} # boolean (true/false)
-export PEER_NAME=${PEER_NAME:-`uname`}
+export PEER_NAME=${PEER_NAME:-$(uname)}
 export PRIVATE_KEY_FILENAME=${PRIVATE_KEY_FILENAME:-"YOUR_KEYSTORE_FILENAME"} # YOUR_KEYSTORE or YOUR_CERTKEY FILENAME # YOUR_KEYSTORE or YOUR_CERTKEY FILENAME
 
 export PRIVATE_PATH=${PRIVATE_PATH:-"${CERT_PATH}/${PRIVATE_KEY_FILENAME}"} # public cert key or keystore file location
@@ -131,7 +132,6 @@ export SLACK_PREFIX=${SLACK_PREFIX:-""} # slack's prefix header message
 export IS_BROADCAST_MULTIPROCESSING=${IS_BROADCAST_MULTIPROCESSING:-"false"}
 export IS_DOWNLOAD_CERT=${IS_DOWNLOAD_CERT:-"false"}
 # export LEADER_COMPLAIN_RATIO=${LEADER_COMPLAIN_RATIO:-"0.67"}
-export CURL_OPTION=${CURL_OPTION:-"-s -S --fail --max-time 30"} #default curl options
 export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 
 #for bash prompt without entrypoint
@@ -141,7 +141,7 @@ exec "$@"
 function getBlockCheck(){
     if [[ ${USE_HELL_CHEK} == "yes" ]]; then
         CPrint "Start BlockCheck"
-        blockheight=`curl ${CURL_OPTION} localhost:${RPC_PORT}/api/v1/status/peer | jq -r .block_height`
+        blockheight=$(curl ${CURL_OPTION} localhost:${RPC_PORT}/api/v1/status/peer | jq -r .block_height)
         ERROR_DIR="/.health_check"
         ERROR_COUNT_FILE="${ERROR_DIR}/blockcount"
         NOW_COUNT_FILE="${ERROR_DIR}/blockcount_now"
@@ -150,12 +150,12 @@ function getBlockCheck(){
             mkdir -p ${ERROR_DIR}
         fi
         touch ${NOW_COUNT_FILE} ${PREV_COUNT_FILE}
-        echo ${blockheight} > ${NOW_COUNT_FILE}
-        PREV_ERROR_COUNT=`cat ${PREV_COUNT_FILE}`
+        echo "${blockheight}" > ${NOW_COUNT_FILE}
+        PREV_ERROR_COUNT=$(cat ${PREV_COUNT_FILE})
         if [[ "${blockheight}" -eq ${PREV_ERROR_COUNT} ]];then
             if [[ "${blockheight}" -ge 1 ]];then
                 echo "${blockheight}"  >> ${ERROR_COUNT_FILE}
-                ERROR_COUNT=`cat ${ERROR_COUNT_FILE} | wc -l`
+                ERROR_COUNT=$(cat ${ERROR_COUNT_FILE} | wc -l)
                 CPrint "blockheight=${blockheight}, ERROR_COUNT=${ERROR_COUNT}, HELL_LIMIT=${HELL_LIMIT}"
                 if [[ ${ERROR_COUNT} -ge ${HELL_LIMIT} ]];then
                     CPrint "[FAIL] (${ERROR_COUNT}/${HELL_LIMIT}) (HELL) It will be terminated / reason: Hell  "
@@ -205,7 +205,7 @@ function logging() {
     MSG=$1
     LOG_TYPE=${2:-"booting"}
     LOG_PATH=${3:-"$DEFAULT_LOG_PATH"}    
-    LOG_DATE=`date +%Y%m%d`
+    LOG_DATE=$(date +%Y%m%d)
     if [[ ! -e "$LOG_PATH" ]];then
         mkdir -p $LOG_PATH
     fi
@@ -228,7 +228,7 @@ function returnErrorCount(){
 
     if [[ "${MSG}"  && "${ACTION}" == "down" ]]; then
         echo ${MSG} >> ${ERROR_COUNT_FILE}
-        ERROR_COUNT=`cat ${ERROR_COUNT_FILE} | grep -v grep | grep "${MSG}" | wc -l`
+        ERROR_COUNT=$(cat ${ERROR_COUNT_FILE} | grep -v grep | grep "${MSG}" | wc -l)
         if [[ ${ERROR_COUNT} -ge ${ERROR_LIMIT} ]];then
             CPrint "[FAIL] (${ERROR_COUNT}/${ERROR_LIMIT}) It will be terminated / reason: ${MSG} "
             post_to_slack "[FAIL] (${ERROR_COUNT}/${ERROR_LIMIT}) It will be terminated / reason: ${MSG} "
@@ -251,7 +251,7 @@ function CPrint {
     if [[ "$COLOR" == "" ]];then
         MSG=$@
     fi
-    DATE=`date '+%Y-%m-%d %T.%3N'`
+    DATE=$(date '+%Y-%m-%d %T.%3N')
     RED='\e[0;91m'
     GREEN='\e[0;92m'
     WHITE='\e[97m'
@@ -297,7 +297,7 @@ function PrintOK() {
 function download_file() {
     DOWNLOAD_URL=$1
     DOWNLOAD_DEST=$2    
-    DOWN_STAT=`curl  -w "%{http_code}" -so ${DOWNLOAD_DEST} ${DOWNLOAD_URL}`
+    DOWN_STAT=$(curl  -w "%{http_code}" -so ${DOWNLOAD_DEST} ${DOWNLOAD_URL})
     if [[ "$DOWN_STAT" == "200" ]];then
         PrintOK "Download ${DOWNLOAD_URL}" $?        
     else        
@@ -337,7 +337,7 @@ function int_check(){
 }
 function filetype_check() {
     filename=$1
-    type=`file ${filename} | cut -d ":" -f 2`
+    type=$(file ${filename} | cut -d ":" -f 2)
     echo ${type}
 }
 
@@ -346,7 +346,7 @@ function validationViewConfig() {
     if [[ -f "${filename}" ]]; then
         jq -C . $filename 1>/dev/null
         if [[ "$VIEW_CONFIG" == "true" ]]; then
-            json=`jq  . ${filename}`
+            json=$(jq  . ${filename})
             CPrint "$filename detail - ${json}"
         fi
         FILESIZE=$(stat --printf="%s" $filename)
@@ -401,7 +401,7 @@ if [[ "${NETWORK_ENV}" == *"testnet"* ]];then
 fi
 
 CPrint "P-REP package version info - ${APP_VERSION}"
-PIP_LIST=`pip list | egrep "loopchain|icon" | tr -d ''`
+PIP_LIST=$(pip list | egrep "loopchain|icon" | tr -d '')
 CPrint "$PIP_LIST"
 
 CPrint "NETWORK_ENV=${NETWORK_ENV}, SERVICE=${SERVICE}, ENDPOINT_URL=${ENDPOINT_URL}, SERVICE_API = $SERVICE_API"
@@ -463,7 +463,7 @@ if [[ $NETWORK_ENV == "mainnet" || $NETWORK_ENV == "testnet" ]];then
 #        openssl ec -in ${PRIVATE_PATH}  -pubout -out ${PUBLIC_PATH} -passin pass:${PRIVATE_PASSWORD}
 #        PrintOK "Generate public key" $?
     else
-        PRIVATE_KEY=`ls ${PRIVATE_PATH}`
+        PRIVATE_KEY=$(ls ${PRIVATE_PATH})
 #        PUBLIC_KEY=`ls ${PUBLIC_PATH}`
         CPrint "Already cert keys= ${PRIVATE_KEY}"
     fi
@@ -533,23 +533,22 @@ case "$IS_REG" in
        ;;
 esac
 
-FIRST_PEER_IP=`curl -s  $CONFIG_API_SERVER/conf/${SERVICE}_channel_manage_data.json | jq -r ".icon_dex.peers[0].peer_target"  | cut -d ":" -f1`
+if [[ "${SERVICE}" != "mainnet" ]] && [[ "${SERVICE}" != "testnet" ]]; then
+    FIRST_PEER_IP=`curl -s  $CONFIG_API_SERVER/conf/${SERVICE}_channel_manage_data.json | jq -r ".icon_dex.peers[0].peer_target"  | cut -d ":" -f1`
+    if [[ "${FIRST_PEER_IP}" == "$IPADDR" ]] && [[ "x${REG_STATUS}" == "x" ]];then  #REG_STATUS 가있으면 PASS
+        FIRST_PEER="true"
+    fi
 
-if [[ "${FIRST_PEER_IP}" == "$IPADDR" ]] && [[ "x${REG_STATUS}" == "x" ]];then  #REG_STATUS 가있으면 PASS
-    FIRST_PEER="true"
+    if [[ "${FIRST_PEER}" == "false" ]];then
+        jq -M 'del(.CHANNEL_OPTION.icon_dex.genesis_data_path)' $configure_json| sponge $configure_json
+    #    if [[ "$ENDPOINT_URL" ]]; then
+    #        RUN_MODE="citizen -r ${ENDPOINT_URL}"
+    #    fi
+    else
+        CPrint "====== FIRST PEER ========"
+        jq  --arg PEER_ID "$PEER_ID" '(.transaction_data.accounts[] | select(.name == "genesis_node") | .address) |= "\($PEER_ID)"'  $GENESIS_DATA_PATH | sponge $GENESIS_DATA_PATH
+    fi
 fi
-
-if [[ "${FIRST_PEER}" == "false" ]];then
-    jq -M 'del(.CHANNEL_OPTION.icon_dex.genesis_data_path)' $configure_json| sponge $configure_json
-#    if [[ "$ENDPOINT_URL" ]]; then
-#        RUN_MODE="citizen -r ${ENDPOINT_URL}"
-#    fi
-else
-    CPrint "====== FIRST PEER ========"
-    jq  --arg PEER_ID "$PEER_ID" '(.transaction_data.accounts[] | select(.name == "genesis_node") | .address) |= "\($PEER_ID)"'  $GENESIS_DATA_PATH | sponge $GENESIS_DATA_PATH
-fi
-
-
 
 RUN_MODE_WRITE="${DEFAULT_PATH}/.run_mode"
 if [[ ! -f "${RUN_MODE_WRITE}"  && ${GENESIS_NODE} == "true" ]] ; then
@@ -658,7 +657,6 @@ done
 cd /$APP_DIR
 echo $#
 
-
 if [[ "$NEWRELIC_LICENSE" ]] ; then
     CPrint "=== START NEWRELIC ==="
     export NEW_RELIC_APP_NAME="prep-loopchain"
@@ -687,7 +685,7 @@ else
                 DOWNLOAD_FILENAME=`ls ${DEFAULT_PATH}/*.gz`
                 CPrint "[PASS] Already file - ${DOWNLOAD_FILENAME}"
             else
-                rm -rf $DEFAULT_STORAGE_PATH/* $scoreRootPath/* $stateDbRootPath/*
+                rm -rf ${DEFAULT_STORAGE_PATH:?}/* ${scoreRootPath:?}/* ${stateDbRootPath:?}/*
                 mkdir -p $DEFAULT_STORAGE_PATH $scoreRootPath $stateDbRootPath ${DEFAULT_PATH}
                 if [[ -z "$FASTEST_START_POINT" ]]; then
                     FAST_S3_REGION=`/src/find_region_async.py`
@@ -706,8 +704,9 @@ else
                 CPrint "axel ${axel_option} ${DOWNLOAD_URL} -o ${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"
                 axel ${axel_option} ${DOWNLOAD_URL} -o "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"  >> "${DEFAULT_LOG_PATH}/snapshot.$(date +%Y%m%d)" &
                 sleep 2;
-                CPrint "$(head -n 3 ${DEFAULT_LOG_PATH}/snapshot.$(date +%Y%m%d))"
-                while [[ 0 ]];
+                snapshot_log="snapshot.$(date +%Y%m%d%H%M%S)"
+                CPrint "$(head -n 3 ${DEFAULT_LOG_PATH}/${snapshot_log})"
+                while [[ true ]];
                 do
                     proc_check=`ps -ef|grep axel| grep -v grep | wc -l`
                     if [[ ${proc_check} == 0 ]];
@@ -719,24 +718,24 @@ else
                     sleep 1;
                 done
                 ## check the file
-                axel_down_res=$(head -n3 ${DEFAULT_LOG_PATH}/snapshot.$(date +%Y%m%d))
+                axel_down_res=$(head -n3 ${DEFAULT_LOG_PATH}/${snapshot_log})
                 is_file=$(echo ${axel_down_res} | grep "File" | wc -l)
                 is_unavailable=$(echo ${axel_down_res} | egrep "HTTP/1.0|Unable to" | wc -l)
                 CPrint "is_file = ${is_file}, is_unavailable = ${is_unavailable}"
                 if [[ "${is_unavailable}" == "1" ]] || [[ "${is_file}" == "0" ]];then
                     CPrint "Failed to download"
                 fi
-                CPrint "$(tail -n1 ${DEFAULT_LOG_PATH}/snapshot.$(date +%Y%m%d))"
+                CPrint "$(tail -n1 ${DEFAULT_LOG_PATH}/${snapshot_log})"
                 PrintOK "Download $LASTEST_VERSION(${DEFAULT_PATH}/${BASENAME})  to $DEFAULT_PATH" $?
 
                 tar -I pigz -xf ${DEFAULT_PATH}/${DOWNLOAD_FILENAME} -C ${DEFAULT_PATH}
                 rm  -f ${DEFAULT_PATH}/${DOWNLOAD_FILENAME}
                 touch ${DEFAULT_PATH}/${DOWNLOAD_FILENAME}
 
-                if [[ "${DEFAULT_PATH}/.score_data/db" != $stateDbRootPath ]]; then
+                if [[ "${DEFAULT_PATH}/.score_data/db" != "${stateDbRootPath}" ]]; then
                     mv "${DEFAULT_PATH}/.score_data/db" $stateDbRootPath
                 fi
-                if [[ "${DEFAULT_PATH}/.score_data/score" != $scoreRootPath ]]; then
+                if [[ "${DEFAULT_PATH}/.score_data/score" != "${scoreRootPath}" ]]; then
                     mv "${DEFAULT_PATH}/.score_data/score" $scoreRootPath
                 fi
                 mv $DEFAULT_PATH/.storage/*\:7100_icon_dex $DEFAULT_STORAGE_PATH/db_${IPADDR}\:7100_icon_dex
@@ -810,8 +809,6 @@ function proc_check(){
 }
 
 
-
-
 sleep 45;
 
 HEALTH_ENV_CHECK="false"
@@ -846,7 +843,7 @@ if [[ "${HEALTH_ENV_CHECK}" == "true" ]]; then
             if [[ "$VIEW_CONFIG" == "true" ]]; then
                 CPrint "Start API_HEALTH_CHECK  ... ${HEALTH_CHECK_INTERVAL}s"
             fi
-            CHECK_HEALTHY_STATUS=`curl ${CURL_OPTION} http://localhost:9000/api/v1/status/peer 2>&1`
+            CHECK_HEALTHY_STATUS=$(curl ${CURL_OPTION} http://localhost:9000/api/v1/status/peer 2>&1)
             if [[ $? -eq 0 ]]; then
                 ACTION="init"
             else
