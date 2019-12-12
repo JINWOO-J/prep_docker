@@ -318,10 +318,11 @@ function check_valid_ip(){
         IFS='.'
         ip=($ip)
         IFS=$OIFS
-        [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 \
-            && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
+        [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
         stat=$?
+
     fi
+    PrintOK "Check valid IPaddr -> $1 " $stat
     return $stat
 }
 function int_check(){
@@ -383,6 +384,7 @@ function ntp_check(){
 
 mkdir -p ${DEFAULT_PATH}
 
+check_valid_ip "$IPADDR"
 
 CPrint "Your IP: $IPADDR"
 CPrint "RPC_PORT: $RPC_PORT / RPC_WORKER: $RPC_WORKER "
@@ -391,9 +393,6 @@ CPrint "DEFAULT_LOG_PATH=${DEFAULT_LOG_PATH}"
 CPrint "DEFAULT_STORAGE_PATH=${DEFAULT_STORAGE_PATH}"
 CPrint "scoreRootPath=${scoreRootPath}"
 CPrint "stateDbRootPath=${stateDbRootPath}"
-
-
-ntp_check;
 
 shopt -s nocasematch
 if [[ "${NETWORK_ENV}" == *"testnet"* ]];then
