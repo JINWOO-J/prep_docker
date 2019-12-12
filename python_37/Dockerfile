@@ -9,17 +9,18 @@ ARG DOWNLOAD_PACKAGE
 ARG NAME
 ARG APP_VERSION
 ARG VERSION
+ARG TAGNAME
 ARG DOWNLOAD_PACKAGE=$DOWNLOAD_PACKAGE
 ARG RABBITMQ_VERSION="3.7.17"
 ARG GO_VERSION="1.12.7"
 ARG DOCKERIZE_VERSION="v0.6.1"
-ENV APP_VERSION ${NAME}_${VERSION}
+ENV APP_VERSION ${NAME}_${TAGNAME}
 ENV RABBITMQ_VERSION $RABBITMQ_VERSION
 ENV GO_VERSION $GO_VERSION
 ENV DOCKERIZE_VERSION $DOCKERIZE_VERSION
 ENV GOPATH=/go \
     GOROOT=/usr/local/go
-ENV PATH $GOROOT/bin:$GOPATH:$PATH
+ENV PATH $GOROOT/bin:$GOPATH:/src/:$PATH
 ENV INSTALL_PACKAGE="make gcc libssl-dev zlib1g-dev \
 libbz2-dev libreadline-dev libsqlite3-dev \
 wget curl llvm libncurses5-dev libncursesw5-dev \
@@ -34,7 +35,7 @@ erlang-public-key  erlang-runtime-tools erlang-snmp \
 erlang-ssl  erlang-syntax-tools erlang-tftp \
 erlang-tools erlang-xmerl"
 ENV DELETE_PACKAGE="gcc gcc-6 g++* g++-6* make git automake"
-ENV PIP3_PACKAGE="cryptography tbears iconsdk python-hosts halo termcolor"
+ENV PIP3_PACKAGE="tbears iconsdk python-hosts halo termcolor"
 COPY src /src
 COPY src/pip.conf /etc/
 COPY src/erlang /etc/apt/preferences.d/erlang

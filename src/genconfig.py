@@ -1,9 +1,16 @@
 #!/usr/bin/env python
 import json
 import sys,os,io,re
+from itertools import chain
+from collections import defaultdict
 
 path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(path)
+
+def merge_dicts(x, y):
+    z = x.copy()   # start with x's keys and values
+    z.update(y)    # modifies z with y's keys and values & returns None
+    return z
 
 def load_compose(filename="docker-compose.yml"):
     with open(path+"/"+filename, 'r') as stream:
@@ -16,6 +23,8 @@ def write_compose(data, filename="docker-compose_tmp.yml"):
         yaml.dump(data, outfile, default_flow_style=False, allow_unicode=True)
 
 def openJson(filename):
+    if filename is None:
+        filename = "FILENAME is NONE"
     try:
         json_data = open(filename).read()
     except:
@@ -40,13 +49,25 @@ class dotdictify(dict):
             raise TypeError
 
     def __setitem__(self, key, value):
-        if key is not None and '.' in key:
+        doit = True
+        if key[0] == '"' and key[-1] == '"':
+            key = key.replace('"','')
+            doit = True
+
+        elif key[0] == "'" and key[-1] == "'":
+            key = key.replace("'","")
+            doit = True
+
+
+        elif key is not None and '.' in key:
             myKey, restOfKey = key.split('.', 1)
             target = self.setdefault(myKey, dotdictify())
             if not isinstance(target, dotdictify):
                 raise KeyError
             target[restOfKey] = value
-        else:
+            doit = False
+
+        if doit:
             if isinstance(value, dict) and not isinstance(value, dotdictify):
                 value = dotdictify(value)
             dict.__setitem__(self, key, value)
@@ -187,7 +208,13 @@ def main():
         for i,env in enumerate(user_defined_env_list):
             if len(env) > 0:
                 config_setting, config_group = env.split("|")
+
                 config_group = str(config_group).strip()
+                if config_setting is None:
+                    print(f"config_setting is None => {config_setting}")
+                if config_group is None:
+                    print(f"config_file is None => {config_group}")
+
                 vars_name, vars_value = str(config_setting).strip().split("=")
                 vars_name = str(re.sub(r"^\.", "", vars_name)).strip()
                 vars_value = str(vars_value).strip()
@@ -213,11 +240,18 @@ def main():
                 vars_value = value.get("value")
                 value_type = value.get("value_type")
                 config_file = os.environ.get(config_group)
-                print(f"[{i}] [{config_file}] position={vars_name}, value={vars_value}, type={value_type}")
-                prev_json = dotdictify(openJson(config_file))
-                prev_json.__setitem__(vars_name, vars_value)
-                changed_json = dict(prev_json)
-            writeJson(config_file, changed_json)
+                if config_file:
+                    print(f"[{i}] [{config_file}] position={vars_name}, value={vars_value}, type={value_type}")
+                    prev_json = openJson(config_file)
+                    # prev_json = dotdictify(openJson(config_file))
+                    next_json = dotdictify({})
+                    next_json.__setitem__(vars_name, vars_value)
+                    changed_json = dict(next_json)
+                    merge_json = merge_dicts( prev_json, changed_json)
+                else:
+                    print(f"{config_group} file or environment not found")
+            if config_file:
+                writeJson(config_file, merge_json)
 
 if __name__ == '__main__':    
     main()

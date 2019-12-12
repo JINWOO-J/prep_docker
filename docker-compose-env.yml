@@ -22,6 +22,10 @@ services:
             .channel.string2=jinwoo|configure_json
             .iconservice.conf=10|iconservice_json
             .iconrpc.conf=10|iconrpcserver_json
+            .iconrpc.conf.block."0.3"=10|iconrpcserver_json
+            .LOOPCHAIN_DEFAULT_CHANNEL=jinwoo | configure_json
+            .PEER_NAME=prep_name | configure_json
+
          configure_json: "/prep_peer/conf/configure.json"
          iconservice_json: "/prep_peer/conf/iconservice.json"
          iconrpcserver_json: "/prep_peer/conf/iconrpcserver.json"
