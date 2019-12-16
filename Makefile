@@ -77,7 +77,7 @@ WARN_STRING=$(WARN_COLOR)[WARNINGS]$(NO_COLOR)
 
 .PHONY: all build push test tag_latest release ssh bash
 
-all: build change_docker
+all: build_python change_docker
 hub: push_hub tag_latest
 
 print_version:
