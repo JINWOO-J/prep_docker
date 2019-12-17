@@ -1,16 +1,36 @@
 #!/usr/bin/env python
 import json
 import sys,os,io,re
-from itertools import chain
-from collections import defaultdict
+from termcolor import cprint
+import argparse
 
 path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(path)
 
-def merge_dicts(x, y):
-    z = x.copy()   # start with x's keys and values
-    z.update(y)    # modifies z with y's keys and values & returns None
-    return z
+def merge_dicts(dict1, dict2, append_lists=True):
+    for key in dict2:
+        if isinstance(dict2[key], dict):
+            if isinstance(dict1, dict) is False:
+                cprint(f">>>>>>  Type Matching error >>  {dict1} != {dict2}","red")
+            elif key in dict1 and key in dict2:
+                merge_dicts(dict1[key], dict2[key])
+            else:
+                dict1[key] = dict2[key]
+        # If the value is a list and the ``append_lists`` flag is set,
+        # append the new values onto the original list
+        elif isinstance(dict2[key], list) and append_lists:
+            # The value in dict1 must be a list in order to append new
+            # values onto it.
+            if key in dict1 and isinstance(dict1[key], list):
+                dict1[key].extend(dict2[key])
+            else:
+                dict1[key] = dict2[key]
+        else:
+            # At scalar types, we iterate and merge the
+            # current dict that we're on.
+            dict1[key] = dict2[key]
+    return dict1
+
 
 def load_compose(filename="docker-compose.yml"):
     with open(path+"/"+filename, 'r') as stream:
@@ -38,6 +58,17 @@ def openJson(filename):
     return result
 
 
+def strip_quotes(string):
+    if type(string) == str:
+        if string[0] == '"' and string[-1] == '"':
+            string = string.replace('"','')
+            doit = True
+        elif string[0] == "'" and string[-1] == "'":
+            string = string.replace("'","")
+            doit = True
+    return string
+
+
 class dotdictify(dict):
     def __init__(self, value=None):
         if value is None:
@@ -53,11 +84,9 @@ class dotdictify(dict):
         if key[0] == '"' and key[-1] == '"':
             key = key.replace('"','')
             doit = True
-
         elif key[0] == "'" and key[-1] == "'":
             key = key.replace("'","")
             doit = True
-
 
         elif key is not None and '.' in key:
             myKey, restOfKey = key.split('.', 1)
@@ -66,14 +95,17 @@ class dotdictify(dict):
                 raise KeyError
             target[restOfKey] = value
             doit = False
-
         if doit:
             if isinstance(value, dict) and not isinstance(value, dotdictify):
                 value = dotdictify(value)
             dict.__setitem__(self, key, value)
 
     def __getitem__(self, key):
-        if key is None or '.' not in key:
+        if key[0] == '"' and key[-1] == '"':
+            key = key.replace('"','')
+        elif key[0] == "'" and key[-1] == "'":
+            key = key.replace("'","")
+        elif key is None or '.' not in key:
             return dict.__getitem__(self, key)
         myKey, restOfKey = key.split('.', 1)
         target = dict.__getitem__(self, myKey)
@@ -183,12 +215,26 @@ def dump(obj, nested_level=0, output=sys.stdout):
     else:
         print (bcolors.WARNING + '%s%s' %  ( def_spacing + nested_level * spacing, obj) + bcolors.ENDC)
 
+
 def is_hex(s):
     try:
         int(s, 16)
     except:
         return False
     return True
+
+
+def is_float(number):
+    try:
+        inNumberint = int(number)
+        return True
+    except ValueError:
+        pass
+    try:
+        inNumberfloat = float(number)
+        return True
+    except ValueError:
+        return False
 
 
 def str2bool(v):
@@ -201,6 +247,11 @@ def str2bool(v):
 
 
 def main():
+    global args
+    parser = argparse.ArgumentParser(prog='genconfig')
+    parser.add_argument('-v', '--verbose', action='count', help=f'verbose mode. view level', default=0)
+    args = parser.parse_args()
+
     user_defined_env = os.environ.get("USER_DEFINED_ENV")
     if user_defined_env:
         user_defined_env_list = user_defined_env.split("\n")
@@ -208,33 +259,33 @@ def main():
         for i,env in enumerate(user_defined_env_list):
             if len(env) > 0:
                 config_setting, config_group = env.split("|")
-
                 config_group = str(config_group).strip()
                 if config_setting is None:
                     print(f"config_setting is None => {config_setting}")
                 if config_group is None:
                     print(f"config_file is None => {config_group}")
-
                 vars_name, vars_value = str(config_setting).strip().split("=")
                 vars_name = str(re.sub(r"^\.", "", vars_name)).strip()
                 vars_value = str(vars_value).strip()
                 value_type = "string"
 
-                if vars_value in "\"":
+                if "\"" in vars_value:
+                    vars_value = strip_quotes(vars_value)
                     value_type = "string"
-                if vars_value.isdigit():
+                elif vars_value.isdigit():
                     vars_value = int(vars_value)
                     value_type = "int"
-                elif vars_value in ("True", "TRUE", "False", "FALSE"):
-                    vars_value = str2bool(vars_name)
+                elif vars_value in ("True", "TRUE", "true", "False", "FALSE", "false"):
+                    vars_value = str2bool(vars_value)
                     value_type = "boolean"
 
                 if envSettings.get(config_group) is None:
                     envSettings[config_group] = []
 
                 envSettings[config_group].append( {"name": vars_name, "value": vars_value, "value_type": value_type} )
-        # dump(envSettings)
+
         for config_group, values in envSettings.items():
+            group_values = dotdictify({})
             for i, value in enumerate(values):
                 vars_name = value.get("name")
                 vars_value = value.get("value")
@@ -242,16 +293,24 @@ def main():
                 config_file = os.environ.get(config_group)
                 if config_file:
                     print(f"[{i}] [{config_file}] position={vars_name}, value={vars_value}, type={value_type}")
-                    prev_json = openJson(config_file)
-                    # prev_json = dotdictify(openJson(config_file))
-                    next_json = dotdictify({})
-                    next_json.__setitem__(vars_name, vars_value)
-                    changed_json = dict(next_json)
-                    merge_json = merge_dicts( prev_json, changed_json)
+                    group_values.__setitem__(vars_name, vars_value)
                 else:
                     print(f"{config_group} file or environment not found")
+            prev_json = openJson(config_file)
+            if args.verbose > 0:
+                print("------ prev ------")
+                dump(prev_json)
+
+            next_json = json.loads(json.dumps(group_values))
+            merge_dicts(prev_json, next_json)  # It will be changed to prev_json
+
+            if args.verbose > 0:
+                print("------ next ------")
+                dump(prev_json)
+
             if config_file:
-                writeJson(config_file, merge_json)
+                writeJson(config_file, prev_json)
+
 
 if __name__ == '__main__':    
     main()
