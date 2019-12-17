@@ -428,6 +428,11 @@ elif [[ "$NETWORK_ENV" == "testnet" ]]; then
     SWITCH_BH_VERSION3=2698900
     jq -M 'del(.CHANNEL_OPTION.icon_dex.block_versions."0.3")' $configure_json| sponge $configure_json
 else
+    if [[ "$SERVICE" == "zicon" ]]; then
+        iissCalculatePeriod=1800
+        termPeriod=1800  
+    fi
+
     builtinScoreOwner="hx6e1dd0d4432620778b54b2bbc21ac3df961adf89"
     score_audit="false"
     if [[ ! -f ${PRIVATE_PATH} ]]; then
