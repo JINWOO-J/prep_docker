@@ -186,6 +186,9 @@ list:
 change_docker:
 	sed -i '' "s/$(REPO_HUB)\/$(NAME).*/$(REPO_HUB)\/$(NAME):$(VERSION)/g" docker-compose.yml
 
+
+
+
 gendocs:
 	@$(shell ./makeMakeDown.sh)
 #	@$(foreach image, prep-node, \
