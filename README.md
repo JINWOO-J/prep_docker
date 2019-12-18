@@ -1,5 +1,9 @@
 # prep-node docker
 
+[![](https://images.microbadger.com/badges/version/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "Get your own version badge on microbadger.com")
+[![](https://images.microbadger.com/badges/image/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "Get your own image badge on microbadger.com")
+
+
 ## Introduction to prep-node
 This project was created to help ICON's PRep-node.
 
@@ -48,10 +52,11 @@ Removing intermediate container cd88bf497d89
 
 
 ## prep-node docker setting
-###### made date at 2019-10-25 18:06:12 
+###### made date at 2019-12-18 16:04:33 
 | Environment variable | Description|Default value| Allowed value|
 |--------|--------|-------|-------|
-| EXT\_IPADDR| Getting external IP address|`curl -s ifconfig.co`||
+| CURL\_OPTION|default curl options|-s -S --fail --max-time 30||
+| EXT\_IPADDR| Getting external IP address|$(curl ${CURL\_OPTION} http://checkip.amazonaws.com)||
 | IPADDR| Setting the IP address|$EXT\_IPADDR||
 | LOCAL\_TEST|false|false||
 | TZ| Setting the TimeZone Environment|Asia/Seoul|[List of TZ name](https://en.wikipedia.org/wiki/List\_of\_tz\_database\_time\_zones)|
@@ -87,10 +92,11 @@ Removing intermediate container cd88bf497d89
 | CONF\_PATH| Setting the configure file path|/${APP\_DIR}/conf||
 | CERT\_PATH| Setting the certificate key file path|/${APP\_DIR}/cert||
 | ICON\_NID| Setting the ICON Network ID number|0x50||
+| CREP\_ROOT\_HASH||||
 | ALLOW\_MAKE\_EMPTY\_BLOCK|true|true||
 | CHANNEL\_BUILTIN| boolean (true/false)|true||
-| PEER\_NAME|`uname`|`uname`||
-| PRIVATE\_KEY\_FILENAME| YOUR\_KEYSTORE or YOUR\_CERTKEY FILENAME|| YOUR\_KEYSTORE or YOUR\_CERTKEY FILENAME|
+| PEER\_NAME|$(uname)|$(uname)||
+| PRIVATE\_KEY\_FILENAME| YOUR\_KEYSTORE or YOUR\_CERTKEY FILENAME|YOUR\_KEYSTORE\_FILENAME| YOUR\_KEYSTORE or YOUR\_CERTKEY FILENAME|
 | PRIVATE\_PATH| public cert key or keystore file location|${CERT\_PATH}/${PRIVATE\_KEY\_FILENAME}||
 | PRIVATE\_PASSWORD| private cert key  or keystore file password|test||
 | LOAD\_PEERS\_FROM\_IISS|true|true||
@@ -99,6 +105,7 @@ Removing intermediate container cd88bf497d89
 | GENESIS\_DATA\_PATH|${CONF\_PATH}/genesis.json|${CONF\_PATH}/genesis.json||
 | BLOCK\_VERSIONS||||
 | SWITCH\_BH\_VERSION3||||
+| SWITCH\_BH\_VERSION4||||
 | RADIOSTATIONS||||
 | SHUTDOWN\_TIMER| SHUTDOWN\_TIMER for citizen|7200||
 | SUBSCRIBE\_LIMIT|60|60||
@@ -136,4 +143,5 @@ Removing intermediate container cd88bf497d89
 | SLACK\_URL|  slack's webhook URL|||
 | SLACK\_PREFIX| slack's prefix header message|||
 | IS\_BROADCAST\_MULTIPROCESSING|false|false||
-| CURL\_OPTION|default curl options|-s -S --fail --max-time 30||
+| IS\_DOWNLOAD\_CERT|false|false||
+| USER\_DEFINED\_ENV||||
