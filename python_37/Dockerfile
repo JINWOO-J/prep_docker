@@ -1,5 +1,17 @@
 FROM python:3.7.3-slim-stretch
 LABEL maintainer="JINWOO <jinwoo@iconloop.com>"
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION
+LABEL org.label-schema.build-date=$BUILD_DATE \
+      org.label-schema.name="prep-node" \
+      org.label-schema.description="This project was created to help ICON's PRep-node." \
+      org.label-schema.url="https://www.iconloop.com/" \
+      org.label-schema.vcs-ref=$VCS_REF \
+      org.label-schema.vcs-url="https://github.com/jinwoo-j/prep-node" \
+      org.label-schema.vendor="ICONLOOP Inc." \
+      org.label-schema.version=$VERSION \
+      org.label-schema.schema-version="1.0"
 ENV TZ "Asia/Seoul"
 ENV TERM "xterm-256color"
 ENV USERID 24988
@@ -8,7 +20,6 @@ ARG ICON_RC_VERSION
 ARG DOWNLOAD_PACKAGE
 ARG NAME
 ARG APP_VERSION
-ARG VERSION
 ARG TAGNAME
 ARG DOWNLOAD_PACKAGE=$DOWNLOAD_PACKAGE
 ARG RABBITMQ_VERSION="3.7.17"

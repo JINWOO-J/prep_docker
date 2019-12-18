@@ -22,8 +22,9 @@ ifeq ($(REPO_HUB_ARG),iconloop)
 REPO_HUB = iconloop
 NAME= prep-node
 endif
-
 TAGNAME = $(VERSION)
+VCS_REF = $(strip $(shell git rev-parse --short HEAD))
+BUILD_DATE = $(strip $(shell date -u +"%Y-%m-%dT%H:%M:%S%Z"))
 
 ifeq ($(MAKECMDGOALS) , bash)
 #ifeq ($(findstring $(MAKECMDGOALS) , dbash),)
