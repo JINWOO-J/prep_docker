@@ -1,5 +1,9 @@
 # prep-node docker
 
+[![](https://images.microbadger.com/badges/version/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "Get your own version badge on microbadger.com")
+[![](https://images.microbadger.com/badges/image/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "Get your own image badge on microbadger.com")
+
+
 ## Introduction to prep-node
 This project was created to help ICON's PRep-node.
 

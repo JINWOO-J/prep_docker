@@ -60,7 +60,7 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 && \
     apt install -y $INSTALL_PACKAGE && \
     dpkg -i /src/erlang-solutions_1.0_all.deb || exit 1; \
     if [ ! -f "/src/rabbitmq-server_${RABBITMQ_VERSION}-1_all.deb" ]; then \
-        wget --no-check-certificate https://github.com/rabbitmq/rabbitmq-server/releases/download/v${RABBITMQ_VERSION}/rabbitmq-server_${RABBITMQ_VERSION}-1_all.deb -P /src/ ; \
+        wget https://github.com/rabbitmq/rabbitmq-server/releases/download/v${RABBITMQ_VERSION}/rabbitmq-server_${RABBITMQ_VERSION}-1_all.deb -P /src/ ; \
     fi;\
     apt update && \
     apt-get install -y $ERLANG_PACKAGE && \
