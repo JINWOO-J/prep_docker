@@ -1,7 +1,7 @@
 version: '3'
 services:
    prep:
-      image: 'iconloop/prep-node:1905292100xdd3e5a'
+      image: 'iconloop/prep-node'
       network_mode: host
       environment:
          LOOPCHAIN_LOG_LEVEL: "SPAM"

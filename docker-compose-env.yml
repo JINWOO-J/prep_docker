@@ -1,7 +1,7 @@
 version: '3'
 services:
    prep:
-      image: iconloop/prep-node:1911121115x323d60-dev
+      image: iconloop/prep-node
       container_name: "user_defined_env"
       entrypoint: bash -c "while [ 0 ]; do sleep 3; done"
       network_mode: host

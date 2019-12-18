@@ -1,7 +1,7 @@
 version: '3'
 services:
    prep:
-      image: iconloop/prep-node:1910211829xc2286d
+      image: iconloop/prep-node
       container_name: "prep-node"
       network_mode: host
       environment:
