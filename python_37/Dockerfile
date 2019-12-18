@@ -11,7 +11,6 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.vcs-url="https://github.com/jinwoo-j/prep_docker" \
       org.label-schema.vendor="ICONLOOP Inc." \
       org.label-schema.version=$VERSION \
-      com.microscaling.docker.dockerfile="python_37/Dockerfile" \
       org.label-schema.schema-version="1.0"
 ENV TZ "Asia/Seoul"
 ENV TERM "xterm-256color"
