@@ -1,7 +1,13 @@
 # prep-node docker
 
-[![](https://images.microbadger.com/badges/version/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "Get your own version badge on microbadger.com")
-[![](https://images.microbadger.com/badges/image/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "Get your own image badge on microbadger.com")
+#### Latest docker tag
+[![](https://images.microbadger.com/badges/version/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "microbadger.com")
+[![](https://images.microbadger.com/badges/image/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "microbadger.com")
+
+
+#### Travis-build
+[![Build Status](https://travis-ci.org/JINWOO-J/prep_docker.svg?branch=master)](https://travis-ci.org/JINWOO-J/prep_docker) 
+
 
 
 ## Introduction to prep-node

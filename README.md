@@ -1,7 +1,13 @@
 # prep-node docker
 
-[![](https://images.microbadger.com/badges/version/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "Get your own version badge on microbadger.com")
-[![](https://images.microbadger.com/badges/image/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "Get your own image badge on microbadger.com")
+#### Latest docker tag
+[![](https://images.microbadger.com/badges/version/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "microbadger.com")
+[![](https://images.microbadger.com/badges/image/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "microbadger.com")
+
+
+#### Travis-build
+[![Build Status](https://travis-ci.org/JINWOO-J/prep_docker.svg?branch=master)](https://travis-ci.org/JINWOO-J/prep_docker) 
+
 
 
 ## Introduction to prep-node
@@ -52,7 +58,7 @@ Removing intermediate container cd88bf497d89
 
 
 ## prep-node docker setting
-###### made date at 2019-12-18 16:04:33 
+###### made date at 2019-12-19 17:14:40 
 | Environment variable | Description|Default value| Allowed value|
 |--------|--------|-------|-------|
 | CURL\_OPTION|default curl options|-s -S --fail --max-time 30||

@@ -1,9 +1,9 @@
 FROM python:3.7.3-slim-stretch
-LABEL maintainer="JINWOO <jinwoo@iconloop.com>"
 ARG BUILD_DATE
 ARG VCS_REF
 ARG VERSION
-LABEL org.label-schema.build-date=$BUILD_DATE \
+LABEL maintainer="JINWOO <jinwoo@iconloop.com>" \
+      org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.name="prep-node" \
       org.label-schema.description="This project was created to help ICON's PRep-node." \
       org.label-schema.url="https://www.iconloop.com/" \
@@ -19,16 +19,16 @@ ENV APP_DIR "prep_peer"
 ARG ICON_RC_VERSION
 ARG DOWNLOAD_PACKAGE
 ARG NAME
-ARG APP_VERSION
 ARG TAGNAME
+ARG IS_LOCAL
 ARG DOWNLOAD_PACKAGE=$DOWNLOAD_PACKAGE
 ARG RABBITMQ_VERSION="3.7.17"
 ARG GO_VERSION="1.12.7"
 ARG DOCKERIZE_VERSION="v0.6.1"
-ENV APP_VERSION ${NAME}_${TAGNAME}
-ENV RABBITMQ_VERSION $RABBITMQ_VERSION
-ENV GO_VERSION $GO_VERSION
-ENV DOCKERIZE_VERSION $DOCKERIZE_VERSION
+ENV APP_VERSION=${NAME}_${TAGNAME}
+ENV RABBITMQ_VERSION=$RABBITMQ_VERSION
+ENV GO_VERSION=$GO_VERSION
+ENV DOCKERIZE_VERSION=$DOCKERIZE_VERSION
 ENV GOPATH=/go \
     GOROOT=/usr/local/go
 ENV PATH $GOROOT/bin:$GOPATH:/src/:$PATH
@@ -51,10 +51,15 @@ COPY src /src
 COPY src/pip.conf /etc/
 COPY src/erlang /etc/apt/preferences.d/erlang
 COPY conf $APP_DIR/conf
-COPY conf $APP_DIR/conf_back
 
-RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 && \
-    sed -i.bak -re "s/([a-z]{2}.)?archive.ubuntu.com|security.ubuntu.com|deb.debian.org|security\-cdn.debian.org|security.debian.org/mirror.kakao.com/g" /etc/apt/sources.list && \
+RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
+    if [ "${IS_LOCAL}" ]; then \
+        echo "-- KR mirror" ;\
+        sed -i.bak -re "s/([a-z]{2}.)?archive.ubuntu.com|security.ubuntu.com|deb.debian.org|security\-cdn.debian.org|security.debian.org/mirror.kakao.com/g" /etc/apt/sources.list; \
+    else \
+        echo "-- Global mirror" ;\
+        rm -f /etc/pip.conf ; \
+    fi; \
     mkdir -p /usr/share/man/man1 /usr/share/man/man7 && \
     apt update && \
     apt install -y $INSTALL_PACKAGE && \
