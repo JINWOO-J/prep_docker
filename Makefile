@@ -28,7 +28,6 @@ BUILD_DATE = $(strip $(shell date -u +"%Y-%m-%dT%H:%M:%S%Z"))
 
 ifeq ($(MAKECMDGOALS) , bash)
 #ifeq ($(findstring $(MAKECMDGOALS) , dbash),)
-	VERSION:=1912021444x78adc5-dev
 	LOOPCHAIN_LOG_LEVEL:="DEBUG"
 	ICON_LOG_LEVEL:="DEBUG"
     IS_DOWNLOAD_CERT:="false"
@@ -66,7 +65,6 @@ define colorecho
 endef
 
 
-
 NO_COLOR=\x1b[0m
 OK_COLOR=\x1b[32;01m
 ERROR_COLOR=\x1b[31;01m
@@ -75,6 +73,7 @@ OK_STRING=$(OK_COLOR)[OK]$(NO_COLOR)
 ERROR_STRING=$(ERROR_COLOR)[ERRORS]$(NO_COLOR)
 WARN_STRING=$(WARN_COLOR)[WARNINGS]$(NO_COLOR)
 
+TEST_FILES := $(shell find tests -name '*.yml')
 
 .PHONY: all build push test tag_latest release ssh bash
 
@@ -92,7 +91,7 @@ make_debug_mode:
 				$(if  \
 					$(filter-out environment% default automatic, $(origin $V) ), \
 						$($V=$($V)) \
-					$(if $(filter-out "SHELL" "%_COLOR" "%_STRING" "MAKE%" "colorecho" ".DEFAULT_GOAL" "CURDIR", "$V" ),  \
+					$(if $(filter-out "SHELL" "%_COLOR" "%_STRING" "MAKE%" "colorecho" ".DEFAULT_GOAL" "CURDIR" "TEST_FILES" , "$V" ),  \
 						$(shell echo '$(OK_COLOR)  $V = $(WARN_COLOR)$($V) $(NO_COLOR) ' >&2;) \
 						$(shell echo '-e $V=$($V)  ' >> DEBUG_ARGS)\
 					)\
@@ -107,17 +106,18 @@ make_build_args:
 			 $(if  \
 				 $(filter-out environment% default automatic, $(origin $V) ), \
 				 	 $($V=$($V)) \
-				 $(if $(filter-out "SHELL" "%_COLOR" "%_STRING" "MAKE%" "colorecho" ".DEFAULT_GOAL" "CURDIR", "$V" ),  \
+				 $(if $(filter-out "SHELL" "%_COLOR" "%_STRING" "MAKE%" "colorecho" ".DEFAULT_GOAL" "CURDIR" "TEST_FILES", "$V" ),  \
 					$(shell echo '$(OK_COLOR)  $V = $(WARN_COLOR)$($V) $(NO_COLOR) ' >&2;) \
 				 	$(shell echo "--build-arg $V=$($V)  " >> BUILD_ARGS)\
 				  )\
 			  )\
 		 )
 
-test:   make_build_args
-		docker build --no-cache --rm=true -f dockerfile_test/Dockerfile  \
-		$(shell cat BUILD_ARGS) \
-		-t $(REPO_HUB)/$(NAME):$(TAGNAME) .
+test:   make_build_args print_version
+		$(foreach TEST_FILE, $(TEST_FILES), \
+			container-structure-test test --driver docker --image $(REPO_HUB)/$(NAME):$(TAGNAME) \
+			--config $(TEST_FILE) || exit 1 ;\
+		)
 
 changeconfig: make_build_args
 		@CONTAINER_ID=$(shell docker run -d $(REPO_HUB)/$(NAME):$(TAGNAME)) ;\
