@@ -1,6 +1,6 @@
 REPO_HUB = iconloop
 NAME = prep-node
-VERSION = 1910211829xc2286d
+VERSION = 1912090356xb1e1fe
 RABBITMQ_VERSION = "3.7.17"
 GO_VERSION = "1.12.7"
 DOCKERIZE_VERSION = "v0.6.1"
@@ -92,7 +92,7 @@ make_debug_mode:
 					$(filter-out environment% default automatic, $(origin $V) ), \
 						$($V=$($V)) \
 					$(if $(filter-out "SHELL" "%_COLOR" "%_STRING" "MAKE%" "colorecho" ".DEFAULT_GOAL" "CURDIR" "TEST_FILES" , "$V" ),  \
-						$(shell echo '$(OK_COLOR)  $V = $(WARN_COLOR)$($V) $(NO_COLOR) ' >&2;) \
+						$(shell echo '$(OK_COLOR)  $V = $(WARN_COLOR) $($V) $(NO_COLOR) ' >&2;) \
 						$(shell echo '-e $V=$($V)  ' >> DEBUG_ARGS)\
 					)\
 				)\
@@ -107,7 +107,7 @@ make_build_args:
 				 $(filter-out environment% default automatic, $(origin $V) ), \
 				 	 $($V=$($V)) \
 				 $(if $(filter-out "SHELL" "%_COLOR" "%_STRING" "MAKE%" "colorecho" ".DEFAULT_GOAL" "CURDIR" "TEST_FILES", "$V" ),  \
-					$(shell echo '$(OK_COLOR)  $V = $(WARN_COLOR)$($V) $(NO_COLOR) ' >&2;) \
+					$(shell echo '$(OK_COLOR)  $V = $(WARN_COLOR) $($V) $(NO_COLOR) ' >&2;) \
 				 	$(shell echo "--build-arg $V=$($V)  " >> BUILD_ARGS)\
 				  )\
 			  )\
