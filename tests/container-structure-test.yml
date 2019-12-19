@@ -1,0 +1,30 @@
+schemaVersion: '2.0.0'
+commandTests:
+  - name: "icon_rc"
+    command: "icon_rc"
+    args: ["--version"]
+    expectedOutput: [".*icon_rc.*"]
+
+  - name: "iconservice"
+    command: "pip"
+    args: ["show", "iconservice"]
+    expectedOutput: [".*iconservice.*"]
+
+  - name: "iconrpcserver"
+    command: "pip"
+    args: ["show", "iconrpcserver"]
+    expectedOutput: [".*iconrpcserver.*"]
+
+  - name: "loopchain"
+    command: "pip"
+    args: ["show", "loopchain"]
+    expectedOutput: [".*loopchain.*"]
+
+  - name: "Generate a private key and Check peer_id"
+    command: "bash"
+    args:
+      - -c
+      - |
+        openssl ecparam -genkey -name secp256k1 | openssl ec -aes-256-cbc -out /my_private.pem -passout pass:testkey &&
+        /src/getPeerID.py /my_private.pem testkey
+    expectedOutput: ["hx.*"]
