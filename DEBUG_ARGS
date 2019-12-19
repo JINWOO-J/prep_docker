@@ -1,8 +1,8 @@
 
--e BUILD_DATE=2019-12-19T06:56:47UTC  
+-e BUILD_DATE=2019-12-19T08:29:03UTC  
 -e CREP_ROOT_HASH="0xe4bd136b3d42c765a284b8948859fff45f58045a24e42bb02663b54a9c226550"  
 -e DOCKERIZE_VERSION="v0.6.1"  
--e DOWNLOAD_PACKAGE="http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/docker_resource/1910211829xc2286d/docker_1910211829xc2286d_packages.tar.gz"  
+-e DOWNLOAD_PACKAGE="http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/docker_resource/1912090356xb1e1fe/docker_1912090356xb1e1fe_packages.tar.gz"  
 -e ENDPOINT_URL="http://20.20.3.26:8000"  
 -e ERROR_LIMIT=10  
 -e FIND_NEIGHBOR="true"  
@@ -24,11 +24,11 @@
 -e RABBITMQ_VERSION="3.7.17"  
 -e REPO_HUB=iconloop  
 -e SERVICE="prep"  
--e TAGNAME=1910211829xc2286d  
+-e TAGNAME=1912090356xb1e1fe  
 -e TIMEOUT_FOR_LEADER_COMPLAIN=60  
 -e USER_DEFINED_ENV=".channel.intconf.\"0.3\"=10|configure_json"  
--e VCS_REF=55d6c6f  
--e VERSION=1910211829xc2286d  
+-e VCS_REF=08ccebf  
+-e VERSION=1912090356xb1e1fe  
 -e blockValidationPenaltyThreshold=10  
 -e configure_json="/prep_peer/conf/configure.json"  
 -e decentralizeTrigger=0.0001  
