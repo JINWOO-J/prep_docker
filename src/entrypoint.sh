@@ -451,7 +451,7 @@ else
             download_file $CONFIG_API_SERVER/cert/${IPADDR}_private.der "${PRIVATE_PATH}"
         else
             CPrint "Key file not found - PRIVATE_PATH=${PRIVATE_PATH} , PRIVATE_KEY_FILENAME=${PRIVATE_KEY_FILENAME}" "RED"
-            exit 127;
+#            exit 127;
         fi
     fi
 
