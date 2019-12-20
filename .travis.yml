@@ -20,8 +20,9 @@ before_install:
 install:
   - pip install wait-for-it
   - make IS_LOCAL=$IS_LOCAL build_python
+  - docker run -p 9000:9000 -d -e IS_AUTOGEN_CERT=true iconloop/prep-node:$(make version)
+  - wait-for-it --service 127.0.0.1:9000 -t 200  -- curl 127.0.0.1:9000/api/v1/status/peer
 
 script:
   - make IS_LOCAL=$IS_LOCAL test
-  - docker run -p 9000:9000 -d -e IS_AUTOGEN_CERT=true iconloop/prep-node:$(make version)
-  - wait-for-it --service localhost:9000 -t 200  -- curl localhost:9000/api/v1/status/peer
+  - docker ps
