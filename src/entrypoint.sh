@@ -131,7 +131,7 @@ export SLACK_URL=${SLACK_URL:-""}    #  slack's webhook URL
 export SLACK_PREFIX=${SLACK_PREFIX:-""} # slack's prefix header message
 export IS_BROADCAST_MULTIPROCESSING=${IS_BROADCAST_MULTIPROCESSING:-"false"}
 export IS_DOWNLOAD_CERT=${IS_DOWNLOAD_CERT:-"false"}
-export IS_AUTOGEN_CERT=${AUTOGEN_CERT:-"false"} # auto generate cert key # true, false
+export IS_AUTOGEN_CERT=${IS_AUTOGEN_CERT:-"false"} # auto generate cert key # true, false
 # export LEADER_COMPLAIN_RATIO=${LEADER_COMPLAIN_RATIO:-"0.67"}
 export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 
@@ -485,6 +485,7 @@ fi
 
 PEER_ID=`/src/getPeerID.py ${PRIVATE_PATH} ${PRIVATE_PASSWORD} 2>&1`
 PrintOK "Peer ID: ${PEER_ID}" $?
+
 
 if [[ "${VIEW_CONFIG}" == "true" ]]; then
     CPrint "builtinScoreOwner = $builtinScoreOwner"
