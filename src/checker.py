@@ -23,14 +23,15 @@ class MyRequestHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/check':
             # Create the response
-            response = {
+            self.response = {
                 "result": "OK"
             }
             self.protocol_version = 'HTTP/1.1'
             self.send_response(200, 'OK')
             self.send_header('Content-type', 'application/json')
             self.end_headers()
-            self.wfile.write(bytes(json.dumps(response)))
+            # self.wfile.write(bytes(json.dumps(self.response)))
+            self.wfile.write(bytes(json.dumps(self.response), "utf-8"))
             # self.path = '/'
             return
             # return SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
@@ -41,28 +42,34 @@ class ThreadingChecker(object):
     until the application exits.
     """
 
-    def __init__(self, interval=1):
+    def __init__(self, ipaddr=None, port=None, interval=1):
         """ Constructor
         :type interval: int
         :param interval: Check interval, in seconds
         """
         self.interval = interval
-
+        self.ipaddr = ipaddr
+        self.port = port
+        self.count = 0
         thread = threading.Thread(target=self.run, args=())
         thread.daemon = True                            # Daemonize thread
         thread.start()                                  # Start the execution
 
     def run(self):
         """ Method that runs forever """
-
         while True:
-            # Do something
-            print('Doing something imporant in the background')
+            check_url = f"http://{self.ipaddr}:{self.port}/check"
+            print(f'[{self.count}] Trying connect to {check_url}')
+            self.count += 1
             time.sleep(self.interval)
-            response = requests.get("http://localhost:8000/check",verify=False)
-            # print(response["data"].json().get("result",""))
-            res_json = response.json().get("result","")
+            try:
+                response = requests.get(f"{check_url}", verify=False, timeout=2)
+                res_json = response.json().get("result","")
+            except Exception as e:
+                res_json = "FAIL"
+                print(f"[FAIL] Cant accessible - {self.ipaddr}:{self.port} -> {e}")
             if res_json == "OK":
+                print(f"[OK] Accessible - {self.ipaddr}:{self.port}")
                 os._exit(0)
 
 def getExtIPaddr():
@@ -91,24 +98,17 @@ else:
 if sys.argv[2:]:
     os.chdir(sys.argv[2])
 
-print('Started HTTP server on ' +  interface + ':' + str(port))
-
+print('Started HTTP server on ' + interface + ':' + str(port))
 SimpleHTTPRequestHandler = MyRequestHandler
-
 server = ThreadingSimpleServer((interface, port), SimpleHTTPRequestHandler)
 
-checker = ThreadingChecker()
-# time.sleep(3)
-# print('Checkpoint')
-# time.sleep(2)
-# print('Bye')
+if interface == "0.0.0.0":
+    check_ip = getExtIPaddr()
+    print( "Your externel IP : " + check_ip)
+else:
+    check_ip = interface
 
-print( "Your externel IP : " + getExtIPaddr())
-# data = requests.post(url, json=payload, verify=False)
-
-# print(getExtIPaddr())
-# requests.get("http://localhost:8000/check",verify=False)
-
+checker = ThreadingChecker(ipaddr=check_ip, port=port)
 
 try:
     while 1:
@@ -117,4 +117,4 @@ try:
         server.handle_request()
 
 except KeyboardInterrupt:
-    print('Finished.')
+    print(' Finished.')

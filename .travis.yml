@@ -8,9 +8,9 @@ branches:
     - devel
 
 install:
-  - make build_python
+  - make IS_LOCAL=$IS_LOCAL build_python
   - curl -LO https://storage.googleapis.com/container-structure-test/latest/container-structure-test-linux-amd64 && chmod +x container-structure-test-linux-amd64 && sudo mv container-structure-test-linux-amd64 /usr/local/bin/container-structure-test
 
 script:
-  - make test
+  - make IS_LOCAL=$IS_LOCAL test
 
