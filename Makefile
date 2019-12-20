@@ -64,7 +64,6 @@ define colorecho
       @tput sgr0
 endef
 
-
 NO_COLOR=\x1b[0m
 OK_COLOR=\x1b[32;01m
 ERROR_COLOR=\x1b[31;01m
@@ -79,6 +78,8 @@ TEST_FILES := $(shell find tests -name '*.yml')
 
 all: build_python change_docker
 hub: push_hub tag_latest
+version:
+	@echo $(VERSION)
 
 print_version:
 	@echo "$(OK_COLOR) VERSION-> $(VERSION)  REPO-> $(REPO_HUB)/$(NAME):$(TAGNAME) $(NO_COLOR) IS_LOCAL: $(IS_LOCAL)"
