@@ -479,6 +479,7 @@ if [[ $NETWORK_ENV == "mainnet" || $NETWORK_ENV == "testnet" ]];then
 fi
 
 if [[ "${IS_AUTOGEN_CERT}" == "true" && ! -f "${PRIVATE_PATH}" ]]  ; then
+    CPrint "Auto generataion cert key"
     autogen_certkey "${PRIVATE_PATH}"
 fi
 
