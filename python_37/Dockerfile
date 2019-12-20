@@ -51,9 +51,8 @@ COPY src /src
 COPY src/pip.conf /etc/
 COPY src/erlang /etc/apt/preferences.d/erlang
 COPY conf $APP_DIR/conf
-
 RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
-    if [ "${IS_LOCAL}" ]; then \
+    if [ "${IS_LOCAL}" = "true" ]; then \
         echo "-- KR mirror" ;\
         sed -i.bak -re "s/([a-z]{2}.)?archive.ubuntu.com|security.ubuntu.com|deb.debian.org|security\-cdn.debian.org|security.debian.org/mirror.kakao.com/g" /etc/apt/sources.list; \
     else \
