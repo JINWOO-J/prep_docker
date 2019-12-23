@@ -391,6 +391,10 @@ function autogen_certkey(){
 #    PrintOK "Generate public key" $?
 }
 
+if [[ "${IS_AUTOGEN_CERT}" == "true" && ! -f "${PRIVATE_PATH}" ]]  ; then
+    CPrint "Auto generataion cert key"
+    autogen_certkey "${PRIVATE_PATH}"
+fi
 
 mkdir -p ${DEFAULT_PATH}
 
@@ -478,10 +482,6 @@ if [[ $NETWORK_ENV == "mainnet" || $NETWORK_ENV == "testnet" ]];then
     fi
 fi
 
-if [[ "${IS_AUTOGEN_CERT}" == "true" && ! -f "${PRIVATE_PATH}" ]]  ; then
-    CPrint "Auto generataion cert key"
-    autogen_certkey "${PRIVATE_PATH}"
-fi
 
 PEER_ID=`/src/getPeerID.py ${PRIVATE_PATH} ${PRIVATE_PASSWORD} 2>&1`
 PrintOK "Peer ID: ${PEER_ID}" $?
