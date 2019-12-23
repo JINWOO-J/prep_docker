@@ -20,7 +20,6 @@ before_install:
   - curl -LO https://storage.googleapis.com/container-structure-test/latest/container-structure-test-linux-amd64 && chmod +x container-structure-test-linux-amd64 && sudo mv container-structure-test-linux-amd64 /usr/local/bin/container-structure-test
 
 install:
-  - pip install wait-for-it
   - make IS_LOCAL=$IS_LOCAL build_python
   - make IS_LOCAL=$IS_LOCAL test
   - >
@@ -31,6 +30,7 @@ install:
     --name prep-node iconloop/prep-node:$(make version)
 
 script:
+  - docker ps -a
   - |
     NEXT_WAIT_TIME=0
     until curl -s localhost:9000/api/v1/status/peer || [ $NEXT_WAIT_TIME -eq $WAIT_RETRY ];
@@ -51,3 +51,5 @@ script:
       echo "something wrong"
       exit 1
     fi  
+
+after_failure: docker logs prep-node
