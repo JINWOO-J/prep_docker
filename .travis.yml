@@ -22,6 +22,7 @@ before_install:
 install:
   - pip install wait-for-it
   - make IS_LOCAL=$IS_LOCAL build_python
+  - make IS_LOCAL=$IS_LOCAL test
   - >
     docker run -d --rm -p 9000:9000
     -e CREP_ROOT_HASH=$CREP_ROOT_HASH
@@ -30,7 +31,6 @@ install:
     --name prep-node iconloop/prep-node:$(make version)
 
 script:
-  - make IS_LOCAL=$IS_LOCAL test
   - |
     NEXT_WAIT_TIME=0
     until curl -s localhost:9000/api/v1/status/peer || [ $NEXT_WAIT_TIME -eq $WAIT_RETRY ];
