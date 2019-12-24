@@ -25,7 +25,8 @@ if [[ "x${ENDPOINT_URL}" == "x" ]]; then
         ENDPOINT_URL="https://test-ctz.solidwallet.io"
         FIND_NEIGHBOR=false
         SERVICE="testnet"
-    elif [[ $(echo $SERVICE | grep -i "icon" | wc -l) ]];then
+#    elif [[ $(echo $SERVICE | grep -i "icon" | wc -l) ]];then
+    elif echo "${SERVICE}" | grep -q "icon" ;then
         ENDPOINT_URL="https://${SERVICE}.net.solidwallet.io"
     fi
 fi
@@ -176,8 +177,7 @@ function getBlockCheck(){
 
 function post_to_slack () {
   #escapedText=$(echo $1 | sed 's/"/\"/g' | sed "s/'/\'/g" | sed 's/(?(?=\\n)[^\\n]|\\)/\\\\/g')
-    escapedText=$(echo $1 | sed 's/"/\"/g' | sed "s/'/\'/g")
-    NOW_TIME=
+    escapedText=$(echo "$1" | sed 's/"/\"/g' | sed "s/'/\'/g")
     SLACK_MESSAGE="\`\`\`${SLACK_PREFIX}[$(date '+%Y-%m-%d %T.%3N')] ${HOSTNAME} ${escapedText}\`\`\`"
     #  SLACK_URL=$2
     case "$2" in
@@ -208,9 +208,9 @@ function logging() {
     LOG_PATH=${3:-"$DEFAULT_LOG_PATH"}    
     LOG_DATE=$(date +%Y%m%d)
     if [[ ! -e "$LOG_PATH" ]];then
-        mkdir -p $LOG_PATH
+        mkdir -p "$LOG_PATH"
     fi
-    echo "[$(date '+%Y-%m-%d %T.%3N')] $MSG " >> ${LOG_PATH}/${LOG_TYPE}_${LOG_DATE}.log
+    echo "[$(date '+%Y-%m-%d %T.%3N')] $MSG " >> "${LOG_PATH}/${LOG_TYPE}_${LOG_DATE}.log"
 }
 
 function returnErrorCount(){
@@ -218,7 +218,7 @@ function returnErrorCount(){
     ERROR_KEY=${2:-"default"}
     ACTION=${3:-"down"}
 
-    ERROR_KEY=$(echo ${ERROR_KEY} | sed 's/\//_/g')
+    ERROR_KEY=$(echo "${ERROR_KEY}" | sed 's/\//_/g')
     ERROR_DIR="/.health_check"
     if [[ ! -d "$ERROR_DIR" ]]; then
         mkdir -p ${ERROR_DIR}
@@ -228,8 +228,8 @@ function returnErrorCount(){
     ####CPrint "returnErrorCount(), KEY='${ERROR_KEY}', ACT='${ACTION}', MSG='${MSG}' "
 
     if [[ "${MSG}"  && "${ACTION}" == "down" ]]; then
-        echo ${MSG} >> ${ERROR_COUNT_FILE}
-        ERROR_COUNT=$(cat ${ERROR_COUNT_FILE} | grep -v grep | grep "${MSG}" | wc -l)
+        echo "${MSG}" >> "${ERROR_COUNT_FILE}"
+        ERROR_COUNT=$(cat "${ERROR_COUNT_FILE}" | grep -v grep | grep "${MSG}" | wc -l)
         if [[ ${ERROR_COUNT} -ge ${ERROR_LIMIT} ]];then
             CPrint "[FAIL] (${ERROR_COUNT}/${ERROR_LIMIT}) It will be terminated / reason: ${MSG} "
             post_to_slack "[FAIL] (${ERROR_COUNT}/${ERROR_LIMIT}) It will be terminated / reason: ${MSG} "
@@ -241,7 +241,7 @@ function returnErrorCount(){
     else
         if [[ -f "${ERROR_COUNT_FILE}" ]];then
             logging "Reset count ${ERROR_COUNT_FILE}"
-            rm -f ${ERROR_COUNT_FILE}
+            rm -f "${ERROR_COUNT_FILE}"
         fi
     fi
 }
@@ -250,7 +250,7 @@ function CPrint {
     MSG=$1
     COLOR=$2
     if [[ "$COLOR" == "" ]];then
-        MSG=$@
+        MSG=$*
     fi
     DATE=$(date '+%Y-%m-%d %T.%3N')
     RED='\e[0;91m'
@@ -260,18 +260,18 @@ function CPrint {
     RESET='\e[0m'  # RESET    
 
     if [[ "$COLOR" == "RED" ]];then
-        MSG="[ERROR] $MSG"    
+        MSG="[ERROR] $MSG"
     fi
 
     case $2 in
         "RED")
-            printf "%b %50s %b \n" ${RED} "[$DATE] $MSG" ${RESET} ;;
+            printf "%b %50s %b \n" "${RED}" "[$DATE] $MSG" "${RESET}" ;;
         "GREEN")
-            printf "%b  %50s %b \n" ${GREEN} "[$DATE] $MSG" ${RESET} ;;
+            printf "%b  %50s %b \n" "${GREEN}" "[$DATE] $MSG" "${RESET}" ;;
         "WHITE")
-            printf "%b  %50s %b \n" ${WHITE} "[$DATE] $MSG" ${RESET} ;;
+            printf "%b  %50s %b \n" "${WHITE}" "[$DATE] $MSG" "${RESET}" ;;
         *)
-            printf "%b  %s %b \n" ${BOLD_WHITE} "[$DATE] $MSG" ${RESET} ;;
+            printf "%b  %s %b \n" "${BOLD_WHITE}" "[$DATE] $MSG" "${RESET}" ;;
     esac
 
     logging "$MSG"
@@ -307,7 +307,7 @@ function download_file() {
             CPrint "Unauthorized IP address, Please contact our support team" "RED"
             CPrint "Your External IP:${EXT_IPADDR} / Your Enviroment IPADDR:${IPADDR}" "RED"
         fi        
-        rm -f ${DOWNLOAD_DEST}        
+        rm -f "${DOWNLOAD_DEST}"
         exit 127;
     fi
 }
@@ -326,6 +326,7 @@ function check_valid_ip(){
     PrintOK "Check valid IPaddr -> $1 " $stat
     return $stat
 }
+
 function int_check(){
     value=$1
     r=${value#-}
@@ -338,19 +339,19 @@ function int_check(){
 }
 function filetype_check() {
     filename=$1
-    type=$(file ${filename} | cut -d ":" -f 2)
-    echo ${type}
+    type=$(file "${filename}" | cut -d ":" -f 2)
+    echo "${type}"
 }
 
 function validationViewConfig() {
     filename=$1
     if [[ -f "${filename}" ]]; then
-        jq -C . $filename 1>/dev/null
+        jq -C . "$filename" 1>/dev/null
         if [[ "$VIEW_CONFIG" == "true" ]]; then
-            json=$(jq  . ${filename})
+            json=$(jq  . "${filename}")
             CPrint "$filename detail - ${json}"
         fi
-        FILESIZE=$(stat --printf="%s" $filename)
+        FILESIZE=$(stat --printf="%s" "$filename")
         if [[ ${FILESIZE} == 0 ]];then
             CPrint "[FAIL] $filename size=$FILESIZE " "RED"
             exit 3
@@ -361,8 +362,8 @@ function validationViewConfig() {
 
 function find_neighbor_func(){
     WRITE_OPTION=${1:-""}
-    if [[ "${FIND_NEIGHBOR}" == "true" ]] && [[ ! -z "${ENDPOINT_URL}" ]]; then
-        FIND_NEIGHBOR_HOSTS=`/src/find_neighbor.py ${ENDPOINT_URL} ${FIND_NEIGHBOR_COUNT} ${WRITE_OPTION}`
+    if [[ "${FIND_NEIGHBOR}" == "true" ]] && [[ -n "${ENDPOINT_URL}" ]]; then
+        FIND_NEIGHBOR_HOSTS=$(/src/find_neighbor.py ${ENDPOINT_URL} ${FIND_NEIGHBOR_COUNT} ${WRITE_OPTION})
         CPrint "== ${FIND_NEIGHBOR_HOSTS}"
     fi
 }
@@ -397,7 +398,7 @@ if [[ "${IS_AUTOGEN_CERT}" == "true" && ! -f "${PRIVATE_PATH}" ]]  ; then
     autogen_certkey "${PRIVATE_PATH}"
 fi
 
-mkdir -p ${DEFAULT_PATH}
+mkdir -p "${DEFAULT_PATH}"
 
 check_valid_ip "$IPADDR"
 
@@ -416,7 +417,7 @@ if [[ "${NETWORK_ENV}" == *"testnet"* ]];then
 fi
 
 CPrint "P-REP package version info - ${APP_VERSION}"
-PIP_LIST=$(pip list | egrep "loopchain|icon" | tr -d '')
+PIP_LIST=$(pip list | grep -E "loopchain|icon" | tr -d '')
 CPrint "$PIP_LIST"
 
 CPrint "NETWORK_ENV=${NETWORK_ENV}, SERVICE=${SERVICE}, ENDPOINT_URL=${ENDPOINT_URL}, SERVICE_API = $SERVICE_API"
@@ -431,7 +432,7 @@ if [[ "$NETWORK_ENV" == "mainnet" ]]; then
     CREP_ROOT_HASH="0xd421ad83f81a31abd7f6813bb6a3b92fa547bdb6d5abc98d2d0852c1a97bcca5"
     SWITCH_BH_VERSION3=10324749
     SWITCH_BH_VERSION4=12640761
-    jq '.CHANNEL_OPTION.icon_dex.hash_versions.genesis = 0' $configure_json| sponge $configure_json
+    jq '.CHANNEL_OPTION.icon_dex.hash_versions.genesis = 0' "$configure_json" | sponge "$configure_json"
 
 elif [[ "$NETWORK_ENV" == "testnet" ]]; then
     builtinScoreOwner="hxba096790caa1804a8828939839a901a5978020a7"
@@ -453,7 +454,7 @@ else
     if [[ ! -f ${PRIVATE_PATH} ]]; then
         if [[ $IS_DOWNLOAD_CERT == "true" ]]; then
             CPrint "Download key file - ${PRIVATE_PATH}"
-            download_file $CONFIG_API_SERVER/cert/${IPADDR}_private.der "${PRIVATE_PATH}"
+            download_file "$CONFIG_API_SERVER/cert/${IPADDR}_private.der" "${PRIVATE_PATH}"
         else
             CPrint "Key file not found - PRIVATE_PATH=${PRIVATE_PATH} , PRIVATE_KEY_FILENAME=${PRIVATE_KEY_FILENAME}" "RED"
 #            exit 127;
@@ -464,20 +465,20 @@ else
         if [[ -f ${CHANNEL_MANAGE_DATA_PATH} ]]; then
             CPrint "Already channel_manage_data.json ${CHANNEL_MANAGE_DATA_PATH}" "green"
         else
-            download_file $CONFIG_API_SERVER/conf/${SERVICE}_channel_manage_data.json $CHANNEL_MANAGE_DATA_PATH
+            download_file "$CONFIG_API_SERVER/conf/${SERVICE}_channel_manage_data.json" "$CHANNEL_MANAGE_DATA_PATH"
         fi
     fi
 fi
 
 if [[ "x${CREP_ROOT_HASH}" != "x" ]]; then
-    jq --arg CREP_ROOT_HASH "$CREP_ROOT_HASH" '.CHANNEL_OPTION.icon_dex.crep_root_hash = "\($CREP_ROOT_HASH)"' $configure_json| sponge $configure_json
+    jq --arg CREP_ROOT_HASH "$CREP_ROOT_HASH" '.CHANNEL_OPTION.icon_dex.crep_root_hash = "\($CREP_ROOT_HASH)"' "$configure_json"| sponge "$configure_json"
 fi
 
 if [[ $NETWORK_ENV == "mainnet" || $NETWORK_ENV == "testnet" ]];then
     if [[  ! -f "${PRIVATE_PATH}"  ]]; then
         autogen_certkey "${PRIVATE_PATH}"
     else
-        PRIVATE_KEY=$(ls ${PRIVATE_PATH})
+        PRIVATE_KEY=$(ls "${PRIVATE_PATH}")
 #        PUBLIC_KEY=`ls ${PUBLIC_PATH}`
         CPrint "Already cert keys= ${PRIVATE_KEY}"
     fi
@@ -493,37 +494,37 @@ if [[ "${VIEW_CONFIG}" == "true" ]]; then
 fi
 
 if  [[ "${USE_NAT}" == "yes" ]]; then
-    jq -M 'del(.LOOPCHAIN_HOST)' $configure_json| sponge $configure_json
+    jq -M 'del(.LOOPCHAIN_HOST)' "$configure_json"| sponge "$configure_json"
 else
-    jq --arg IPADDR "$IPADDR" '.LOOPCHAIN_HOST = "\($IPADDR)"' $configure_json| sponge $configure_json
+    jq --arg IPADDR "$IPADDR" '.LOOPCHAIN_HOST = "\($IPADDR)"' "$configure_json"| sponge "$configure_json"
 fi
-jq --argjson SUBSCRIBE_LIMIT "$SUBSCRIBE_LIMIT" '.SUBSCRIBE_LIMIT = $SUBSCRIBE_LIMIT' $configure_json| sponge $configure_json
-jq --argjson SHUTDOWN_TIMER "$SHUTDOWN_TIMER" '.SHUTDOWN_TIMER = $SHUTDOWN_TIMER' $configure_json| sponge $configure_json
+jq --argjson SUBSCRIBE_LIMIT "$SUBSCRIBE_LIMIT" '.SUBSCRIBE_LIMIT = $SUBSCRIBE_LIMIT' "$configure_json"| sponge "$configure_json"
+jq --argjson SHUTDOWN_TIMER "$SHUTDOWN_TIMER" '.SHUTDOWN_TIMER = $SHUTDOWN_TIMER' "$configure_json"| sponge "$configure_json"
 
-if [[ ! -z $SWITCH_BH_VERSION3 ]]; then
+if [[ -n $SWITCH_BH_VERSION3 ]]; then
     CPrint "SWITCH_BH_VERSION3 = ${SWITCH_BH_VERSION3}"
-    jq --argjson SWITCH_BH_VERSION3 "$SWITCH_BH_VERSION3" '.CHANNEL_OPTION.icon_dex.block_versions."0.3" = $SWITCH_BH_VERSION3' $configure_json| sponge $configure_json
+    jq --argjson SWITCH_BH_VERSION3 "$SWITCH_BH_VERSION3" '.CHANNEL_OPTION.icon_dex.block_versions."0.3" = $SWITCH_BH_VERSION3' "$configure_json"| sponge "$configure_json"
 fi
 
-if [[ ! -z $SWITCH_BH_VERSION4 ]]; then
+if [[ -n $SWITCH_BH_VERSION4 ]]; then
     CPrint "SWITCH_BH_VERSION4 = ${SWITCH_BH_VERSION4}"
-    jq --argjson SWITCH_BH_VERSION4 "$SWITCH_BH_VERSION4" '.CHANNEL_OPTION.icon_dex.block_versions."0.4" = $SWITCH_BH_VERSION4' $configure_json| sponge $configure_json
+    jq --argjson SWITCH_BH_VERSION4 "$SWITCH_BH_VERSION4" '.CHANNEL_OPTION.icon_dex.block_versions."0.4" = $SWITCH_BH_VERSION4' "$configure_json"| sponge "$configure_json"
 fi
 
 # jq --arg LEADER_COMPLAIN_RATIO "$LEADER_COMPLAIN_RATIO" '.LEADER_COMPLAIN_RATIO = "\($LEADER_COMPLAIN_RATIO)"' $configure_json| sponge $configure_json
-jq --arg DEFAULT_STORAGE_PATH "$DEFAULT_STORAGE_PATH" '.DEFAULT_STORAGE_PATH = "\($DEFAULT_STORAGE_PATH)"' $configure_json| sponge $configure_json
-jq --arg LOOPCHAIN_LOG_LEVEL "$LOOPCHAIN_LOG_LEVEL" '.LOOPCHAIN_LOG_LEVEL = "\($LOOPCHAIN_LOG_LEVEL)"' $configure_json| sponge $configure_json
-jq --argjson TIMEOUT_FOR_LEADER_COMPLAIN "$TIMEOUT_FOR_LEADER_COMPLAIN" '.TIMEOUT_FOR_LEADER_COMPLAIN = $TIMEOUT_FOR_LEADER_COMPLAIN' $configure_json| sponge $configure_json
+jq --arg DEFAULT_STORAGE_PATH "$DEFAULT_STORAGE_PATH" '.DEFAULT_STORAGE_PATH = "\($DEFAULT_STORAGE_PATH)"' "$configure_json"| sponge "$configure_json"
+jq --arg LOOPCHAIN_LOG_LEVEL "$LOOPCHAIN_LOG_LEVEL" '.LOOPCHAIN_LOG_LEVEL = "\($LOOPCHAIN_LOG_LEVEL)"' "$configure_json"| sponge "$configure_json"
+jq --argjson TIMEOUT_FOR_LEADER_COMPLAIN "$TIMEOUT_FOR_LEADER_COMPLAIN" '.TIMEOUT_FOR_LEADER_COMPLAIN = $TIMEOUT_FOR_LEADER_COMPLAIN' "$configure_json"| sponge "$configure_json"
 
-jq --arg LOG_FILE_LOCATION "$DEFAULT_LOG_PATH" '.LOG_FILE_LOCATION = "\($LOG_FILE_LOCATION)"' $configure_json| sponge $configure_json
-jq --arg LOG_OUTPUT_TYPE "$LOG_OUTPUT_TYPE" '.LOG_OUTPUT_TYPE = "\($LOG_OUTPUT_TYPE)"' $configure_json| sponge $configure_json
+jq --arg LOG_FILE_LOCATION "$DEFAULT_LOG_PATH" '.LOG_FILE_LOCATION = "\($LOG_FILE_LOCATION)"' "$configure_json"| sponge "$configure_json"
+jq --arg LOG_OUTPUT_TYPE "$LOG_OUTPUT_TYPE" '.LOG_OUTPUT_TYPE = "\($LOG_OUTPUT_TYPE)"' "$configure_json"| sponge "$configure_json"
 
-jq --arg PRIVATE_PATH "$PRIVATE_PATH" '.PRIVATE_PATH = "\($PRIVATE_PATH)"' $configure_json| sponge $configure_json
-jq --arg PRIVATE_PASSWORD "$PRIVATE_PASSWORD" '.PRIVATE_PASSWORD = "\($PRIVATE_PASSWORD)"' $configure_json| sponge $configure_json
-jq --arg GENESIS_DATA_PATH "$GENESIS_DATA_PATH" '.CHANNEL_OPTION.icon_dex.genesis_data_path = "\($GENESIS_DATA_PATH)"' $configure_json| sponge $configure_json
-jq --arg ICON_NID "$ICON_NID"  '.transaction_data.nid = "\($ICON_NID)"' $GENESIS_DATA_PATH| sponge $GENESIS_DATA_PATH
+jq --arg PRIVATE_PATH "$PRIVATE_PATH" '.PRIVATE_PATH = "\($PRIVATE_PATH)"' "$configure_json"| sponge "$configure_json"
+jq --arg PRIVATE_PASSWORD "$PRIVATE_PASSWORD" '.PRIVATE_PASSWORD = "\($PRIVATE_PASSWORD)"' "$configure_json"| sponge "$configure_json"
+jq --arg GENESIS_DATA_PATH "$GENESIS_DATA_PATH" '.CHANNEL_OPTION.icon_dex.genesis_data_path = "\($GENESIS_DATA_PATH)"' "$configure_json"| sponge "$configure_json"
+jq --arg ICON_NID "$ICON_NID"  '.transaction_data.nid = "\($ICON_NID)"' "$GENESIS_DATA_PATH"| sponge "$GENESIS_DATA_PATH"
 
-jq --argjson LOAD_PEERS_FROM_IISS "$LOAD_PEERS_FROM_IISS" '.LOAD_PEERS_FROM_IISS = $LOAD_PEERS_FROM_IISS' $configure_json| sponge $configure_json
+jq --argjson LOAD_PEERS_FROM_IISS "$LOAD_PEERS_FROM_IISS" '.LOAD_PEERS_FROM_IISS = $LOAD_PEERS_FROM_IISS' "$configure_json"| sponge "$configure_json"
 
 
 IS_REG=`curl ${CURL_OPTION} ${SERVICE_API} -d '{"jsonrpc":"2.0","method":"icx_call","id":2696368077,"params":{"from":"hx0000000000000000000000000000000000000000","to":"cx0000000000000000000000000000000000000000","dataType":"call","data":{"method":"getPReps"}}}' |  \
@@ -556,21 +557,21 @@ if [[ "${SERVICE}" != "mainnet" ]] && [[ "${SERVICE}" != "testnet" ]]; then
     fi
 
     if [[ "${FIRST_PEER}" == "false" ]];then
-        jq -M 'del(.CHANNEL_OPTION.icon_dex.genesis_data_path)' $configure_json| sponge $configure_json
+        jq -M 'del(.CHANNEL_OPTION.icon_dex.genesis_data_path)' "$configure_json"| sponge "$configure_json"
     #    if [[ "$ENDPOINT_URL" ]]; then
     #        RUN_MODE="citizen -r ${ENDPOINT_URL}"
     #    fi
     else
         CPrint "====== FIRST PEER ========"
-        jq  --arg PEER_ID "$PEER_ID" '(.transaction_data.accounts[] | select(.name == "genesis_node") | .address) |= "\($PEER_ID)"'  $GENESIS_DATA_PATH | sponge $GENESIS_DATA_PATH
+        jq  --arg PEER_ID "$PEER_ID" '(.transaction_data.accounts[] | select(.name == "genesis_node") | .address) |= "\($PEER_ID)"'  "$GENESIS_DATA_PATH" | sponge "$GENESIS_DATA_PATH"
     fi
 fi
 
 RUN_MODE_WRITE="${DEFAULT_PATH}/.run_mode"
 if [[ ! -f "${RUN_MODE_WRITE}"  && ${GENESIS_NODE} == "true" ]] ; then
-    DATE=`date '+%Y-%m-%d %T.%3N'`
+    DATE=$(date '+%Y-%m-%d %T.%3N')
     CPrint "First run - ${DATE}" "green"
-    echo ${DATE} >> ${RUN_MODE_WRITE}
+    echo "${DATE}" >> "${RUN_MODE_WRITE}"
     RUN_MODE="peer"
 fi
 
@@ -578,87 +579,87 @@ if [[ "$FORCE_RUN_MODE" ]]; then
     RUN_MODE="$FORCE_RUN_MODE"
 fi
 
-jq --argjson mainPRepCount "$mainPRepCount" '.mainPRepCount = $mainPRepCount' $iconservice_json| sponge $iconservice_json
-jq --argjson mainAndSubPRepCount "$mainAndSubPRepCount" '.mainAndSubPRepCount = $mainAndSubPRepCount' $iconservice_json| sponge $iconservice_json
-jq --argjson decentralizeTrigger "$decentralizeTrigger" '.decentralizeTrigger = $decentralizeTrigger' $iconservice_json| sponge $iconservice_json
-jq --argjson penaltyGracePeriod "$penaltyGracePeriod" '.penaltyGracePeriod = $penaltyGracePeriod' $iconservice_json| sponge $iconservice_json
+jq --argjson mainPRepCount "$mainPRepCount" '.mainPRepCount = $mainPRepCount' "$iconservice_json"| sponge "$iconservice_json"
+jq --argjson mainAndSubPRepCount "$mainAndSubPRepCount" '.mainAndSubPRepCount = $mainAndSubPRepCount' "$iconservice_json"| sponge "$iconservice_json"
+jq --argjson decentralizeTrigger "$decentralizeTrigger" '.decentralizeTrigger = $decentralizeTrigger' "$iconservice_json"| sponge "$iconservice_json"
+jq --argjson penaltyGracePeriod "$penaltyGracePeriod" '.penaltyGracePeriod = $penaltyGracePeriod' "$iconservice_json"| sponge "$iconservice_json"
 
 
 if [[ "$iissCalculatePeriod" ]]; then
-    jq --argjson iissCalculatePeriod "$iissCalculatePeriod" '.iissCalculatePeriod = $iissCalculatePeriod' $iconservice_json| sponge $iconservice_json
+    jq --argjson iissCalculatePeriod "$iissCalculatePeriod" '.iissCalculatePeriod = $iissCalculatePeriod' "$iconservice_json"| sponge "$iconservice_json"
 fi
 
 if [[ "$termPeriod" ]]; then
-    jq --argjson termPeriod "$termPeriod" '.termPeriod = $termPeriod' $iconservice_json| sponge $iconservice_json
+    jq --argjson termPeriod "$termPeriod" '.termPeriod = $termPeriod' "$iconservice_json"| sponge "$iconservice_json"
 fi
 
 if [[ "$blockValidationPenaltyThreshold" ]]; then
-    jq --argjson blockValidationPenaltyThreshold "$blockValidationPenaltyThreshold" '.blockValidationPenaltyThreshold = $blockValidationPenaltyThreshold' $iconservice_json| sponge $iconservice_json
+    jq --argjson blockValidationPenaltyThreshold "$blockValidationPenaltyThreshold" '.blockValidationPenaltyThreshold = $blockValidationPenaltyThreshold' "$iconservice_json"| sponge "$iconservice_json"
 fi
 
 if [[ "$lowProductivityPenaltyThreshold" ]]; then
-    jq --argjson lowProductivityPenaltyThreshold "$lowProductivityPenaltyThreshold" '.lowProductivityPenaltyThreshold = $lowProductivityPenaltyThreshold' $iconservice_json| sponge $iconservice_json
+    jq --argjson lowProductivityPenaltyThreshold "$lowProductivityPenaltyThreshold" '.lowProductivityPenaltyThreshold = $lowProductivityPenaltyThreshold' "$iconservice_json"| sponge "$iconservice_json"
 fi
 
 if [[ "${STAKE_LOCK_MAX}" ]]; then
-    jq --argjson STAKE_LOCK_MAX "$STAKE_LOCK_MAX" '.iissMetaData.lockMax = $STAKE_LOCK_MAX' $iconservice_json| sponge $iconservice_json
+    jq --argjson STAKE_LOCK_MAX "$STAKE_LOCK_MAX" '.iissMetaData.lockMax = $STAKE_LOCK_MAX' "$iconservice_json"| sponge "$iconservice_json"
 fi
 
 if [[ "${STAKE_LOCK_MIN}" ]]; then
-    jq --argjson STAKE_LOCK_MIN "$STAKE_LOCK_MIN" '.iissMetaData.lockMin = $STAKE_LOCK_MIN' $iconservice_json| sponge $iconservice_json
+    jq --argjson STAKE_LOCK_MIN "$STAKE_LOCK_MIN" '.iissMetaData.lockMin = $STAKE_LOCK_MIN' "$iconservice_json"| sponge "$iconservice_json"
 fi
 
-jq --arg ENDPOINT_URL "$ENDPOINT_URL" '.CHANNEL_OPTION.icon_dex.radiostations = ["\($ENDPOINT_URL)"]' $configure_json| sponge $configure_json
+jq --arg ENDPOINT_URL "$ENDPOINT_URL" '.CHANNEL_OPTION.icon_dex.radiostations = ["\($ENDPOINT_URL)"]' "$configure_json"| sponge "$configure_json"
 
 find_neighbor_func "-w"
 
 if [[ "${#RADIOSTATIONS}" -gt 0 ]];then
-    jq -M 'del(.CHANNEL_OPTION.icon_dex.radiostations)' $configure_json| sponge $configure_json
+    jq -M 'del(.CHANNEL_OPTION.icon_dex.radiostations)' "$configure_json"| sponge "$configure_json"
     for RADIOSTATION in $RADIOSTATIONS # seperate space
     do
         CPrint "Add RADIOSTATION -> $RADIOSTATION"
-        jq --arg RADIOSTATION "$RADIOSTATION" '.CHANNEL_OPTION.icon_dex.radiostations += ["\($RADIOSTATION)"]' $configure_json| sponge $configure_json
+        jq --arg RADIOSTATION "$RADIOSTATION" '.CHANNEL_OPTION.icon_dex.radiostations += ["\($RADIOSTATION)"]' "$configure_json"| sponge "$configure_json"
     done
     validationViewConfig "$configure_json"
 fi
 
 if [[ -f "${CHANNEL_MANAGE_DATA_PATH}" ]]; then
-    jq --arg CHANNEL_MANAGE_DATA_PATH "$CHANNEL_MANAGE_DATA_PATH" '.CHANNEL_MANAGE_DATA_PATH = "\($CHANNEL_MANAGE_DATA_PATH)"' $configure_json| sponge $configure_json
+    jq --arg CHANNEL_MANAGE_DATA_PATH "$CHANNEL_MANAGE_DATA_PATH" '.CHANNEL_MANAGE_DATA_PATH = "\($CHANNEL_MANAGE_DATA_PATH)"' "$configure_json"| sponge "$configure_json"
 else
     CPrint "CHANNEL_MANAGE_DATA not found - ${CHANNEL_MANAGE_DATA_PATH}"
 fi
-jq --arg PEER_NAME "$PEER_NAME" '.PEER_NAME = "\($PEER_NAME)"' $configure_json| sponge $configure_json
+jq --arg PEER_NAME "$PEER_NAME" '.PEER_NAME = "\($PEER_NAME)"' "$configure_json"| sponge "$configure_json"
 
-jq --argjson CHANNEL_BUILTIN "$CHANNEL_BUILTIN" '.CHANNEL_BUILTIN = $CHANNEL_BUILTIN' $configure_json| sponge $configure_json
-jq --argjson ALLOW_MAKE_EMPTY_BLOCK "$ALLOW_MAKE_EMPTY_BLOCK" '.ALLOW_MAKE_EMPTY_BLOCK = $ALLOW_MAKE_EMPTY_BLOCK' $configure_json| sponge $configure_json
-jq --argjson IS_BROADCAST_MULTIPROCESSING "$IS_BROADCAST_MULTIPROCESSING" '.IS_BROADCAST_MULTIPROCESSING = $IS_BROADCAST_MULTIPROCESSING' $configure_json| sponge $configure_json
+jq --argjson CHANNEL_BUILTIN "$CHANNEL_BUILTIN" '.CHANNEL_BUILTIN = $CHANNEL_BUILTIN' "$configure_json"| sponge "$configure_json"
+jq --argjson ALLOW_MAKE_EMPTY_BLOCK "$ALLOW_MAKE_EMPTY_BLOCK" '.ALLOW_MAKE_EMPTY_BLOCK = $ALLOW_MAKE_EMPTY_BLOCK' "$configure_json"| sponge "$configure_json"
+jq --argjson IS_BROADCAST_MULTIPROCESSING "$IS_BROADCAST_MULTIPROCESSING" '.IS_BROADCAST_MULTIPROCESSING = $IS_BROADCAST_MULTIPROCESSING' "$configure_json"| sponge "$configure_json"
 
-jq --arg scoreRootPath "$scoreRootPath" '.scoreRootPath = "\($scoreRootPath)"' $iconservice_json| sponge $iconservice_json
-jq --arg stateDbRootPath "$stateDbRootPath" '.stateDbRootPath = "\($stateDbRootPath)"' $iconservice_json| sponge $iconservice_json
+jq --arg scoreRootPath "$scoreRootPath" '.scoreRootPath = "\($scoreRootPath)"' "$iconservice_json"| sponge "$iconservice_json"
+jq --arg stateDbRootPath "$stateDbRootPath" '.stateDbRootPath = "\($stateDbRootPath)"' "$iconservice_json"| sponge "$iconservice_json"
 
-jq --arg builtinScoreOwner "$builtinScoreOwner" '.builtinScoreOwner = "\($builtinScoreOwner)"' $iconservice_json| sponge $iconservice_json
-jq --arg score_audit "$score_audit" ".service.audit = $score_audit" $iconservice_json| sponge $iconservice_json
-jq --arg score_fee "$score_fee" ".service.fee = $score_fee" $iconservice_json| sponge $iconservice_json
+jq --arg builtinScoreOwner "$builtinScoreOwner" '.builtinScoreOwner = "\($builtinScoreOwner)"' "$iconservice_json"| sponge "$iconservice_json"
+jq --arg score_audit "$score_audit" ".service.audit = $score_audit" "$iconservice_json"| sponge "$iconservice_json"
+jq --arg score_fee "$score_fee" ".service.fee = $score_fee" "$iconservice_json"| sponge "$iconservice_json"
 
-jq --arg RPC_PORT "$RPC_PORT" '.port = "\($RPC_PORT)"' $iconrpcserver_json| sponge $iconrpcserver_json
-jq --argjson RPC_WORKER "$RPC_WORKER" '.gunicornConfig.workers = $RPC_WORKER' $iconrpcserver_json| sponge $iconrpcserver_json
-jq --argjson RPC_GRACEFUL_TIMEOUT "$RPC_GRACEFUL_TIMEOUT" '.gunicornConfig.graceful_timeout = $RPC_GRACEFUL_TIMEOUT' $iconrpcserver_json| sponge $iconrpcserver_json
+jq --arg RPC_PORT "$RPC_PORT" '.port = "\($RPC_PORT)"' "$iconrpcserver_json"| sponge "$iconrpcserver_json"
+jq --argjson RPC_WORKER "$RPC_WORKER" '.gunicornConfig.workers = $RPC_WORKER' "$iconrpcserver_json"| sponge "$iconrpcserver_json"
+jq --argjson RPC_GRACEFUL_TIMEOUT "$RPC_GRACEFUL_TIMEOUT" '.gunicornConfig.graceful_timeout = $RPC_GRACEFUL_TIMEOUT' "$iconrpcserver_json"| sponge "$iconrpcserver_json"
 
 if [[ "${AMQP_TARGET}" ]];then
-    jq --arg AMQP_TARGET "$AMQP_TARGET" '.AMQP_TARGET = "\($AMQP_TARGET)"' $configure_json| sponge $configure_json
-    jq --arg amqpTarget "$AMQP_TARGET" '.amqpTarget = "\($amqpTarget)"' $iconservice_json| sponge $iconservice_json
-    jq --arg amqpTarget "$AMQP_TARGET" '.amqpTarget = "\($amqpTarget)"' $iconrpcserver_json| sponge $iconrpcserver_json
+    jq --arg AMQP_TARGET "$AMQP_TARGET" '.AMQP_TARGET = "\($AMQP_TARGET)"' "$configure_json"| sponge "$configure_json"
+    jq --arg amqpTarget "$AMQP_TARGET" '.amqpTarget = "\($amqpTarget)"' "$iconservice_json"| sponge "$iconservice_json"
+    jq --arg amqpTarget "$AMQP_TARGET" '.amqpTarget = "\($amqpTarget)"' "$iconrpcserver_json"| sponge "$iconrpcserver_json"
 fi
 
 for item in "iconservice" "iconrpcserver";
 do  
     CONFIG_FILE="${CONF_PATH}/${item}.json"
-    jq --arg outputType "$outputType" '.log.outputType = "\($outputType)"' $CONFIG_FILE| sponge $CONFIG_FILE
-    jq --arg ICON_LOG_LEVEL "$ICON_LOG_LEVEL" '.log.level = "\($ICON_LOG_LEVEL)"' $CONFIG_FILE| sponge $CONFIG_FILE
-    jq --arg DEFAULT_LOG_PATH "$DEFAULT_LOG_PATH/${item}.log" '.log.filePath = "\($DEFAULT_LOG_PATH)"' $CONFIG_FILE | sponge $CONFIG_FILE
+    jq --arg outputType "$outputType" '.log.outputType = "\($outputType)"' "$CONFIG_FILE"| sponge "$CONFIG_FILE"
+    jq --arg ICON_LOG_LEVEL "$ICON_LOG_LEVEL" '.log.level = "\($ICON_LOG_LEVEL)"' "$CONFIG_FILE"| sponge "$CONFIG_FILE"
+    jq --arg DEFAULT_LOG_PATH "$DEFAULT_LOG_PATH/${item}.log" '.log.filePath = "\($DEFAULT_LOG_PATH)"' "$CONFIG_FILE" | sponge "$CONFIG_FILE"
 done
 
-if [[ ! -z "${USER_DEFINED_ENV}" ]]; then
+if [[ -n "${USER_DEFINED_ENV}" ]]; then
     CPrint "Add USER_DEFINED_ENV"
     CPrint "$(/src/genconfig.py)"
 fi
@@ -670,7 +671,8 @@ do
     validationViewConfig "$config"
 done
 
-cd /$APP_DIR
+cd "/$APP_DIR" || exit 1
+
 echo $#
 
 if [[ "$NEWRELIC_LICENSE" ]] ; then
@@ -686,7 +688,7 @@ fi
 if [[ $# -gt 0 ]]; then
     exec $@
 else
-    mkdir -p ${DEFAULT_PATH}
+    mkdir -p "${DEFAULT_PATH}"
     if [[ "$FASTEST_START" == "yes" ]]; then
         if [[ "$NETWORK_NAME" == "" && $NETWORK_ENV == "mainnet" ]];then
             NETWORK_NAME="MainctzNet"
@@ -704,7 +706,7 @@ else
                 rm -rf ${DEFAULT_STORAGE_PATH:?}/* ${scoreRootPath:?}/* ${stateDbRootPath:?}/*
                 mkdir -p $DEFAULT_STORAGE_PATH $scoreRootPath $stateDbRootPath ${DEFAULT_PATH}
                 if [[ -z "$FASTEST_START_POINT" ]]; then
-                    FAST_S3_REGION=`/src/find_region_async.py`
+                    FAST_S3_REGION=$(/src/find_region_async.py)
                     CPrint "Download from [  $FAST_S3_REGION  ]" "GREEN"
                     DOWNLOAD_PREFIX="$FAST_S3_REGION/${NETWORK_NAME}"
                     LASTEST_VERSION=`curl -k -s ${DOWNLOAD_PREFIX}/backup_list | head -n 1`
@@ -844,7 +846,7 @@ if [[ "${HEALTH_ENV_CHECK}" == "true" ]]; then
     CPrint "Start Health check ... ${HEALTH_CHECK_INTERVAL}s, HEALTH_ENV_CHECK=${HEALTH_ENV_CHECK}"
     while [[ true ]];
     do
-        sleep ${HEALTH_CHECK_INTERVAL};
+        sleep "${HEALTH_CHECK_INTERVAL}";
 
         if [[ "${USE_PROC_HEALTH_CHECK}" == "yes" ]] ;then
             if [[ "$VIEW_CONFIG" == "true" ]]; then
@@ -883,7 +885,7 @@ else
     while [[ 1 ]];
     do
         if [[ "${USE_NTP_SYNC}" == "true" ]]; then
-            sleep ${NTP_REFRESH_TIME};
+            sleep "${NTP_REFRESH_TIME}";
             ntp_check;
         else
             sleep 10;

@@ -1,5 +1,5 @@
 
--e BUILD_DATE=2019-12-23T10:59:26UTC  
+-e BUILD_DATE=2019-12-24T03:37:26UTC  
 -e CREP_ROOT_HASH="0xe4bd136b3d42c765a284b8948859fff45f58045a24e42bb02663b54a9c226550"  
 -e DOCKERIZE_VERSION="v0.6.1"  
 -e DOWNLOAD_PACKAGE="http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/docker_resource/1912090356xb1e1fe/docker_1912090356xb1e1fe_packages.tar.gz"  
@@ -27,7 +27,7 @@
 -e TAGNAME=1912090356xb1e1fe  
 -e TIMEOUT_FOR_LEADER_COMPLAIN=60  
 -e USER_DEFINED_ENV=".channel.intconf.\"0.3\"=10|configure_json"  
--e VCS_REF=7d41a0b  
+-e VCS_REF=8d309da  
 -e VERSION=1912090356xb1e1fe  
 -e blockValidationPenaltyThreshold=10  
 -e configure_json="/prep_peer/conf/configure.json"  
