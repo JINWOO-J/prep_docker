@@ -1,4 +1,8 @@
 schemaVersion: '2.0.0'
+globalEnvVars:
+  - key: "KEY_PASSWORD"
+    value: "testtest1!!!"
+
 commandTests:
   - name: "icon_rc"
     command: "icon_rc"
@@ -25,6 +29,15 @@ commandTests:
     args:
       - -c
       - |
-        openssl ecparam -genkey -name secp256k1 | openssl ec -aes-256-cbc -out /my_private.pem -passout pass:testkey &&
-        /src/getPeerID.py /my_private.pem testkey
+        openssl ecparam -genkey -name secp256k1 | openssl ec -aes-256-cbc -out /my_private.pem -passout pass:$KEY_PASSWORD &&
+        /src/getPeerID.py /my_private.pem $KEY_PASSWORD
+    expectedOutput: ["hx.*"]
+
+  - name: "Generate a keystore file and Check peer_id"
+    command: "bash"
+    args:
+      - -c
+      - |
+        tbears keystore /keystore.json  -p $KEY_PASSWORD &&
+        /src/getPeerID.py /keystore.json $KEY_PASSWORD
     expectedOutput: ["hx.*"]

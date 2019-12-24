@@ -1,16 +1,57 @@
-sudo: required
+language: python
+python:
+  - "3.6"
+
 services:
   - docker
+
+env:  # env에 따라서 n개의 sendbox가 만들어지고 빌드됨
+  global:
+    - IS_LOCAL=false
+    - CREP_ROOT_HASH="0x9718f5d6d6ddb77f547ecc7113c8f1bad1bf46220512fbde356eee74a90ba47c"
+    - WAIT_RETRY=30
+    - CURL_OPTION="--connect-timeout 1 --max-time 1 -s "
 
 branches:
   only:
     - master
     - devel
 
-install:
-  - make build_python
+before_install:
   - curl -LO https://storage.googleapis.com/container-structure-test/latest/container-structure-test-linux-amd64 && chmod +x container-structure-test-linux-amd64 && sudo mv container-structure-test-linux-amd64 /usr/local/bin/container-structure-test
 
-script:
-  - make test
+install:
+  - make IS_LOCAL=$IS_LOCAL build_python
+  - make IS_LOCAL=$IS_LOCAL test
+  - >
+    docker run -d --rm -p 9000:9000
+    -e CREP_ROOT_HASH=$CREP_ROOT_HASH
+    -e LOG_OUTPUT_TYPE="console"
+    -e IS_AUTOGEN_CERT="true"
+    --name prep-node iconloop/prep-node:$(make version)
 
+script:
+  - docker ps -a
+  - |
+    NEXT_WAIT_TIME=0
+    until curl $CURL_OPTION localhost:9000/api/v1/status/peer || [ $NEXT_WAIT_TIME -eq $WAIT_RETRY ];
+    do
+      echo " retry count -> ${NEXT_WAIT_TIME}"
+      NEXT_WAIT_TIME=$(( NEXT_WAIT_TIME+1 ));
+      sleep 1;
+    done
+  - sleep 40
+  - docker ps -a
+  - peer_status=$(curl $CURL_OPTION http://localhost:9000/api/v1/status/peer)
+  - echo $peer_status | jq
+  - block_height=$(echo $peer_status | jq .block_height)
+  - |
+    if [[ "${block_height}" -gt 0 ]];then
+      echo "syncing .. $block_height"
+    else
+      echo "something wrong"
+      docker logs prep-node
+      exit 1
+    fi  
+
+after_failure: docker logs prep-node

@@ -131,6 +131,7 @@ export SLACK_URL=${SLACK_URL:-""}    #  slack's webhook URL
 export SLACK_PREFIX=${SLACK_PREFIX:-""} # slack's prefix header message
 export IS_BROADCAST_MULTIPROCESSING=${IS_BROADCAST_MULTIPROCESSING:-"false"}
 export IS_DOWNLOAD_CERT=${IS_DOWNLOAD_CERT:-"false"}
+export IS_AUTOGEN_CERT=${IS_AUTOGEN_CERT:-"false"} # auto generate cert key # true, false
 # export LEADER_COMPLAIN_RATIO=${LEADER_COMPLAIN_RATIO:-"0.67"}
 export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 
@@ -381,6 +382,20 @@ function ntp_check(){
     fi
 }
 
+function autogen_certkey(){
+    FILENAME=${1:-"$PRIVATE_PATH"}
+    openssl ecparam -genkey -name secp256k1 | openssl ec -aes-256-cbc -out ${FILENAME} -passout pass:${PRIVATE_PASSWORD}
+    CPrint "Generate key file $FILENAME"
+    PrintOK "Generate private key " $?
+#    openssl ec -in ${FILENAME}  -pubout -out ${PUBLIC_PATH} -passin pass:${PRIVATE_PASSWORD}
+#    PrintOK "Generate public key" $?
+}
+
+if [[ "${IS_AUTOGEN_CERT}" == "true" && ! -f "${PRIVATE_PATH}" ]]  ; then
+    CPrint "Auto generataion cert key"
+    PRIVATE_PATH="${CERT_PATH}/autogen_cert.pem"
+    autogen_certkey "${PRIVATE_PATH}"
+fi
 
 mkdir -p ${DEFAULT_PATH}
 
@@ -440,8 +455,8 @@ else
             CPrint "Download key file - ${PRIVATE_PATH}"
             download_file $CONFIG_API_SERVER/cert/${IPADDR}_private.der "${PRIVATE_PATH}"
         else
-            CPrint "Key file not found - ${PRIVATE_PATH} , ${PRIVATE_KEY_FILENAME}" "RED"
-            exit 127;           
+            CPrint "Key file not found - PRIVATE_PATH=${PRIVATE_PATH} , PRIVATE_KEY_FILENAME=${PRIVATE_KEY_FILENAME}" "RED"
+#            exit 127;
         fi
     fi
 
@@ -459,12 +474,8 @@ if [[ "x${CREP_ROOT_HASH}" != "x" ]]; then
 fi
 
 if [[ $NETWORK_ENV == "mainnet" || $NETWORK_ENV == "testnet" ]];then
-
     if [[  ! -f "${PRIVATE_PATH}"  ]]; then
-        openssl ecparam -genkey -name secp256k1 | openssl ec -aes-256-cbc -out ${PRIVATE_PATH} -passout pass:${PRIVATE_PASSWORD}
-        PrintOK "Generate private key" $?
-#        openssl ec -in ${PRIVATE_PATH}  -pubout -out ${PUBLIC_PATH} -passin pass:${PRIVATE_PASSWORD}
-#        PrintOK "Generate public key" $?
+        autogen_certkey "${PRIVATE_PATH}"
     else
         PRIVATE_KEY=$(ls ${PRIVATE_PATH})
 #        PUBLIC_KEY=`ls ${PUBLIC_PATH}`
@@ -472,8 +483,10 @@ if [[ $NETWORK_ENV == "mainnet" || $NETWORK_ENV == "testnet" ]];then
     fi
 fi
 
+
 PEER_ID=`/src/getPeerID.py ${PRIVATE_PATH} ${PRIVATE_PASSWORD} 2>&1`
 PrintOK "Peer ID: ${PEER_ID}" $?
+
 
 if [[ "${VIEW_CONFIG}" == "true" ]]; then
     CPrint "builtinScoreOwner = $builtinScoreOwner"
