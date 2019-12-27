@@ -57,20 +57,24 @@ ifeq ($(MAKECMDGOALS) , bash)
 	USER_DEFINED_ENV:= ".channel.intconf.\"0.3\"=10|configure_json"
 endif
 
-
 define colorecho
       @tput setaf 6
       @echo $1
       @tput sgr0
 endef
 
-NO_COLOR=\x1b[0m
-OK_COLOR=\x1b[32;01m
-ERROR_COLOR=\x1b[31;01m
-WARN_COLOR=\x1b[33;01m
-OK_STRING=$(OK_COLOR)[OK]$(NO_COLOR)
-ERROR_STRING=$(ERROR_COLOR)[ERRORS]$(NO_COLOR)
-WARN_STRING=$(WARN_COLOR)[WARNINGS]$(NO_COLOR)
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+    ECHO_OPTION = "-e"
+endif
+ifeq ($(UNAME_S),Darwin)
+    ECHO_OPTION = ""
+endif
+
+NO_COLOR=\033[0m
+OK_COLOR=\033[32m
+ERROR_COLOR=\033[31m
+WARN_COLOR=\033[93m
 
 TEST_FILES := $(shell find tests -name '*.yml')
 
@@ -85,7 +89,7 @@ print_version:
 	@echo "$(OK_COLOR) VERSION-> $(VERSION)  REPO-> $(REPO_HUB)/$(NAME):$(TAGNAME) $(NO_COLOR) IS_LOCAL: $(IS_LOCAL)"
 
 make_debug_mode:
-	@$(shell echo "$(OK_COLOR) ----- DEBUG Environment ----- $(MAKECMDGOALS)  \n $(NO_COLOR)" >&2)\
+	@$(shell echo $(ECHO_OPTION) "$(OK_COLOR) ----- DEBUG Environment ----- $(MAKECMDGOALS)  \n $(NO_COLOR)" >&2)\
 		$(shell echo "" > DEBUG_ARGS) \
 			$(foreach V, \
 				$(sort $(.VARIABLES)), \
@@ -93,14 +97,14 @@ make_debug_mode:
 					$(filter-out environment% default automatic, $(origin $V) ), \
 						$($V=$($V)) \
 					$(if $(filter-out "SHELL" "%_COLOR" "%_STRING" "MAKE%" "colorecho" ".DEFAULT_GOAL" "CURDIR" "TEST_FILES" , "$V" ),  \
-						$(shell echo '$(OK_COLOR)  $V = $(WARN_COLOR) $($V) $(NO_COLOR) ' >&2;) \
+						$(shell echo $(ECHO_OPTION) '$(OK_COLOR)  $V = $(WARN_COLOR) $($V) $(NO_COLOR) ' >&2;) \
 						$(shell echo '-e $V=$($V)  ' >> DEBUG_ARGS)\
 					)\
 				)\
 			)
 
 make_build_args:
-	@$(shell echo "$(OK_COLOR) ----- Build Environment ----- \n $(NO_COLOR)" >&2)\
+	@$(shell echo $(ECHO_OPTION) "$(OK_COLOR) ----- Build Environment ----- \n $(NO_COLOR)" >&2)\
 	   $(shell echo "" > BUILD_ARGS) \
 		$(foreach V, \
 			 $(sort $(.VARIABLES)), \
@@ -108,7 +112,7 @@ make_build_args:
 				 $(filter-out environment% default automatic, $(origin $V) ), \
 				 	 $($V=$($V)) \
 				 $(if $(filter-out "SHELL" "%_COLOR" "%_STRING" "MAKE%" "colorecho" ".DEFAULT_GOAL" "CURDIR" "TEST_FILES", "$V" ),  \
-					$(shell echo '$(OK_COLOR)  $V = $(WARN_COLOR) $($V) $(NO_COLOR) ' >&2;) \
+					$(shell echo $(ECHO_OPTION) '$(OK_COLOR)  $V = $(WARN_COLOR) $($V) $(NO_COLOR) ' >&2;) \
 				 	$(shell echo "--build-arg $V=$($V)  " >> BUILD_ARGS)\
 				  )\
 			  )\
