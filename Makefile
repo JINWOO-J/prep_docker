@@ -66,9 +66,11 @@ endef
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
     ECHO_OPTION = "-e"
+    SED_OPTION =
 endif
 ifeq ($(UNAME_S),Darwin)
     ECHO_OPTION = ""
+	SED_OPTION = ''
 endif
 
 NO_COLOR=\033[0m
@@ -189,7 +191,7 @@ list:
 		$(call colorecho, "-- END --")
 
 change_docker:
-	sed -i '' "s/$(REPO_HUB)\/$(NAME).*/$(REPO_HUB)\/$(NAME):$(VERSION)/g" docker-compose.yml
+	sed -i $(SED_OPTION) "s/$(REPO_HUB)\/$(NAME).*/$(REPO_HUB)\/$(NAME):$(VERSION)/g" docker-compose.yml
 
 
 
