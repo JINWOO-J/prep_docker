@@ -12,10 +12,6 @@ LABEL maintainer="JINWOO <jinwoo@iconloop.com>" \
       org.label-schema.vendor="ICONLOOP Inc." \
       org.label-schema.version=$VERSION \
       org.label-schema.schema-version="1.0"
-ENV TZ "Asia/Seoul"
-ENV TERM "xterm-256color"
-ENV USERID 24988
-ENV APP_DIR "prep_peer"
 ARG ICON_RC_VERSION
 ARG DOWNLOAD_PACKAGE
 ARG NAME
@@ -25,28 +21,32 @@ ARG DOWNLOAD_PACKAGE=$DOWNLOAD_PACKAGE
 ARG RABBITMQ_VERSION="3.7.17"
 ARG GO_VERSION="1.12.7"
 ARG DOCKERIZE_VERSION="v0.6.1"
-ENV APP_VERSION=${NAME}_${TAGNAME}
-ENV RABBITMQ_VERSION=$RABBITMQ_VERSION
-ENV GO_VERSION=$GO_VERSION
-ENV DOCKERIZE_VERSION=$DOCKERIZE_VERSION
-ENV GOPATH=/go \
-    GOROOT=/usr/local/go
-ENV PATH $GOROOT/bin:$GOPATH:/src/:$PATH
-ENV INSTALL_PACKAGE="make gcc libssl-dev zlib1g-dev \
-libbz2-dev libreadline-dev libsqlite3-dev \
-wget curl llvm libncurses5-dev libncursesw5-dev \
-xz-utils tk-dev libffi-dev liblzma-dev automake \
-libtool unzip jq netcat moreutils libsecp256k1-dev \
-git gnupg2 socat ntp  logrotate ntpdate vim procps \
-iproute2 lsof jq pigz axel monit gawk"
-ENV ERLANG_PACKAGE="erlang-base erlang-asn1 erlang-crypto \
-erlang-eldap erlang-ftp erlang-inets \
-erlang-mnesia erlang-os-mon erlang-parsetools \
-erlang-public-key  erlang-runtime-tools erlang-snmp \
-erlang-ssl  erlang-syntax-tools erlang-tftp \
-erlang-tools erlang-xmerl"
-ENV DELETE_PACKAGE="gcc gcc-6 g++* g++-6* make git automake"
-ENV PIP3_PACKAGE="tbears iconsdk python-hosts halo termcolor"
+ENV TZ="Asia/Seoul"  \
+    TERM="xterm-256color" \
+    USERID=24988 \
+    APP_DIR="prep_peer" \
+    APP_VERSION=${NAME}_${TAGNAME} \
+    RABBITMQ_VERSION=$RABBITMQ_VERSION \
+    GO_VERSION=$GO_VERSION \
+    DOCKERIZE_VERSION=$DOCKERIZE_VERSION \
+    GOPATH=/go \
+    GOROOT=/usr/local/go \
+    PATH=$GOROOT/bin:$GOPATH:/src/:$PATH \
+    INSTALL_PACKAGE="make gcc libssl-dev zlib1g-dev \
+    libbz2-dev libreadline-dev libsqlite3-dev \
+    wget curl llvm libncurses5-dev libncursesw5-dev \
+    xz-utils tk-dev libffi-dev liblzma-dev automake \
+    libtool unzip jq netcat moreutils libsecp256k1-dev \
+    git gnupg2 socat ntp  logrotate ntpdate vim procps \
+    iproute2 lsof jq pigz axel monit gawk" \
+    ERLANG_PACKAGE="erlang-base erlang-asn1 erlang-crypto \
+    erlang-eldap erlang-ftp erlang-inets \
+    erlang-mnesia erlang-os-mon erlang-parsetools \
+    erlang-public-key  erlang-runtime-tools erlang-snmp \
+    erlang-ssl  erlang-syntax-tools erlang-tftp \
+    erlang-tools erlang-xmerl"\
+    DELETE_PACKAGE="gcc gcc-6 g++* g++-6* make git automake" \
+    PIP3_PACKAGE="tbears iconsdk python-hosts halo termcolor"
 COPY src /src
 COPY src/pip.conf /etc/
 COPY src/erlang /etc/apt/preferences.d/erlang
