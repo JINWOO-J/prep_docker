@@ -58,11 +58,10 @@ Removing intermediate container cd88bf497d89
 
 
 ## prep-node docker setting
-###### made date at 2019-12-19 17:14:40 
+###### made date at 2019-12-31 11:05:53 
 | Environment variable | Description|Default value| Allowed value|
 |--------|--------|-------|-------|
-| CURL\_OPTION|default curl options|-s -S --fail --max-time 30||
-| EXT\_IPADDR| Getting external IP address|$(curl ${CURL\_OPTION} http://checkip.amazonaws.com)||
+| EXT\_IPADDR| Getting external IP address|$(curl http://checkip.amazonaws.com)||
 | IPADDR| Setting the IP address|$EXT\_IPADDR||
 | LOCAL\_TEST|false|false||
 | TZ| Setting the TimeZone Environment|Asia/Seoul|[List of TZ name](https://en.wikipedia.org/wiki/List\_of\_tz\_database\_time\_zones)|
@@ -140,8 +139,8 @@ Removing intermediate container cd88bf497d89
 | RPC\_WORKER|Setting the number of RPC workers|3||
 | RPC\_GRACEFUL\_TIMEOUT| rpc graceful timeout|0||
 | USE\_PROC\_HEALTH\_CHECK|yes|yes||
-| USE\_API\_HEALTH\_CHEK|yes|yes||
-| USE\_HELL\_CHEK|yes|yes||
+| USE\_API\_HEALTH\_CHECK|yes|yes||
+| USE\_HELL\_CHECK|yes|yes||
 | HEALTH\_CHECK\_INTERVAL| Trigger if greater than 1|30||
 | ERROR\_LIMIT|3|3||
 | HELL\_LIMIT|300|300||
@@ -150,4 +149,5 @@ Removing intermediate container cd88bf497d89
 | SLACK\_PREFIX| slack's prefix header message|||
 | IS\_BROADCAST\_MULTIPROCESSING|false|false||
 | IS\_DOWNLOAD\_CERT|false|false||
+| IS\_AUTOGEN\_CERT| auto generate cert key|false| true, false|
 | USER\_DEFINED\_ENV||||

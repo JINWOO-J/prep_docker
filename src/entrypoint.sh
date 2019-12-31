@@ -123,8 +123,8 @@ export RPC_WORKER=${RPC_WORKER:-"3"} #Setting the number of RPC workers
 export RPC_GRACEFUL_TIMEOUT=${RPC_GRACEFUL_TIMEOUT:-"0"} # rpc graceful timeout
 
 export USE_PROC_HEALTH_CHECK=${USE_PROC_HEALTH_CHECK:-"yes"}
-export USE_API_HEALTH_CHEK=${USE_API_HEALTH_CHEK:-"yes"}
-export USE_HELL_CHEK=${USE_HELL_CHEK:-"yes"}
+export USE_API_HEALTH_CHECK=${USE_API_HEALTH_CHECK:-"yes"}
+export USE_HELL_CHECK=${USE_HELL_CHECK:-"yes"}
 export HEALTH_CHECK_INTERVAL=${HEALTH_CHECK_INTERVAL:-"30"}  # Trigger if greater than 1
 export ERROR_LIMIT=${ERROR_LIMIT:-3}
 export HELL_LIMIT=${HELL_LIMIT:-300}
@@ -145,7 +145,7 @@ export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 #exec $@
 
 function getBlockCheck(){
-    if [[ ${USE_HELL_CHEK} == "yes" ]]; then
+    if [[ ${USE_HELL_CHECK} == "yes" ]]; then
         CPrint "Start BlockCheck"
         blockheight=$(curl "localhost:${RPC_PORT}/api/v1/status/peer" | jq -r .block_height)
         ERROR_DIR="/.health_check"
@@ -233,7 +233,7 @@ function returnErrorCount(){
 
     if [[ "${MSG}"  && "${ACTION}" == "down" ]]; then
         echo "${MSG}" >> "${ERROR_COUNT_FILE}"
-        ERROR_COUNT=$(cat "${ERROR_COUNT_FILE}" | grep -v grep | grep -c "${MSG}")
+        ERROR_COUNT=$(< "${ERROR_COUNT_FILE}" grep -v grep | grep -c "${MSG}")
         if [[ ${ERROR_COUNT} -ge ${ERROR_LIMIT} ]];then
             CPrint "[FAIL] (${ERROR_COUNT}/${ERROR_LIMIT}) It will be terminated / reason: ${MSG} "
             post_to_slack "[FAIL] (${ERROR_COUNT}/${ERROR_LIMIT}) It will be terminated / reason: ${MSG} "
@@ -300,7 +300,7 @@ function PrintOK() {
 function download_file() {
     DOWNLOAD_URL=$1
     DOWNLOAD_DEST=$2
-    DOWN_STAT=$(curl  -w "%{http_code}" -so ${DOWNLOAD_DEST} ${DOWNLOAD_URL})
+    DOWN_STAT=$(curl  -w "%{http_code}" -so "${DOWNLOAD_DEST}" "${DOWNLOAD_URL}")
     if [[ "$DOWN_STAT" == "200" ]];then
         PrintOK "Download ${DOWNLOAD_URL}" $?
     else
@@ -369,12 +369,12 @@ function find_neighbor_func(){
 
 function ntp_check(){
     CPrint "Time synchronization with NTP / NTP SERVER: ${NTP_SERVER}"
-    ntpdate "${NTP_SERVER}"
-    if [[ $? == 0 ]]; then
+
+    if ntpdate "${NTP_SERVER}"; then
         CPrint "Success Time Synchronization!!" "GREEN"
     else
-        ntpdate 169.254.169.123   ## AWS NTP NTP_SERVER
-        if [[ $? == 0 ]]; then
+        ## AWS NTP NTP_SERVER
+        if ntpdate "169.254.169.123" ; then
             CPrint "Success Time Synchronization!! with AWS NTP Server" "GREEN"
         else
             CPrint "[FAIL] Time Synchronization!!" "RED"
@@ -384,7 +384,7 @@ function ntp_check(){
 
 function autogen_certkey(){
     FILENAME=${1:-"$PRIVATE_PATH"}
-    openssl ecparam -genkey -name secp256k1 | openssl ec -aes-256-cbc -out ${FILENAME} -passout pass:${PRIVATE_PASSWORD}
+    openssl ecparam -genkey -name secp256k1 | openssl ec -aes-256-cbc -out "${FILENAME}" -passout pass:"${PRIVATE_PASSWORD}"
     CPrint "Generate key file $FILENAME"
     PrintOK "Generate private key " $?
 #    openssl ec -in ${FILENAME}  -pubout -out ${PUBLIC_PATH} -passin pass:${PRIVATE_PASSWORD}
@@ -664,7 +664,6 @@ if [[ -n "${USER_DEFINED_ENV}" ]]; then
     CPrint "$(/src/genconfig.py)"
 fi
 
-
 ## check config file
 for config in "$configure_json" "$iconrpcserver_json" "$iconservice_json" "$CHANNEL_MANAGE_DATA_PATH";
 do
@@ -728,7 +727,8 @@ else
                 CPrint "$(head -n 3 "${DEFAULT_LOG_PATH}/${snapshot_log}")"
                 while true;
                 do
-                    proc_check=$(ps -ef|grep axel| grep -v grep | wc -l)
+#                    proc_check=$(ps -ef|grep axel| grep -v grep | wc -l)
+                    proc_check=$(pgrep -c -f "axel")
                     if [[ ${proc_check} == 0 ]];
                     then
                         CPrint "Completed download"
@@ -758,7 +758,7 @@ else
                 if [[ "${DEFAULT_PATH}/.score_data/score" != "${scoreRootPath}" ]]; then
                     mv "${DEFAULT_PATH}/.score_data/score" "$scoreRootPath"
                 fi
-                mv $DEFAULT_PATH/.storage/*\:7100_icon_dex $DEFAULT_STORAGE_PATH/db_${IPADDR}\:7100_icon_dex
+                mv "${DEFAULT_PATH}"/.storage/*:7100_icon_dex "${DEFAULT_STORAGE_PATH}/db_${IPADDR}:7100_icon_dex"
             fi
         fi
     fi
@@ -817,7 +817,8 @@ fi
 
 function proc_check(){
     PROC_NAME=$1
-    PROC_CNT=`ps -ef | grep -v grep | grep $PROC_NAME | wc -l`
+#    PROC_CNT=`ps -ef | grep -v grep | grep $PROC_NAME | wc -l`
+    PROC_CNT=$(pgrep -c -f "${PROC_NAME}")
     if [[ ${PROC_CNT} -eq 0 ]] ;then
         if [[ ${VIEW_CONFIG} == "true" ]]; then
             CPrint "[FAIL] '${PROC_NAME}' process down " "RED"
@@ -859,19 +860,23 @@ if [[ "${HEALTH_ENV_CHECK}" == "true" ]]; then
                 proc_check "${PROC_NAME}"
             done
         fi
-        if [[ "${USE_API_HEALTH_CHEK}" == "yes" ]];then
+        if [[ "${USE_API_HEALTH_CHECK}" == "yes" ]];then
             if [[ "$VIEW_CONFIG" == "true" ]]; then
                 CPrint "Start API_HEALTH_CHECK  ... ${HEALTH_CHECK_INTERVAL}s"
             fi
-            CHECK_HEALTHY_STATUS=$(curl http://localhost:9000/api/v1/status/peer 2>&1)
-            if [[ $? -eq 0 ]]; then
+
+            CHECK_HEALTHY_STATUS=$(curl --fail -w "%{http_code}" -o /dev/null "http://localhost:${RPC_PORT}/api/v1/status/peer")
+            if [[ ${CHECK_HEALTHY_STATUS} == "200" ]] ; then
                 ACTION="init"
+            elif [[ ${CHECK_HEALTHY_STATUS} == "000" ]] ; then
+                CHECK_HEALTHY_STATUS="Connect error"
+                ACTION="down"
             else
                 ACTION="down"
             fi
-            if [[ "${VIEW_CONFIG}" == "true" ]]; then
-                returnErrorCount "${CHECK_HEALTHY_STATUS}" "API_HEALTH_CHECK" ${ACTION}
-            fi
+#            if [[ "${VIEW_CONFIG}" == "true" ]]; then
+            returnErrorCount "${CHECK_HEALTHY_STATUS}" "API_HEALTH_CHECK" ${ACTION}
+#            fi
 #            PrintOK "Check health status : ${CHECK_HEALTHY_STATUS}" $?
         fi
 

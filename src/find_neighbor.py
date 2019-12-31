@@ -403,7 +403,7 @@ def main():
             print("Can't find neighbor [HOSTS]")
 
 
-def add_alive_peer(ip_list,fastpeer_domains):
+def add_alive_peer(ip_list, fastpeer_domains):
     print(f"Alive peer_list={ip_list}, fastpeer_domains={fastpeer_domains}")
     alive_peer = None
     for i, fastpeer_domain in enumerate(fastpeer_domains):
@@ -422,7 +422,7 @@ def add_alive_peer(ip_list,fastpeer_domains):
 
 def split_ip_port(ipaddr):
     ip, port = re.findall('([\d.]+)', ipaddr)
-    if ip == None:
+    if ip is None:
         return [ ipaddr ]
     else:
         return [ ip, port ]

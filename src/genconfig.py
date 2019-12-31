@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 import json
-import sys,os,io,re
+import sys, os, io, re
 from termcolor import cprint
 import argparse
 
 path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(path)
 
+
 def merge_dicts(dict1, dict2, append_lists=True):
     for key in dict2:
         if isinstance(dict2[key], dict):
             if isinstance(dict1, dict) is False:
-                cprint(f">>>>>>  Type Matching error >>  {dict1} != {dict2}","red")
+                cprint(f">>>>>>  Type Matching error >>  {dict1} != {dict2}", "red")
             elif key in dict1 and key in dict2:
                 merge_dicts(dict1[key], dict2[key])
             else:
@@ -33,14 +34,16 @@ def merge_dicts(dict1, dict2, append_lists=True):
 
 
 def load_compose(filename="docker-compose.yml"):
-    with open(path+"/"+filename, 'r') as stream:
+    with open(path + "/" + filename, "r") as stream:
         data_loaded = yaml.load(stream)
-        dump(data_loaded)    
+        dump(data_loaded)
         return data_loaded
 
+
 def write_compose(data, filename="docker-compose_tmp.yml"):
-    with io.open(filename, 'w', encoding='utf8') as outfile:
+    with io.open(filename, "w", encoding="utf8") as outfile:
         yaml.dump(data, outfile, default_flow_style=False, allow_unicode=True)
+
 
 def openJson(filename):
     if filename is None:
@@ -61,10 +64,10 @@ def openJson(filename):
 def strip_quotes(string):
     if type(string) == str:
         if string[0] == '"' and string[-1] == '"':
-            string = string.replace('"','')
+            string = string.replace('"', "")
             doit = True
         elif string[0] == "'" and string[-1] == "'":
-            string = string.replace("'","")
+            string = string.replace("'", "")
             doit = True
     return string
 
@@ -82,14 +85,14 @@ class dotdictify(dict):
     def __setitem__(self, key, value):
         doit = True
         if key[0] == '"' and key[-1] == '"':
-            key = key.replace('"','')
+            key = key.replace('"', "")
             doit = True
         elif key[0] == "'" and key[-1] == "'":
-            key = key.replace("'","")
+            key = key.replace("'", "")
             doit = True
 
-        elif key is not None and '.' in key:
-            myKey, restOfKey = key.split('.', 1)
+        elif key is not None and "." in key:
+            myKey, restOfKey = key.split(".", 1)
             target = self.setdefault(myKey, dotdictify())
             if not isinstance(target, dotdictify):
                 raise KeyError
@@ -102,21 +105,21 @@ class dotdictify(dict):
 
     def __getitem__(self, key):
         if key[0] == '"' and key[-1] == '"':
-            key = key.replace('"','')
+            key = key.replace('"', "")
         elif key[0] == "'" and key[-1] == "'":
-            key = key.replace("'","")
-        elif key is None or '.' not in key:
+            key = key.replace("'", "")
+        elif key is None or "." not in key:
             return dict.__getitem__(self, key)
-        myKey, restOfKey = key.split('.', 1)
+        myKey, restOfKey = key.split(".", 1)
         target = dict.__getitem__(self, myKey)
         if not isinstance(target, dotdictify):
             raise KeyError
         return target[restOfKey]
 
     def __contains__(self, key):
-        if key is None or '.' not in key:
+        if key is None or "." not in key:
             return dict.__contains__(self, key)
-        myKey, restOfKey = key.split('.', 1)
+        myKey, restOfKey = key.split(".", 1)
         if not dict.__contains__(self, myKey):
             return False
         target = dict.__getitem__(self, myKey)
@@ -139,49 +142,54 @@ class dotdictify(dict):
 
 
 class bcolors:
-    red = '\033[91m'
-    green = '\033[92m'
-    yellow = '\033[93m'
-    light_purple = '\033[94m'
-    purple = '\033[95m'
+    red = "\033[91m"
+    green = "\033[92m"
+    yellow = "\033[93m"
+    light_purple = "\033[94m"
+    purple = "\033[95m"
 
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'       
+    FAIL = "\033[91m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
 
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'    
-    
-def CPrint(msg,color="green"):    
-    print (getattr(bcolors, color) + '%s' %msg  + bcolors.ENDC)        
+    HEADER = "\033[95m"
+    OKBLUE = "\033[94m"
+    OKGREEN = "\033[92m"
+    WARNING = "\033[93m"
+    FAIL = "\033[91m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
 
-def writeEnv(filename, dict):    
+
+def CPrint(msg, color="green"):
+    print(getattr(bcolors, color) + "%s" % msg + bcolors.ENDC)
+
+
+def writeEnv(filename, dict):
     dump(dict)
     with open(filename, "w") as f:
-        for i in dict.keys():            
-            f.write(i + "=" +  str(dict[i]) + "\n")
+        for i in dict.keys():
+            f.write(i + "=" + str(dict[i]) + "\n")
+
 
 def writeJson(filename, data):
-    with open(filename, 'w') as outfile:
+    with open(filename, "w") as outfile:
         json.dump(data, outfile, indent=4)
     if os.path.exists(filename):
-        CPrint("[OK] Write json file -> %s, %s" %(filename, file_size(filename)))
+        CPrint("[OK] Write json file -> %s, %s" % (filename, file_size(filename)))
+
 
 def convert_bytes(num):
     """
     this function will convert bytes to MB.... GB... etc
     """
-    for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
+    for x in ["bytes", "KB", "MB", "GB", "TB"]:
         if num < 1024.0:
             return "%3.1f %s" % (num, x)
         num /= 1024.0
+
 
 def file_size(file_path):
     """
@@ -191,29 +199,51 @@ def file_size(file_path):
         file_info = os.stat(file_path)
         return convert_bytes(file_info.st_size)
 
+
 def dump(obj, nested_level=0, output=sys.stdout):
-    spacing = '   '
-    def_spacing = '   '
+    spacing = "   "
+    def_spacing = "   "
 
     if type(obj) == dict:
-        print ('%s{' % ( def_spacing + (nested_level) * spacing ))
+        print("%s{" % (def_spacing + (nested_level) * spacing))
         for k, v in obj.items():
-            if hasattr(v, '__iter__'):
-                print ( bcolors.OKGREEN + '%s%s:' % (def_spacing +(nested_level + 1) * spacing, k) + bcolors.ENDC, end="")                
-                dump(v, nested_level + 1, output)                
-            else:        
-                print ( bcolors.OKGREEN + '%s%s:' % (def_spacing + (nested_level + 1) * spacing, k) + bcolors.WARNING + ' %s' % v + bcolors.ENDC, file=output)
-        print ('%s}' % ( def_spacing + nested_level * spacing), file=output)
-    elif type(obj) == list:
-        print  ('%s[' % (def_spacing+ (nested_level) * spacing), file=output)
-        for v in obj:
-            if hasattr(v, '__iter__'):
+            if hasattr(v, "__iter__"):
+                print(
+                    bcolors.OKGREEN
+                    + "%s%s:" % (def_spacing + (nested_level + 1) * spacing, k)
+                    + bcolors.ENDC,
+                    end="",
+                )
                 dump(v, nested_level + 1, output)
             else:
-                print ( bcolors.WARNING + '%s%s' % ( def_spacing + (nested_level + 1) * spacing, v) + bcolors.ENDC, file=output)
-        print ('%s]' % ( def_spacing + (nested_level) * spacing), file=output)
+                print(
+                    bcolors.OKGREEN
+                    + "%s%s:" % (def_spacing + (nested_level + 1) * spacing, k)
+                    + bcolors.WARNING
+                    + " %s" % v
+                    + bcolors.ENDC,
+                    file=output,
+                )
+        print("%s}" % (def_spacing + nested_level * spacing), file=output)
+    elif type(obj) == list:
+        print("%s[" % (def_spacing + (nested_level) * spacing), file=output)
+        for v in obj:
+            if hasattr(v, "__iter__"):
+                dump(v, nested_level + 1, output)
+            else:
+                print(
+                    bcolors.WARNING
+                    + "%s%s" % (def_spacing + (nested_level + 1) * spacing, v)
+                    + bcolors.ENDC,
+                    file=output,
+                )
+        print("%s]" % (def_spacing + (nested_level) * spacing), file=output)
     else:
-        print (bcolors.WARNING + '%s%s' %  ( def_spacing + nested_level * spacing, obj) + bcolors.ENDC)
+        print(
+            bcolors.WARNING
+            + "%s%s" % (def_spacing + nested_level * spacing, obj)
+            + bcolors.ENDC
+        )
 
 
 def is_hex(s):
@@ -248,15 +278,17 @@ def str2bool(v):
 
 def main():
     global args
-    parser = argparse.ArgumentParser(prog='genconfig')
-    parser.add_argument('-v', '--verbose', action='count', help=f'verbose mode. view level', default=0)
+    parser = argparse.ArgumentParser(prog="genconfig")
+    parser.add_argument(
+        "-v", "--verbose", action="count", help=f"verbose mode. view level", default=0
+    )
     args = parser.parse_args()
 
     user_defined_env = os.environ.get("USER_DEFINED_ENV")
     if user_defined_env:
         user_defined_env_list = user_defined_env.split("\n")
         envSettings = {}
-        for i,env in enumerate(user_defined_env_list):
+        for i, env in enumerate(user_defined_env_list):
             if len(env) > 0:
                 config_setting, config_group = env.split("|")
                 config_group = str(config_group).strip()
@@ -269,7 +301,7 @@ def main():
                 vars_value = str(vars_value).strip()
                 value_type = "string"
 
-                if "\"" in vars_value:
+                if '"' in vars_value:
                     vars_value = strip_quotes(vars_value)
                     value_type = "string"
                 elif vars_value.isdigit():
@@ -282,7 +314,9 @@ def main():
                 if envSettings.get(config_group) is None:
                     envSettings[config_group] = []
 
-                envSettings[config_group].append( {"name": vars_name, "value": vars_value, "value_type": value_type} )
+                envSettings[config_group].append(
+                    {"name": vars_name, "value": vars_value, "value_type": value_type}
+                )
 
         for config_group, values in envSettings.items():
             group_values = dotdictify({})
@@ -292,7 +326,9 @@ def main():
                 value_type = value.get("value_type")
                 config_file = os.environ.get(config_group)
                 if config_file:
-                    print(f"[{i}] [{config_file}] position={vars_name}, value={vars_value}, type={value_type}")
+                    print(
+                        f"[{i}] [{config_file}] position={vars_name}, value={vars_value}, type={value_type}"
+                    )
                     group_values.__setitem__(vars_name, vars_value)
                 else:
                     print(f"{config_group} file or environment not found")
@@ -312,5 +348,5 @@ def main():
                 writeJson(config_file, prev_json)
 
 
-if __name__ == '__main__':    
+if __name__ == "__main__":
     main()
