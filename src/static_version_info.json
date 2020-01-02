@@ -2,7 +2,7 @@
 
     "iconcommons": {
         "url": "https://github.com/icon-project/icon-commons",
-        "revision": "v.1.1.2"
+        "revision": "v1.1.2"
     },
     "earlgrey": {
         "url": "https://github.com/icon-project/earlgrey",

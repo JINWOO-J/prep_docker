@@ -67,8 +67,8 @@ def run_execute(text, cmd, status_check="OK"):
                 status_text = f'{text} , {cmd} -> {end}sec'
             if res != 0:
                 spinner.fail(bcolors.FAIL + status_text + bcolors.ENDC)
-                cprint(f"[FAIL] {text}","red")
-                sys.exit()
+                cprint(f"[FAIL] {text}", "red")
+                sys.exit(1)
             else:
                 status_header = bcolors.WARNING + "[DONE]" + bcolors.ENDC
                 spinner.succeed(f'{status_header} {status_text}')
@@ -76,7 +76,7 @@ def run_execute(text, cmd, status_check="OK"):
             spinner.succeed(f'[SUCCEED] {text} -> {end}sec')
     else:
         if res != 0:
-            cprint(f"[FAIL] {text}","red")
+            cprint(f"[FAIL] {text}", "red")
             subprocess.call(cmd, stdout=None, stderr=None, shell=True)
     return res
 
@@ -99,8 +99,8 @@ def git_clone(repo_name, url, revision=None):
         os.system(f"git checkout --quiet -b {revision}")
         os.system(f"git {GIT_OPTION} log {GIT_LOGGER_OPTION}")
     else:
-        cprint(f"Revision not found - {revision} ","red")
-        cprint(f"Latest Version -> ","green")
+        cprint(f"Revision not found - {revision} ", "red")
+        cprint(f"Latest Version -> ", "green")
         revision_res = os.system(f"git checkout ;git {GIT_OPTION} log {GIT_LOGGER_OPTION}")
 
     os.chdir(pwd)

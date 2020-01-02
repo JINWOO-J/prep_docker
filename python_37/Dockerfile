@@ -75,6 +75,7 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
     mkdir -p $APP_DIR && \
     mkdir -p $APP_DIR/whl && \
     mkdir -p $APP_DIR/cert && \
+    pip install --upgrade pip && \
     pip install $PIP3_PACKAGE  && \
     if [ "$IS_STATIC_BUILD" = "true" ];then \
         echo "start static build" ;\
@@ -85,7 +86,6 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
         tar zxvf /$APP_DIR/whl/*.gz --strip 1 -C /$APP_DIR/whl/ ; \
 #        cp /$APP_DIR/whl/icon_rc /usr/local/bin ; \
     fi ; \
-    pip install --upgrade pip && \
     WHL_LIST=`find /$APP_DIR/ -name "*.whl"` && \
     ICON_RC=`find /$APP_DIR/ -name "icon_rc"` && \
     if [ "x${ICON_RC}" != "x" ]; then \
