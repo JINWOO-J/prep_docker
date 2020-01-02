@@ -75,6 +75,7 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
     mkdir -p $APP_DIR && \
     mkdir -p $APP_DIR/whl && \
     mkdir -p $APP_DIR/cert && \
+    pip install $PIP3_PACKAGE  && \
     if [ "$IS_STATIC_BUILD" = "true" ];then \
         echo "start static build" ;\
         /src/static_builder.py -o /${APP_DIR}/whl ;\
@@ -100,7 +101,6 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
             then exit 127; \
         fi;\
     done && \
-    pip install $PIP3_PACKAGE  && \
     if [ "x$RC_BUILD" != "x" ];then \
         wget https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz ; \
         tar zxf go${GO_VERSION}.linux-amd64.tar.gz ; \
