@@ -1,6 +1,7 @@
 #!/usr/bin/env python3.6
-import sys,os
-import requests,json
+import sys, os
+import requests, json
+
 
 def dump(obj, nested_level=0, output=sys.stdout):
     class bcolors:
@@ -16,24 +17,24 @@ def dump(obj, nested_level=0, output=sys.stdout):
     spacing = '   '
     def_spacing = '   '
     if type(obj) == dict:
-        print ('%s{' % ( def_spacing + (nested_level) * spacing ))
+        print('%s{' % ( def_spacing + (nested_level) * spacing ))
         for k, v in obj.items():
             if hasattr(v, '__iter__'):
-                print ( bcolors.OKGREEN + '%s%s:' % (def_spacing +(nested_level + 1) * spacing, k) + bcolors.ENDC, end="")
+                print( bcolors.OKGREEN + '%s%s:' % (def_spacing +(nested_level + 1) * spacing, k) + bcolors.ENDC, end="")
                 dump(v, nested_level + 1, output)
             else:
-                print ( bcolors.OKGREEN + '%s%s:' % (def_spacing + (nested_level + 1) * spacing, k) + bcolors.WARNING + ' %s' % v + bcolors.ENDC, file=output)
-        print ('%s}' % ( def_spacing + nested_level * spacing), file=output)
+                print( bcolors.OKGREEN + '%s%s:' % (def_spacing + (nested_level + 1) * spacing, k) + bcolors.WARNING + ' %s' % v + bcolors.ENDC, file=output)
+        print('%s}' % ( def_spacing + nested_level * spacing), file=output)
     elif type(obj) == list:
-        print  ('%s[' % (def_spacing+ (nested_level) * spacing), file=output)
+        print('%s[' % (def_spacing+ (nested_level) * spacing), file=output)
         for v in obj:
             if hasattr(v, '__iter__'):
                 dump(v, nested_level + 1, output)
             else:
                 print ( bcolors.WARNING + '%s%s' % ( def_spacing + (nested_level + 1) * spacing, v) + bcolors.ENDC, file=output)
-        print ('%s]' % ( def_spacing + (nested_level) * spacing), file=output)
+        print('%s]' % ( def_spacing + (nested_level) * spacing), file=output)
     else:
-        print (bcolors.WARNING + '%s%s' %  ( def_spacing + nested_level * spacing, obj) + bcolors.ENDC)
+        print(bcolors.WARNING + '%s%s' % (def_spacing + nested_level * spacing, obj) + bcolors.ENDC)
 
 
 def getLoopchainState(ipaddr="localhost", port=os.environ.get('RPC_PORT', 9000)):    

@@ -1,6 +1,6 @@
 language: python
 python:
-  - "3.6"
+  - "3.7"
 
 services:
   - docker
@@ -11,7 +11,9 @@ env:  # env에 따라서 n개의 sendbox가 만들어지고 빌드됨
     - CREP_ROOT_HASH="0x9718f5d6d6ddb77f547ecc7113c8f1bad1bf46220512fbde356eee74a90ba47c"
     - WAIT_RETRY=30
     - CURL_OPTION="--connect-timeout 1 --max-time 1 -s "
-
+  jobs:
+    - IS_STATIC_BUILD="true"
+    - IS_STATIC_BUILD="false"
 branches:
   only:
     - master
@@ -19,10 +21,15 @@ branches:
 
 before_install:
   - curl -LO https://storage.googleapis.com/container-structure-test/latest/container-structure-test-linux-amd64 && chmod +x container-structure-test-linux-amd64 && sudo mv container-structure-test-linux-amd64 /usr/local/bin/container-structure-test
+  - >
+    scversion="stable" # or "v0.4.7", or "latest"
+    wget -qO- "https://storage.googleapis.com/shellcheck/shellcheck-${scversion?}.linux.x86_64.tar.xz" | tar -xJv
+    cp "shellcheck-${scversion}/shellcheck" /usr/local/bin/
+    shellcheck --version
 
 install:
-  - make IS_LOCAL=$IS_LOCAL build_python
-  - make IS_LOCAL=$IS_LOCAL test
+  - make build_python IS_LOCAL=$IS_LOCAL IS_STATIC_BUILD=$IS_STATIC_BUILD
+  - make test IS_LOCAL=$IS_LOCAL
   - >
     docker run -d --rm -p 9000:9000
     -e CREP_ROOT_HASH=$CREP_ROOT_HASH

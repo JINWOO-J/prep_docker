@@ -12,41 +12,43 @@ LABEL maintainer="JINWOO <jinwoo@iconloop.com>" \
       org.label-schema.vendor="ICONLOOP Inc." \
       org.label-schema.version=$VERSION \
       org.label-schema.schema-version="1.0"
-ENV TZ "Asia/Seoul"
-ENV TERM "xterm-256color"
-ENV USERID 24988
-ENV APP_DIR "prep_peer"
 ARG ICON_RC_VERSION
 ARG DOWNLOAD_PACKAGE
 ARG NAME
 ARG TAGNAME
 ARG IS_LOCAL
+ARG IS_STATIC_BUILD
 ARG DOWNLOAD_PACKAGE=$DOWNLOAD_PACKAGE
 ARG RABBITMQ_VERSION="3.7.17"
 ARG GO_VERSION="1.12.7"
 ARG DOCKERIZE_VERSION="v0.6.1"
-ENV APP_VERSION=${NAME}_${TAGNAME}
-ENV RABBITMQ_VERSION=$RABBITMQ_VERSION
-ENV GO_VERSION=$GO_VERSION
-ENV DOCKERIZE_VERSION=$DOCKERIZE_VERSION
-ENV GOPATH=/go \
-    GOROOT=/usr/local/go
-ENV PATH $GOROOT/bin:$GOPATH:/src/:$PATH
-ENV INSTALL_PACKAGE="make gcc libssl-dev zlib1g-dev \
-libbz2-dev libreadline-dev libsqlite3-dev \
-wget curl llvm libncurses5-dev libncursesw5-dev \
-xz-utils tk-dev libffi-dev liblzma-dev automake \
-libtool unzip jq netcat moreutils libsecp256k1-dev \
-git gnupg2 socat ntp  logrotate ntpdate vim procps \
-iproute2 lsof jq pigz axel monit gawk"
-ENV ERLANG_PACKAGE="erlang-base erlang-asn1 erlang-crypto \
-erlang-eldap erlang-ftp erlang-inets \
-erlang-mnesia erlang-os-mon erlang-parsetools \
-erlang-public-key  erlang-runtime-tools erlang-snmp \
-erlang-ssl  erlang-syntax-tools erlang-tftp \
-erlang-tools erlang-xmerl"
-ENV DELETE_PACKAGE="gcc gcc-6 g++* g++-6* make git automake"
-ENV PIP3_PACKAGE="tbears iconsdk python-hosts halo termcolor"
+ENV TZ="Asia/Seoul"  \
+    TERM="xterm-256color" \
+    USERID=24988 \
+    APP_DIR="prep_peer" \
+    APP_VERSION=${NAME}_${TAGNAME} \
+    RABBITMQ_VERSION=$RABBITMQ_VERSION \
+    GO_VERSION=$GO_VERSION \
+    DOCKERIZE_VERSION=$DOCKERIZE_VERSION \
+    GOPATH=/go \
+    GOROOT=/usr/local/go \
+    PATH=$GOROOT/bin:$GOPATH:/src/:$PATH \
+    INSTALL_PACKAGE="make gcc libssl-dev zlib1g-dev \
+    libbz2-dev libreadline-dev libsqlite3-dev \
+    wget curl llvm libncurses5-dev libncursesw5-dev \
+    xz-utils tk-dev libffi-dev liblzma-dev automake \
+    libtool unzip jq netcat moreutils libsecp256k1-dev \
+    git gnupg2 socat ntp  logrotate ntpdate vim procps \
+    iproute2 lsof jq pigz axel monit gawk" \
+    ERLANG_PACKAGE="erlang-base erlang-asn1 erlang-crypto \
+    erlang-eldap erlang-ftp erlang-inets \
+    erlang-mnesia erlang-os-mon erlang-parsetools \
+    erlang-public-key  erlang-runtime-tools erlang-snmp \
+    erlang-ssl  erlang-syntax-tools erlang-tftp \
+    erlang-tools erlang-xmerl"\
+    DELETE_PACKAGE="gcc gcc-6 g++* g++-6* make git automake" \
+    PIP3_PACKAGE="tbears iconsdk python-hosts halo termcolor" \
+    IS_STATIC_BUILD=${IS_STATIC_BUILD}
 COPY src /src
 COPY src/pip.conf /etc/
 COPY src/erlang /etc/apt/preferences.d/erlang
@@ -73,13 +75,17 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
     mkdir -p $APP_DIR && \
     mkdir -p $APP_DIR/whl && \
     mkdir -p $APP_DIR/cert && \
-    if [ "x$DOWNLOAD_PACKAGE" != "x" ]; then  \
+    pip install --upgrade pip && \
+    pip install $PIP3_PACKAGE  && \
+    if [ "$IS_STATIC_BUILD" = "true" ];then \
+        echo "start static build" ;\
+        /src/static_builder.py -o /${APP_DIR}/whl ;\
+    elif [ "x$DOWNLOAD_PACKAGE" != "x" ]; then  \
         ls /$APP_DIR/whl/ ; \
         wget $DOWNLOAD_PACKAGE -O /$APP_DIR/whl/DOWNLOAD.tar.gz || exit 1; \
         tar zxvf /$APP_DIR/whl/*.gz --strip 1 -C /$APP_DIR/whl/ ; \
 #        cp /$APP_DIR/whl/icon_rc /usr/local/bin ; \
     fi ; \
-    pip install --upgrade pip && \
     WHL_LIST=`find /$APP_DIR/ -name "*.whl"` && \
     ICON_RC=`find /$APP_DIR/ -name "icon_rc"` && \
     if [ "x${ICON_RC}" != "x" ]; then \
@@ -95,7 +101,6 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
             then exit 127; \
         fi;\
     done && \
-    pip install $PIP3_PACKAGE  && \
     if [ "x$RC_BUILD" != "x" ];then \
         wget https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz ; \
         tar zxf go${GO_VERSION}.linux-amd64.tar.gz ; \
@@ -109,7 +114,8 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
         cd .. && rm -rf rewardcalculator /usr/local/go ; \
     fi ; \
     apt-get purge -y --auto-remove $DELETE_PACKAGE && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* ; \
+    rm -rf /build
 
 EXPOSE 9000
 EXPOSE 7100

@@ -60,16 +60,15 @@ def run_execute(text, cmd, status_check="OK"):
     res = subprocess.call(cmd, stdout=None,stderr=None,shell=True)
     end = round(timeit.default_timer() - start , 3)
 
-
     if args.verbose:
         if status_check == "OK":
             status_text = f'{text} -> {end}sec'
             if args.verbose:
-                status_text = f'{text} / {cmd} -> {end}sec'
+                status_text = f'{text} , {cmd} -> {end}sec'
             if res != 0:
                 spinner.fail(bcolors.FAIL + status_text + bcolors.ENDC)
-                cprint(f"[FAIL] {text}","red")
-                sys.exit()
+                cprint(f"[FAIL] {text}", "red")
+                sys.exit(1)
             else:
                 status_header = bcolors.WARNING + "[DONE]" + bcolors.ENDC
                 spinner.succeed(f'{status_header} {status_text}')
@@ -77,9 +76,9 @@ def run_execute(text, cmd, status_check="OK"):
             spinner.succeed(f'[SUCCEED] {text} -> {end}sec')
     else:
         if res != 0:
-            cprint(f"[FAIL] {text}","red")
+            cprint(f"[FAIL] {text}", "red")
             subprocess.call(cmd, stdout=None, stderr=None, shell=True)
-
+    return res
 
 
 def git_clone(repo_name, url, revision=None):
@@ -100,8 +99,8 @@ def git_clone(repo_name, url, revision=None):
         os.system(f"git checkout --quiet -b {revision}")
         os.system(f"git {GIT_OPTION} log {GIT_LOGGER_OPTION}")
     else:
-        cprint(f"Revision not found - {revision} ","red")
-        cprint(f"Latest Version -> ","green")
+        cprint(f"Revision not found - {revision} ", "red")
+        cprint(f"Latest Version -> ", "green")
         revision_res = os.system(f"git checkout ;git {GIT_OPTION} log {GIT_LOGGER_OPTION}")
 
     os.chdir(pwd)
@@ -118,20 +117,37 @@ def main():
 
     version_info_file = f'{args.default_dir}/static_version_info.json'
     if os.path.isfile(version_info_file) is False:
+        if os.path.isdir(args.default_dir) is False:
+            os.mkdir(args.default_dir)
         run_execute("static_vesion_info.json not found.", f'cp /src/static_version_info.json {version_info_file}')
 
+    if os.path.isdir(args.output_dir) is False:
+        os.mkdir(args.output_dir)
+
     version_info = openJson(f"{version_info_file}")
+    which_git = run_execute("find git", "which git", status_check="No")
+
+    if which_git != 0:
+        run_execute("install build packages", f"apt update && apt install {os.environ.get('INSTALL_PACKAGE')}")
 
     for repo_name in version_info.keys():
         url = version_info[repo_name].get('url')
         revision = version_info[repo_name].get('revision')
+
+        if os.environ.get(repo_name):
+            cprint(f" Using environment {revision} -> {os.environ.get(repo_name)}", "green")
+            revision = os.environ.get(repo_name)
+
         cprint(f" {repo_name} ,  {url} , {revision} ")
         git_clone(repo_name, url, revision)
         if repo_name == "icon_rc":
-            run_execute(f"-- Build {repo_name}",f"cd {args.default_dir}/{repo_name} ;  curl -O https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz &&" +
-                                                "tar zxf go1.12.7.linux-amd64.tar.gz && " +
+            run_execute(f"-- Build {repo_name}", f"cd {args.default_dir}/{repo_name} ;  curl -O https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz &&" +
+                                                "rm -rf /usr/local/go && " +
+                                                "tar zvxf go1.12.7.linux-amd64.tar.gz -C /usr/local/  && " +
                                                 "rm go1.12.7.linux-amd64.tar.gz && "+
-                                                "rm -rf /usr/local/go; mv go /usr/local/  && "+
+                                                "export GOPATH=/go  &&"+
+                                                "export GOROOT=/usr/local/go &&" +
+                                                "export PATH=$GOROOT/bin:$GOPATH:/src/:$PATH &&"+
                                                 f"git checkout {revision}  && "+
                                                 "make linux && "+
                                                 f"make install DST_DIR={args.output_dir} && "+
@@ -143,24 +159,16 @@ def main():
 
 
 def banner():
-    print("="*57)
-    print(' _____ _____ _____ ____  _____ _____    __    _____ _____')
-    print('|   __|   __|   | |    \|     |   __|  |  |  |     |   __|')
-    print('|__   |   __| | | |  |  | | | |   __|  |  |__|  |  |  |  |')
-    print('|_____|_____|_|___|____/|_|_|_|_____|  |_____|_____|_____|')
-    print("="*57)
-
-    print('____                 ___       __')
-    print("/\  _`\           __ /\_ \     /\ \\")
-    print('\ \ \L\ \  __  __/\_\\//\ \    \_\ \     __   _ __')
-    print(' \ \  _ <\'/\ \/\ \/\ \ \ \ \   /\'_` \  /\'__`\/\`\'__ \\')
-    print('  \ \ \L\ \ \ \_\ \ \ \ \_\ \_/\ \L\ \/\  __/\ \ \/')
-    print('   \ \____/\ \____/\ \_\/\____\ \___,_\ \____\\ \_ \\')
-    print('    \/___/  \/___/  \/_/\/____/\/__,_ /\/____/ \/_/')
-
+    print(" _           _ _     _")
+    print("| |         (_) |   | |")
+    print("| |__  _   _ _| | __| | ___ _ __")
+    print("| '_ \| | | | | |/ _` |/ _ \ '__|")
+    print("| |_) | |_| | | | (_| |  __/ |")
+    print("|_.__/ \__,_|_|_|\__,_|\___|_|")
     print("")
     print("\t\t\t\t   by JINWOO")
     print("="*57)
+
 
 if __name__ == '__main__':
     banner()

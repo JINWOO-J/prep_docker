@@ -1,6 +1,8 @@
 #!/bin/bash
-export CURL_OPTION=${CURL_OPTION:-"-s -S --fail --max-time 30"} #default curl options
-export EXT_IPADDR=${EXT_IPADDR:-$(curl ${CURL_OPTION} http://checkip.amazonaws.com)} # Getting external IP address
+shopt -s expand_aliases
+#export CURL_OPTION=${CURL_OPTION:-"-vvv -s -S --fail --max-time 30"} #default curl options
+alias curl="curl -s -S --fail --max-time 30"
+export EXT_IPADDR=${EXT_IPADDR:-$(curl http://checkip.amazonaws.com)} # Getting external IP address
 export IPADDR=${IPADDR:-"$EXT_IPADDR"}  # Setting the IP address 
 export LOCAL_TEST=${LOCAL_TEST:-"false"}
 if [[ ${LOCAL_TEST} == "true" ]]; then
@@ -48,7 +50,7 @@ export NETWORK_NAME=${NETWORK_NAME:-""}
 export VIEW_CONFIG=${VIEW_CONFIG:-"false"}  # for check deployment state # boolean (true/false)
 export AMQP_TARGET=${AMQP_TARGET:-"127.0.0.1"}
 export USE_EXTERNAL_MQ=${USE_EXTERNAL_MQ:-"false"}
-export USE_MQ_ADMIN=${USE_MQ_ADMIN:-"false"} # Enable RabbitMQ management Web interface.The management UI can be accessed using a Web browser at http://{node-hostname}:15672/. For example, for a node running on a machine with the hostname of prep-node, it can be accessed at http://prepnode:15672/  # boolean (true/false)
+export USE_MQ_ADMIN=${USE_MQ_ADMIN:-"false"} # Enable RabbitMQ management Web interface.The management UI can be accessed  using a Web browser at http://{node-hostname}:15672/. For example, for a node running on a machine with the hostname of prep-node, it can be accessed at http://prepnode:15672/  # boolean (true/false)
 export MQ_ADMIN=${MQ_ADMIN:-"admin"}          # RabbitMQ management username
 export MQ_PASSWORD=${MQ_PASSWORD:-"iamicon"}     # RabbitMQ management password
 
@@ -121,8 +123,8 @@ export RPC_WORKER=${RPC_WORKER:-"3"} #Setting the number of RPC workers
 export RPC_GRACEFUL_TIMEOUT=${RPC_GRACEFUL_TIMEOUT:-"0"} # rpc graceful timeout
 
 export USE_PROC_HEALTH_CHECK=${USE_PROC_HEALTH_CHECK:-"yes"}
-export USE_API_HEALTH_CHEK=${USE_API_HEALTH_CHEK:-"yes"}
-export USE_HELL_CHEK=${USE_HELL_CHEK:-"yes"}
+export USE_API_HEALTH_CHECK=${USE_API_HEALTH_CHECK:-"yes"}
+export USE_HELL_CHECK=${USE_HELL_CHECK:-"yes"}
 export HEALTH_CHECK_INTERVAL=${HEALTH_CHECK_INTERVAL:-"30"}  # Trigger if greater than 1
 export ERROR_LIMIT=${ERROR_LIMIT:-3}
 export HELL_LIMIT=${HELL_LIMIT:-300}
@@ -138,12 +140,14 @@ export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 
 #for bash prompt without entrypoint
 
-exec "$@"
+#$@ # instead of exec $@
+#echo $@
+#exec $@
 
 function getBlockCheck(){
-    if [[ ${USE_HELL_CHEK} == "yes" ]]; then
+    if [[ ${USE_HELL_CHECK} == "yes" ]]; then
         CPrint "Start BlockCheck"
-        blockheight=$(curl ${CURL_OPTION} localhost:${RPC_PORT}/api/v1/status/peer | jq -r .block_height)
+        blockheight=$(curl "localhost:${RPC_PORT}/api/v1/status/peer" | jq -r .block_height)
         ERROR_DIR="/.health_check"
         ERROR_COUNT_FILE="${ERROR_DIR}/blockcount"
         NOW_COUNT_FILE="${ERROR_DIR}/blockcount_now"
@@ -151,13 +155,13 @@ function getBlockCheck(){
         if [[ ! -d "$ERROR_DIR" ]]; then
             mkdir -p ${ERROR_DIR}
         fi
-        touch ${NOW_COUNT_FILE} ${PREV_COUNT_FILE}
+        touch "${NOW_COUNT_FILE}" "${PREV_COUNT_FILE}"
         echo "${blockheight}" > ${NOW_COUNT_FILE}
         PREV_ERROR_COUNT=$(cat ${PREV_COUNT_FILE})
         if [[ "${blockheight}" -eq ${PREV_ERROR_COUNT} ]];then
             if [[ "${blockheight}" -ge 1 ]];then
                 echo "${blockheight}"  >> ${ERROR_COUNT_FILE}
-                ERROR_COUNT=$(cat ${ERROR_COUNT_FILE} | wc -l)
+                ERROR_COUNT=$(grep -c "${ERROR_COUNT_FILE}")
                 CPrint "blockheight=${blockheight}, ERROR_COUNT=${ERROR_COUNT}, HELL_LIMIT=${HELL_LIMIT}"
                 if [[ ${ERROR_COUNT} -ge ${HELL_LIMIT} ]];then
                     CPrint "[FAIL] (${ERROR_COUNT}/${HELL_LIMIT}) (HELL) It will be terminated / reason: Hell  "
@@ -196,7 +200,7 @@ function post_to_slack () {
     esac
     if [[ "${USE_SLACK}" == "yes" ]]; then
         if [[ "${SLACK_URL}" ]]; then
-            curl ${CURL_OPTION} -X POST --data-urlencode "payload={\"text\": \"${SLACK_ICON} ${SLACK_MESSAGE}\"}" ${SLACK_URL}
+            curl -X POST --data-urlencode "payload={\"text\": \"${SLACK_ICON} ${SLACK_MESSAGE}\"}" "${SLACK_URL}"
         else
             CPrint "[FAIL] SLACK_URL not found" "RED"
         fi
@@ -205,7 +209,7 @@ function post_to_slack () {
 function logging() {
     MSG=$1
     LOG_TYPE=${2:-"booting"}
-    LOG_PATH=${3:-"$DEFAULT_LOG_PATH"}    
+    LOG_PATH=${3:-"$DEFAULT_LOG_PATH"}
     LOG_DATE=$(date +%Y%m%d)
     if [[ ! -e "$LOG_PATH" ]];then
         mkdir -p "$LOG_PATH"
@@ -229,7 +233,7 @@ function returnErrorCount(){
 
     if [[ "${MSG}"  && "${ACTION}" == "down" ]]; then
         echo "${MSG}" >> "${ERROR_COUNT_FILE}"
-        ERROR_COUNT=$(cat "${ERROR_COUNT_FILE}" | grep -v grep | grep "${MSG}" | wc -l)
+        ERROR_COUNT=$(< "${ERROR_COUNT_FILE}" grep -v grep | grep -c "${MSG}")
         if [[ ${ERROR_COUNT} -ge ${ERROR_LIMIT} ]];then
             CPrint "[FAIL] (${ERROR_COUNT}/${ERROR_LIMIT}) It will be terminated / reason: ${MSG} "
             post_to_slack "[FAIL] (${ERROR_COUNT}/${ERROR_LIMIT}) It will be terminated / reason: ${MSG} "
@@ -257,7 +261,7 @@ function CPrint {
     GREEN='\e[0;92m'
     WHITE='\e[97m'
     BOLD_WHITE='\e[1;37m'
-    RESET='\e[0m'  # RESET    
+    RESET='\e[0m'  # RESET
 
     if [[ "$COLOR" == "RED" ]];then
         MSG="[ERROR] $MSG"
@@ -278,8 +282,6 @@ function CPrint {
 }
 
 function PrintOK() {
-    IRed='\e[0;91m'         # Rosso
-    IGreen='\e[0;92m'       # Verde
     RESET='\e[0m'  # RESET
     MSG=${1}
     CHECK=${2:-0}
@@ -297,16 +299,16 @@ function PrintOK() {
 }
 function download_file() {
     DOWNLOAD_URL=$1
-    DOWNLOAD_DEST=$2    
-    DOWN_STAT=$(curl  -w "%{http_code}" -so ${DOWNLOAD_DEST} ${DOWNLOAD_URL})
+    DOWNLOAD_DEST=$2
+    DOWN_STAT=$(curl  -w "%{http_code}" -so "${DOWNLOAD_DEST}" "${DOWNLOAD_URL}")
     if [[ "$DOWN_STAT" == "200" ]];then
-        PrintOK "Download ${DOWNLOAD_URL}" $?        
-    else        
+        PrintOK "Download ${DOWNLOAD_URL}" $?
+    else
         CPrint "Download Failed - ${DOWNLOAD_URL} status_code=$DOWN_STAT " "RED"
         if [[ "$DOWNLOAD_URL" == *"der" ]];then
             CPrint "Unauthorized IP address, Please contact our support team" "RED"
             CPrint "Your External IP:${EXT_IPADDR} / Your Enviroment IPADDR:${IPADDR}" "RED"
-        fi        
+        fi
         rm -f "${DOWNLOAD_DEST}"
         exit 127;
     fi
@@ -315,13 +317,9 @@ function check_valid_ip(){
     local  ip=$1
     local  stat=1
     if [[ ${ip} =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-        OIFS=$IFS
-        IFS='.'
-        ip=($ip)
-        IFS=$OIFS
-        [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
+        IFS='.' read -r -a ip_array <<< "$ip"
+        [[ ${ip_array[0]} -le 255 && ${ip_array[1]} -le 255 && ${ip_array[2]} -le 255 && ${ip_array[3]} -le 255 ]]
         stat=$?
-
     fi
     PrintOK "Check valid IPaddr -> $1 " $stat
     return $stat
@@ -337,6 +335,7 @@ function int_check(){
         echo false
     fi
 }
+
 function filetype_check() {
     filename=$1
     type=$(file "${filename}" | cut -d ":" -f 2)
@@ -370,12 +369,12 @@ function find_neighbor_func(){
 
 function ntp_check(){
     CPrint "Time synchronization with NTP / NTP SERVER: ${NTP_SERVER}"
-    ntpdate ${NTP_SERVER}
-    if [[ $? == 0 ]]; then
+
+    if ntpdate "${NTP_SERVER}"; then
         CPrint "Success Time Synchronization!!" "GREEN"
     else
-        ntpdate 169.254.169.123   ## AWS NTP NTP_SERVER
-        if [[ $? == 0 ]]; then
+        ## AWS NTP NTP_SERVER
+        if ntpdate "169.254.169.123" ; then
             CPrint "Success Time Synchronization!! with AWS NTP Server" "GREEN"
         else
             CPrint "[FAIL] Time Synchronization!!" "RED"
@@ -385,7 +384,7 @@ function ntp_check(){
 
 function autogen_certkey(){
     FILENAME=${1:-"$PRIVATE_PATH"}
-    openssl ecparam -genkey -name secp256k1 | openssl ec -aes-256-cbc -out ${FILENAME} -passout pass:${PRIVATE_PASSWORD}
+    openssl ecparam -genkey -name secp256k1 | openssl ec -aes-256-cbc -out "${FILENAME}" -passout pass:"${PRIVATE_PASSWORD}"
     CPrint "Generate key file $FILENAME"
     PrintOK "Generate private key " $?
 #    openssl ec -in ${FILENAME}  -pubout -out ${PUBLIC_PATH} -passin pass:${PRIVATE_PASSWORD}
@@ -397,6 +396,7 @@ if [[ "${IS_AUTOGEN_CERT}" == "true" && ! -f "${PRIVATE_PATH}" ]]  ; then
     PRIVATE_PATH="${CERT_PATH}/autogen_cert.pem"
     autogen_certkey "${PRIVATE_PATH}"
 fi
+
 
 mkdir -p "${DEFAULT_PATH}"
 
@@ -446,7 +446,7 @@ elif [[ "$NETWORK_ENV" == "testnet" ]]; then
 else
     if [[ "$SERVICE" == "zicon" ]]; then
         iissCalculatePeriod=1800
-        termPeriod=1800  
+        termPeriod=1800
     fi
 
     builtinScoreOwner="hx6e1dd0d4432620778b54b2bbc21ac3df961adf89"
@@ -485,7 +485,7 @@ if [[ $NETWORK_ENV == "mainnet" || $NETWORK_ENV == "testnet" ]];then
 fi
 
 
-PEER_ID=`/src/getPeerID.py ${PRIVATE_PATH} ${PRIVATE_PASSWORD} 2>&1`
+PEER_ID=$(/src/getPeerID.py "${PRIVATE_PATH}" "${PRIVATE_PASSWORD}" 2>&1)
 PrintOK "Peer ID: ${PEER_ID}" $?
 
 
@@ -527,8 +527,8 @@ jq --arg ICON_NID "$ICON_NID"  '.transaction_data.nid = "\($ICON_NID)"' "$GENESI
 jq --argjson LOAD_PEERS_FROM_IISS "$LOAD_PEERS_FROM_IISS" '.LOAD_PEERS_FROM_IISS = $LOAD_PEERS_FROM_IISS' "$configure_json"| sponge "$configure_json"
 
 
-IS_REG=`curl ${CURL_OPTION} ${SERVICE_API} -d '{"jsonrpc":"2.0","method":"icx_call","id":2696368077,"params":{"from":"hx0000000000000000000000000000000000000000","to":"cx0000000000000000000000000000000000000000","dataType":"call","data":{"method":"getPReps"}}}' |  \
- jq -r --arg PEER_ID "$PEER_ID" '.result.preps[] |select(.address=="\($PEER_ID)")|.grade'`
+IS_REG=$(curl "${SERVICE_API}" -d '{"jsonrpc":"2.0","method":"icx_call","id":2696368077,"params":{"from":"hx0000000000000000000000000000000000000000","to":"cx0000000000000000000000000000000000000000","dataType":"call","data":{"method":"getPReps"}}}' |  \
+ jq -r --arg PEER_ID "$PEER_ID" '.result.preps[] |select(.address=="\($PEER_ID)")|.grade')
 REG_STATUS=""
 
 case "$IS_REG" in
@@ -551,7 +551,7 @@ case "$IS_REG" in
 esac
 
 if [[ "${SERVICE}" != "mainnet" ]] && [[ "${SERVICE}" != "testnet" ]]; then
-    FIRST_PEER_IP=`curl -s  $CONFIG_API_SERVER/conf/${SERVICE}_channel_manage_data.json | jq -r ".icon_dex.peers[0].peer_target"  | cut -d ":" -f1`
+    FIRST_PEER_IP=$(curl -s  "$CONFIG_API_SERVER/conf/${SERVICE}_channel_manage_data.json" | jq -r ".icon_dex.peers[0].peer_target"  | cut -d ":" -f1)
     if [[ "${FIRST_PEER_IP}" == "$IPADDR" ]] && [[ "x${REG_STATUS}" == "x" ]];then  #REG_STATUS 가있으면 PASS
         FIRST_PEER="true"
     fi
@@ -652,7 +652,7 @@ if [[ "${AMQP_TARGET}" ]];then
 fi
 
 for item in "iconservice" "iconrpcserver";
-do  
+do
     CONFIG_FILE="${CONF_PATH}/${item}.json"
     jq --arg outputType "$outputType" '.log.outputType = "\($outputType)"' "$CONFIG_FILE"| sponge "$CONFIG_FILE"
     jq --arg ICON_LOG_LEVEL "$ICON_LOG_LEVEL" '.log.level = "\($ICON_LOG_LEVEL)"' "$CONFIG_FILE"| sponge "$CONFIG_FILE"
@@ -663,7 +663,6 @@ if [[ -n "${USER_DEFINED_ENV}" ]]; then
     CPrint "Add USER_DEFINED_ENV"
     CPrint "$(/src/genconfig.py)"
 fi
-
 
 ## check config file
 for config in "$configure_json" "$iconrpcserver_json" "$iconservice_json" "$CHANNEL_MANAGE_DATA_PATH";
@@ -678,15 +677,17 @@ echo $#
 if [[ "$NEWRELIC_LICENSE" ]] ; then
     CPrint "=== START NEWRELIC ==="
     export NEW_RELIC_APP_NAME="prep-loopchain"
-    export NEW_RELIC_CONFIG_FILE="newrelic.ini"    
-    newrelic-admin generate-config  $NEWRELIC_LICENSE ${NEW_RELIC_CONFIG_FILE}
-    echo "log_file = /tmp/newrelic-python-agent.log" >> $NEW_RELIC_CONFIG_FILE    
-    sed -i -e "36s/app_name =.*/app_name = ${NEW_RELIC_APP_NAME}/" $NEW_RELIC_CONFIG_FILE
+    export NEW_RELIC_CONFIG_FILE="newrelic.ini"
+    newrelic-admin generate-config  "$NEWRELIC_LICENSE" "${NEW_RELIC_CONFIG_FILE}"
+    echo "log_file = /tmp/newrelic-python-agent.log" >> $NEW_RELIC_CONFIG_FILE
+    sed -i -e "36s/app_name =.*/app_name = ${NEW_RELIC_APP_NAME}/" "$NEW_RELIC_CONFIG_FILE"
     NEWRELIC_CMD="newrelic-admin run-program "
 fi
 
 if [[ $# -gt 0 ]]; then
-    exec $@
+#    exec "$@"
+    "$@"
+    exit 0;
 else
     mkdir -p "${DEFAULT_PATH}"
     if [[ "$FASTEST_START" == "yes" ]]; then
@@ -698,22 +699,22 @@ else
             NETWORK_NAME="ZiconPrepNet"
         fi
         CPrint "START FASTEST MODE : NETWORK_NAME=${NETWORK_NAME}"
-        if [[ ! -z "$NETWORK_NAME" ]]; then
-            if ls ${DEFAULT_PATH}/*.gz 1> /dev/null 2>&1;then
-                DOWNLOAD_FILENAME=`ls ${DEFAULT_PATH}/*.gz`
+        if [[ -n "$NETWORK_NAME" ]]; then
+            if ls "${DEFAULT_PATH}"/*.gz 1> /dev/null 2>&1;then
+                DOWNLOAD_FILENAME=$(ls "${DEFAULT_PATH}"/*.gz)
                 CPrint "[PASS] Already file - ${DOWNLOAD_FILENAME}"
             else
-                rm -rf ${DEFAULT_STORAGE_PATH:?}/* ${scoreRootPath:?}/* ${stateDbRootPath:?}/*
-                mkdir -p $DEFAULT_STORAGE_PATH $scoreRootPath $stateDbRootPath ${DEFAULT_PATH}
+                rm -rf "${DEFAULT_STORAGE_PATH:?}"/* "${scoreRootPath:?}"/* "${stateDbRootPath:?}"/*
+                mkdir -p "$DEFAULT_STORAGE_PATH" "$scoreRootPath" "$stateDbRootPath" "${DEFAULT_PATH}"
                 if [[ -z "$FASTEST_START_POINT" ]]; then
                     FAST_S3_REGION=$(/src/find_region_async.py)
                     CPrint "Download from [  $FAST_S3_REGION  ]" "GREEN"
                     DOWNLOAD_PREFIX="$FAST_S3_REGION/${NETWORK_NAME}"
-                    LASTEST_VERSION=`curl -k -s ${DOWNLOAD_PREFIX}/backup_list | head -n 1`
-                    DOWNLOAD_FILENAME=`basename $LASTEST_VERSION`
+                    LASTEST_VERSION=$(curl -k -s "${DOWNLOAD_PREFIX}/backup_list" | head -n 1)
+                    DOWNLOAD_FILENAME=$(basename "$LASTEST_VERSION")
                     DOWNLOAD_URL="${DOWNLOAD_PREFIX}/${LASTEST_VERSION}"
                 else
-                    DOWNLOAD_FILENAME=`basename $FASTEST_START_POINT`
+                    DOWNLOAD_FILENAME=$(basename "$FASTEST_START_POINT")
                     LASTEST_VERSION="$DOWNLOAD_FILENAME"
                     DOWNLOAD_URL="$FASTEST_START_POINT"
                 fi
@@ -721,12 +722,13 @@ else
                 axel_option="-k -n 6 --verbose"
                 CPrint "axel ${axel_option} ${DOWNLOAD_URL} -o ${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"
                 snapshot_log="snapshot.$(date +%Y%m%d%H%M%S)"
-                axel ${axel_option} ${DOWNLOAD_URL} -o "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"  >> "${DEFAULT_LOG_PATH}/${snapshot_log}" &
+                axel "${axel_option}" "${DOWNLOAD_URL}" -o "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"  >> "${DEFAULT_LOG_PATH}/${snapshot_log}" &
                 sleep 2;
-                CPrint "$(head -n 3 ${DEFAULT_LOG_PATH}/${snapshot_log})"
-                while [[ true ]];
+                CPrint "$(head -n 3 "${DEFAULT_LOG_PATH}/${snapshot_log}")"
+                while true;
                 do
-                    proc_check=`ps -ef|grep axel| grep -v grep | wc -l`
+#                    proc_check=$(ps -ef|grep axel| grep -v grep | wc -l)
+                    proc_check=$(pgrep -c -f "axel")
                     if [[ ${proc_check} == 0 ]];
                     then
                         CPrint "Completed download"
@@ -736,27 +738,27 @@ else
                     sleep 1;
                 done
                 ## check the file
-                axel_down_res=$(head -n3 ${DEFAULT_LOG_PATH}/${snapshot_log})
-                is_file=$(echo ${axel_down_res} | grep "File" | wc -l)
-                is_unavailable=$(echo ${axel_down_res} | egrep "HTTP/1.0|Unable to" | wc -l)
+                axel_down_res=$(head -n3 "${DEFAULT_LOG_PATH}/${snapshot_log}")
+                is_file=$(echo "${axel_down_res}" | grep -C "File")
+                is_unavailable=$(echo "${axel_down_res}" | grep -cE "HTTP/1.0|Unable to")
                 CPrint "is_file = ${is_file}, is_unavailable = ${is_unavailable}"
                 if [[ "${is_unavailable}" == "1" ]] || [[ "${is_file}" == "0" ]];then
                     CPrint "Failed to download"
                 fi
-                CPrint "$(tail -n1 ${DEFAULT_LOG_PATH}/${snapshot_log})"
+                CPrint "$(tail -n1 "${DEFAULT_LOG_PATH}/${snapshot_log}")"
                 PrintOK "Download $LASTEST_VERSION(${DEFAULT_PATH}/${BASENAME})  to $DEFAULT_PATH" $?
 
-                tar -I pigz -xf ${DEFAULT_PATH}/${DOWNLOAD_FILENAME} -C ${DEFAULT_PATH}
-                rm  -f ${DEFAULT_PATH}/${DOWNLOAD_FILENAME}
-                touch ${DEFAULT_PATH}/${DOWNLOAD_FILENAME}
+                tar -I pigz -xf "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}" -C "${DEFAULT_PATH}"
+                rm  -f "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"
+                touch "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"
 
                 if [[ "${DEFAULT_PATH}/.score_data/db" != "${stateDbRootPath}" ]]; then
-                    mv "${DEFAULT_PATH}/.score_data/db" $stateDbRootPath
+                    mv "${DEFAULT_PATH}/.score_data/db" "$stateDbRootPath"
                 fi
                 if [[ "${DEFAULT_PATH}/.score_data/score" != "${scoreRootPath}" ]]; then
-                    mv "${DEFAULT_PATH}/.score_data/score" $scoreRootPath
+                    mv "${DEFAULT_PATH}/.score_data/score" "$scoreRootPath"
                 fi
-                mv $DEFAULT_PATH/.storage/*\:7100_icon_dex $DEFAULT_STORAGE_PATH/db_${IPADDR}\:7100_icon_dex
+                mv "${DEFAULT_PATH}"/.storage/*:7100_icon_dex "${DEFAULT_STORAGE_PATH}/db_${IPADDR}:7100_icon_dex"
             fi
         fi
     fi
@@ -765,7 +767,7 @@ else
     if [[ "${USE_EXTERNAL_MQ}" == "false" ]]; then
         /usr/sbin/rabbitmq-server &
     fi
-    while ! nc -z ${AMQP_TARGET} 5672; do
+    while ! nc -z "${AMQP_TARGET}" 5672; do
         >&2 echo "Wait for rabbitmq-server(${AMQP_TARGET}) / USE_EXTERNAL_MQ: ${USE_EXTERNAL_MQ} - sleeping"
         sleep 1
     done
@@ -773,9 +775,9 @@ else
     if [[ "${USE_EXTERNAL_MQ}" == "false" ]] && [[ "$USE_MQ_ADMIN" == "true" ]];then
         CPrint "Enable rabbitmq_management"
         rabbitmq-plugins enable rabbitmq_management
-        rabbitmqctl add_user $MQ_ADMIN $MQ_PASSWORD
-        rabbitmqctl set_user_tags $MQ_ADMIN administrator
-        rabbitmqctl set_permissions -p / $MQ_ADMIN ".*" ".*" ".*"
+        rabbitmqctl add_user "$MQ_ADMIN" "$MQ_PASSWORD"
+        rabbitmqctl set_user_tags "$MQ_ADMIN" "administrator"
+        rabbitmqctl set_permissions -p / "$MQ_ADMIN" ".*" ".*" ".*"
         export AMQP_USERNAME=$MQ_ADMIN
         export AMQP_PASSWORD=$MQ_PASSWORD
     fi
@@ -788,18 +790,18 @@ else
     export NEW_RELIC_APP_NAME="prep-loopchain"
     if [[ "${LOG_OUTPUT_TYPE}" == "file" ]]; then
 #        loop $RUN_MODE -o $configure_json &
-        loop $RUN_MODE -o $configure_json  3>&1 1>&2 2>&3 | awk '{ print strftime("%F %T %z", systime()) " [LOOP_ERR] \t" $0; fflush() }'|tee -a ${DEFAULT_LOG_PATH}/loopchain_error.log >> ${DEFAULT_LOG_PATH}/loopchain_error.log&
+        loop ${RUN_MODE} -o "$configure_json"  3>&1 1>&2 2>&3 | awk '{ print strftime("%F %T %z", systime()) " [LOOP_ERR] \t" $0; fflush() }'|tee -a "${DEFAULT_LOG_PATH}"/loopchain_error.log >> "${DEFAULT_LOG_PATH}"/loopchain_error.log&
     else
-        loop $RUN_MODE -o $configure_json &
+        loop ${RUN_MODE} -o "$configure_json" &
     fi
     PrintOK "Run loop-peer and loop-channel start -> '$RUN_MODE'" $? "true"
 
     export NEW_RELIC_APP_NAME="prep-iconservice"
     if [[ "${LOG_OUTPUT_TYPE}" == "file" ]]; then
-        iconservice start -c $iconservice_json 3>&1 1>&2 2>&3|awk '{ print strftime("%F %T %z", systime()) " [ICON_ERR] \t" $0; fflush() }'| tee -a ${DEFAULT_LOG_PATH}/iconservice_error.log &
+        iconservice start -c "$iconservice_json" 3>&1 1>&2 2>&3|awk '{ print strftime("%F %T %z", systime()) " [ICON_ERR] \t" $0; fflush() }'| tee -a "${DEFAULT_LOG_PATH}"/iconservice_error.log &
 #        iconservice start -c $iconservice_json 3>&1 1>&2 2>&3|awk '{print(strftime(%F), $0);}'|tee -a ${DEFAULT_LOG_PATH}/iconservice_error.log &
     else
-        iconservice start -c $iconservice_json &
+        iconservice start -c "$iconservice_json" &
     fi
     PrintOK "Run iconservice start!" $?
 
@@ -815,7 +817,8 @@ fi
 
 function proc_check(){
     PROC_NAME=$1
-    PROC_CNT=`ps -ef | grep -v grep | grep $PROC_NAME | wc -l`
+#    PROC_CNT=`ps -ef | grep -v grep | grep $PROC_NAME | wc -l`
+    PROC_CNT=$(pgrep -c -f "${PROC_NAME}")
     if [[ ${PROC_CNT} -eq 0 ]] ;then
         if [[ ${VIEW_CONFIG} == "true" ]]; then
             CPrint "[FAIL] '${PROC_NAME}' process down " "RED"
@@ -830,7 +833,7 @@ function proc_check(){
 sleep 45;
 
 HEALTH_ENV_CHECK="false"
-if [[ "$(int_check ${HEALTH_CHECK_INTERVAL})" == true ]]; then
+if [[ "$(int_check "${HEALTH_CHECK_INTERVAL}")" == true ]]; then
     if [[ ${HEALTH_CHECK_INTERVAL} -ge 1 ]]; then
         HEALTH_ENV_CHECK="true"
     else
@@ -844,7 +847,7 @@ fi
 
 if [[ "${HEALTH_ENV_CHECK}" == "true" ]]; then
     CPrint "Start Health check ... ${HEALTH_CHECK_INTERVAL}s, HEALTH_ENV_CHECK=${HEALTH_ENV_CHECK}"
-    while [[ true ]];
+    while true;
     do
         sleep "${HEALTH_CHECK_INTERVAL}";
 
@@ -857,19 +860,23 @@ if [[ "${HEALTH_ENV_CHECK}" == "true" ]]; then
                 proc_check "${PROC_NAME}"
             done
         fi
-        if [[ "${USE_API_HEALTH_CHEK}" == "yes" ]];then
+        if [[ "${USE_API_HEALTH_CHECK}" == "yes" ]];then
             if [[ "$VIEW_CONFIG" == "true" ]]; then
                 CPrint "Start API_HEALTH_CHECK  ... ${HEALTH_CHECK_INTERVAL}s"
             fi
-            CHECK_HEALTHY_STATUS=$(curl ${CURL_OPTION} http://localhost:9000/api/v1/status/peer 2>&1)
-            if [[ $? -eq 0 ]]; then
+
+            CHECK_HEALTHY_STATUS=$(curl --fail -w "%{http_code}" -o /dev/null "http://localhost:${RPC_PORT}/api/v1/status/peer")
+            if [[ ${CHECK_HEALTHY_STATUS} == "200" ]] ; then
                 ACTION="init"
+            elif [[ ${CHECK_HEALTHY_STATUS} == "000" ]] ; then
+                CHECK_HEALTHY_STATUS="Connect error"
+                ACTION="down"
             else
                 ACTION="down"
             fi
-            if [[ "${VIEW_CONFIG}" == "true" ]]; then
-                returnErrorCount "${CHECK_HEALTHY_STATUS}" "API_HEALTH_CHECK" ${ACTION}
-            fi
+#            if [[ "${VIEW_CONFIG}" == "true" ]]; then
+            returnErrorCount "${CHECK_HEALTHY_STATUS}" "API_HEALTH_CHECK" ${ACTION}
+#            fi
 #            PrintOK "Check health status : ${CHECK_HEALTHY_STATUS}" $?
         fi
 
@@ -882,7 +889,7 @@ if [[ "${HEALTH_ENV_CHECK}" == "true" ]]; then
     done
 else
     CPrint "Do not Health check ..."
-    while [[ 1 ]];
+    while true;
     do
         if [[ "${USE_NTP_SYNC}" == "true" ]]; then
             sleep "${NTP_REFRESH_TIME}";
