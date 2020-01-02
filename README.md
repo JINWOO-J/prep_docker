@@ -5,13 +5,12 @@
 [![ICON badge](https://img.shields.io/badge/ICON-PRep-blue?logoColor=white&logo=icon&labelColor=31B8BB)](https://shields.io/)
 [![latest tag](https://images.microbadger.com/badges/version/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "microbadger.com")
 [![tag info](https://images.microbadger.com/badges/image/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "microbadger.com")
-[![](https://images.microbadger.com/badges/commit/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "Get your own commit badge on microbadger.com")
 
 
 #### Travis-build
 [![Build Status](https://travis-ci.org/JINWOO-J/prep_docker.svg?branch=master)](https://travis-ci.org/JINWOO-J/prep_docker) 
 
-
+[![Build History](https://buildstats.info/travisci/chart/jinwoo-j/prep_docker?branch=master&includeBuildsFromPullRequest=false&buildCount=50)](https://travis-ci.org/jinwoo-j/prep_docker)
 
 ## Introduction to prep-node
 This project was created to help ICON's PRep-node.
@@ -61,7 +60,7 @@ Removing intermediate container cd88bf497d89
 
 
 ## prep-node docker setting
-###### made date at 2020-01-02 11:43:36 
+###### made date at 2020-01-02 19:31:17 
 | Environment variable | Description|Default value| Allowed value|
 |--------|--------|-------|-------|
 | EXT\_IPADDR| Getting external IP address|$(curl http://checkip.amazonaws.com)||
@@ -88,7 +87,7 @@ Removing intermediate container cd88bf497d89
 | VIEW\_CONFIG| for check deployment state|false| boolean (true/false)|
 | AMQP\_TARGET|127.0.0.1|127.0.0.1||
 | USE\_EXTERNAL\_MQ|false|false||
-| USE\_MQ\_ADMIN| Enable RabbitMQ management Web interface.The management UI can be accessed using a Web browser at http://{node-hostname}:15672/. For example, for a node running on a machine with the hostname of prep-node, it can be accessed at http://prepnode:15672/|false| boolean (true/false)|
+| USE\_MQ\_ADMIN| Enable RabbitMQ management Web interface.The management UI can be accessed  using a Web browser at http://{node-hostname}:15672/. For example, for a node running on a machine with the hostname of prep-node, it can be accessed at http://prepnode:15672/|false| boolean (true/false)|
 | MQ\_ADMIN| RabbitMQ management username|admin||
 | MQ\_PASSWORD| RabbitMQ management password|iamicon||
 | LOOPCHAIN\_LOG\_LEVEL| loopchain log level|INFO| DEBUG, INFO, WARNING, ERROR|
