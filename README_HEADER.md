@@ -1,8 +1,10 @@
-# prep-node docker
+# prep-node docker 
+
 
 #### Latest docker tag
-[![](https://images.microbadger.com/badges/version/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "microbadger.com")
-[![](https://images.microbadger.com/badges/image/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "microbadger.com")
+[![ICON badge](https://img.shields.io/badge/ICON-PRep-blue?logoColor=white&logo=icon&labelColor=31B8BB)](https://shields.io/)
+[![latest tag](https://images.microbadger.com/badges/version/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "microbadger.com")
+[![tag info](https://images.microbadger.com/badges/image/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "microbadger.com")
 
 
 #### Travis-build

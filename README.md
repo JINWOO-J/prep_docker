@@ -1,8 +1,10 @@
-# prep-node docker
+# prep-node docker 
+
 
 #### Latest docker tag
-[![](https://images.microbadger.com/badges/version/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "microbadger.com")
-[![](https://images.microbadger.com/badges/image/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "microbadger.com")
+[![ICON badge](https://img.shields.io/badge/ICON-PRep-blue?logoColor=white&logo=icon&labelColor=31B8BB)](https://shields.io/)
+[![latest tag](https://images.microbadger.com/badges/version/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "microbadger.com")
+[![tag info](https://images.microbadger.com/badges/image/iconloop/prep-node.svg)](https://microbadger.com/images/iconloop/prep-node "microbadger.com")
 
 
 #### Travis-build
@@ -58,7 +60,7 @@ Removing intermediate container cd88bf497d89
 
 
 ## prep-node docker setting
-###### made date at 2019-12-31 11:05:53 
+###### made date at 2020-01-02 11:43:36 
 | Environment variable | Description|Default value| Allowed value|
 |--------|--------|-------|-------|
 | EXT\_IPADDR| Getting external IP address|$(curl http://checkip.amazonaws.com)||
