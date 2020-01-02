@@ -75,7 +75,8 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
     mkdir -p $APP_DIR && \
     mkdir -p $APP_DIR/whl && \
     mkdir -p $APP_DIR/cert && \
-    if [ "$IS_STATIC_BUILD" == "true"];then \
+    if [ "$IS_STATIC_BUILD" = "true" ];then \
+        echo "start static build" ;\
         /src/static_builder.py -o /${APP_DIR}/whl ;\
     elif [ "x$DOWNLOAD_PACKAGE" != "x" ]; then  \
         ls /$APP_DIR/whl/ ; \
