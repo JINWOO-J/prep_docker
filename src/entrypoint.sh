@@ -50,7 +50,7 @@ export NETWORK_NAME=${NETWORK_NAME:-""}
 export VIEW_CONFIG=${VIEW_CONFIG:-"false"}  # for check deployment state # boolean (true/false)
 export AMQP_TARGET=${AMQP_TARGET:-"127.0.0.1"}
 export USE_EXTERNAL_MQ=${USE_EXTERNAL_MQ:-"false"}
-export USE_MQ_ADMIN=${USE_MQ_ADMIN:-"false"} # Enable RabbitMQ management Web interface.The management UI can be accessed using a Web browser at http://{node-hostname}:15672/. For example, for a node running on a machine with the hostname of prep-node, it can be accessed at http://prepnode:15672/  # boolean (true/false)
+export USE_MQ_ADMIN=${USE_MQ_ADMIN:-"false"} # Enable RabbitMQ management Web interface.The management UI can be accessed  using a Web browser at http://{node-hostname}:15672/. For example, for a node running on a machine with the hostname of prep-node, it can be accessed at http://prepnode:15672/  # boolean (true/false)
 export MQ_ADMIN=${MQ_ADMIN:-"admin"}          # RabbitMQ management username
 export MQ_PASSWORD=${MQ_PASSWORD:-"iamicon"}     # RabbitMQ management password
 

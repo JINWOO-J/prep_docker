@@ -17,6 +17,7 @@ ARG DOWNLOAD_PACKAGE
 ARG NAME
 ARG TAGNAME
 ARG IS_LOCAL
+ARG IS_STATIC_BUILD
 ARG DOWNLOAD_PACKAGE=$DOWNLOAD_PACKAGE
 ARG RABBITMQ_VERSION="3.7.17"
 ARG GO_VERSION="1.12.7"
@@ -46,7 +47,8 @@ ENV TZ="Asia/Seoul"  \
     erlang-ssl  erlang-syntax-tools erlang-tftp \
     erlang-tools erlang-xmerl"\
     DELETE_PACKAGE="gcc gcc-6 g++* g++-6* make git automake" \
-    PIP3_PACKAGE="tbears iconsdk python-hosts halo termcolor"
+    PIP3_PACKAGE="tbears iconsdk python-hosts halo termcolor" \
+    IS_STATIC_BUILD=${IS_STATIC_BUILD}
 COPY src /src
 COPY src/pip.conf /etc/
 COPY src/erlang /etc/apt/preferences.d/erlang
@@ -73,7 +75,9 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
     mkdir -p $APP_DIR && \
     mkdir -p $APP_DIR/whl && \
     mkdir -p $APP_DIR/cert && \
-    if [ "x$DOWNLOAD_PACKAGE" != "x" ]; then  \
+    if [ "$IS_STATIC_BUILD" == "true"];then \
+        /src/static_builder.py -o /${APP_DIR}/whl ;\
+    elif [ "x$DOWNLOAD_PACKAGE" != "x" ]; then  \
         ls /$APP_DIR/whl/ ; \
         wget $DOWNLOAD_PACKAGE -O /$APP_DIR/whl/DOWNLOAD.tar.gz || exit 1; \
         tar zxvf /$APP_DIR/whl/*.gz --strip 1 -C /$APP_DIR/whl/ ; \
@@ -109,7 +113,8 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
         cd .. && rm -rf rewardcalculator /usr/local/go ; \
     fi ; \
     apt-get purge -y --auto-remove $DELETE_PACKAGE && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* ; \
+    rm -rf /build
 
 EXPOSE 9000
 EXPOSE 7100

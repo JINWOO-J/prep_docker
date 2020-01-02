@@ -1,120 +1,55 @@
 #!/usr/bin/env python3.6
+import sys, os
+import requests, json
 
-import threading
-import time
-import sys
-import os
-import requests,json
-
-try:
-    # Python 2.x
-    from SocketServer import ThreadingMixIn
-    from SimpleHTTPServer import SimpleHTTPRequestHandler
-    from BaseHTTPServer import HTTPServer
-except ImportError:
-    # Python 3.x
-    from socketserver import ThreadingMixIn
-    from http.server import SimpleHTTPRequestHandler, HTTPServer
-
-class ThreadingSimpleServer(ThreadingMixIn, HTTPServer):
-    pass
-
-class MyRequestHandler(SimpleHTTPRequestHandler):
-    def do_GET(self):
-        if self.path == '/check':
-            # Create the response
-            self.response = {
-                "result": "OK"
-            }
-            self.protocol_version = 'HTTP/1.1'
-            self.send_response(200, 'OK')
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            # self.wfile.write(bytes(json.dumps(self.response)))
-            self.wfile.write(bytes(json.dumps(self.response), "utf-8"))
-            # self.path = '/'
-            return
-            # return SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
-
-class ThreadingChecker(object):
-    """ Threading example class
-    The run() method will be started and it will run in the background
-    until the application exits.
-    """
-
-    def __init__(self, ipaddr=None, port=None, interval=1):
-        """ Constructor
-        :type interval: int
-        :param interval: Check interval, in seconds
-        """
-        self.interval = interval
-        self.ipaddr = ipaddr
-        self.port = port
-        self.count = 0
-        thread = threading.Thread(target=self.run, args=())
-        thread.daemon = True                            # Daemonize thread
-        thread.start()                                  # Start the execution
-
-    def run(self):
-        """ Method that runs forever """
-        while True:
-            check_url = f"http://{self.ipaddr}:{self.port}/check"
-            print(f'[{self.count}] Trying connect to {check_url}')
-            self.count += 1
-            time.sleep(self.interval)
-            try:
-                response = requests.get(f"{check_url}", verify=False, timeout=2)
-                res_json = response.json().get("result","")
-            except Exception as e:
-                res_json = "FAIL"
-                print(f"[FAIL] Cant accessible - {self.ipaddr}:{self.port} -> {e}")
-            if res_json == "OK":
-                print(f"[OK] Accessible - {self.ipaddr}:{self.port}")
-                os._exit(0)
-
-def getExtIPaddr():
-    url = "https://ipinfo.io/"
-    try:
-        r = requests.get(url,verify=False)
-    except:
-        print("error while querying info...")
-        sys.exit()
-    data = json.loads(r.text)
-    return data.get("ip", "[NO DATA]")
-
-
-if sys.argv[1:]:
-    address = sys.argv[1]
-    if (':' in address):
-        interface = address.split(':')[0]
-        port = int(address.split(':')[1])
+def dump(obj, nested_level=0, output=sys.stdout):
+    class bcolors:
+        HEADER = '\033[95m'
+        OKBLUE = '\033[94m'
+        OKGREEN = '\033[92m'
+        WARNING = '\033[93m'
+        FAIL = '\033[91m'
+        ENDC = '\033[0m'
+        BOLD = '\033[1m'
+        UNDERLINE = '\033[4m'
+    spacing = '   '
+    def_spacing = '   '
+    if type(obj) == dict:
+        print('%s{' % ( def_spacing + (nested_level) * spacing ))
+        for k, v in obj.items():
+            if hasattr(v, '__iter__'):
+                print( bcolors.OKGREEN + '%s%s:' % (def_spacing +(nested_level + 1) * spacing, k) + bcolors.ENDC, end="")
+                dump(v, nested_level + 1, output)
+            else:
+                print( bcolors.OKGREEN + '%s%s:' % (def_spacing + (nested_level + 1) * spacing, k) + bcolors.WARNING + ' %s' % v + bcolors.ENDC, file=output)
+        print('%s}' % ( def_spacing + nested_level * spacing), file=output)
+    elif type(obj) == list:
+        print('%s[' % (def_spacing+ (nested_level) * spacing), file=output)
+        for v in obj:
+            if hasattr(v, '__iter__'):
+                dump(v, nested_level + 1, output)
+            else:
+                print ( bcolors.WARNING + '%s%s' % ( def_spacing + (nested_level + 1) * spacing, v) + bcolors.ENDC, file=output)
+        print('%s]' % ( def_spacing + (nested_level) * spacing), file=output)
     else:
-        interface = '0.0.0.0'
-        port = int(address)
-else:
-    port = 8000
-    interface = '0.0.0.0'
+        print(bcolors.WARNING + '%s%s' % (def_spacing + nested_level * spacing, obj) + bcolors.ENDC)
 
-if sys.argv[2:]:
-    os.chdir(sys.argv[2])
 
-print('Started HTTP server on ' + interface + ':' + str(port))
-SimpleHTTPRequestHandler = MyRequestHandler
-server = ThreadingSimpleServer((interface, port), SimpleHTTPRequestHandler)
+def getLoopchainState(ipaddr="localhost", port=os.environ.get('RPC_PORT', 9000)):
+    url = f"http://{ipaddr}:{port}/api/v1/status/peer"
+    try:
+        session = requests.Session()
+        session.auth = ("guest", "guest")
+        r = session.get(url, verify=False, timeout=15)
+    except:
+        print("error while connecting server...")
+        sys.exit(1)
+    if r.status_code == 200:
+        dump(r.json())
+    else:
+        print(f"status_code error={r.status_code}")
+        sys.exit(1)
+    return
 
-if interface == "0.0.0.0":
-    check_ip = getExtIPaddr()
-    print( "Your externel IP : " + check_ip)
-else:
-    check_ip = interface
-
-checker = ThreadingChecker(ipaddr=check_ip, port=port)
-
-try:
-    while 1:
-        # print("start")
-        sys.stdout.flush()
-        server.handle_request()
-
-except KeyboardInterrupt:
-    print(' Finished.')
+if __name__ == '__main__':
+    getLoopchainState()
