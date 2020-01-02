@@ -116,13 +116,13 @@ def main():
     args = parser.parse_args()
 
     version_info_file = f'{args.default_dir}/static_version_info.json'
-    if os.path.isdir(args.output_dir) is False:
-        os.mkdir(args.output_dir)
-
     if os.path.isfile(version_info_file) is False:
         if os.path.isdir(args.default_dir) is False:
             os.mkdir(args.default_dir)
         run_execute("static_vesion_info.json not found.", f'cp /src/static_version_info.json {version_info_file}')
+
+    if os.path.isdir(args.output_dir) is False:
+        os.mkdir(args.output_dir)
 
     version_info = openJson(f"{version_info_file}")
     which_git = run_execute("find git", "which git", status_check="No")
@@ -141,10 +141,13 @@ def main():
         cprint(f" {repo_name} ,  {url} , {revision} ")
         git_clone(repo_name, url, revision)
         if repo_name == "icon_rc":
-            run_execute(f"-- Build {repo_name}",f"cd {args.default_dir}/{repo_name} ;  curl -O https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz &&" +
-                                                "tar zxf go1.12.7.linux-amd64.tar.gz && " +
+            run_execute(f"-- Build {repo_name}", f"cd {args.default_dir}/{repo_name} ;  curl -O https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz &&" +
+                                                "rm -rf /usr/local/go && " +
+                                                "tar zvxf go1.12.7.linux-amd64.tar.gz -C /usr/local/  && " +
                                                 "rm go1.12.7.linux-amd64.tar.gz && "+
-                                                "rm -rf /usr/local/go; mv go /usr/local/  && "+
+                                                "export GOPATH=/go  &&"+
+                                                "export GOROOT=/usr/local/go &&" +
+                                                "export PATH=$GOROOT/bin:$GOPATH:/src/:$PATH &&"+
                                                 f"git checkout {revision}  && "+
                                                 "make linux && "+
                                                 f"make install DST_DIR={args.output_dir} && "+
