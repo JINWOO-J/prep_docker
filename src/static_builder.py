@@ -40,7 +40,7 @@ def kvPrint(key, value, color="yellow"):
     print(bcolors.OKGREEN + "{:>{key_width}} : ".format(key, key_width=key_width) + bcolors.ENDC, end="")
     print(bcolors.WARNING + "{:>{key_value}} ".format(str(value), key_value=key_value) + bcolors.ENDC)
 
-def run_execute(text, cmd, status_check="OK"):
+def run_execute(text, cmd, cwd=None, status_check="OK"):
     global args
 
     class bcolors:
@@ -57,7 +57,7 @@ def run_execute(text, cmd, status_check="OK"):
         spinner = Halo(text=text, spinner='dots')
         spinner.start()
     start = timeit.default_timer()
-    res = subprocess.call(cmd, stdout=None,stderr=None,shell=True)
+    res = subprocess.call(cmd, cwd=cwd, stdout=None, stderr=None, shell=True)
     end = round(timeit.default_timer() - start , 3)
 
     if args.verbose:
@@ -143,7 +143,7 @@ def main():
         if repo_name == "icon_rc":
             run_execute(f"-- Build {repo_name}", f"cd {args.default_dir}/{repo_name} ;  curl -O https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz &&" +
                                                 "rm -rf /usr/local/go && " +
-                                                "tar zvxf go1.12.7.linux-amd64.tar.gz -C /usr/local/  && " +
+                                                "tar zxf go1.12.7.linux-amd64.tar.gz -C /usr/local/  && " +
                                                 "rm go1.12.7.linux-amd64.tar.gz && "+
                                                 "export GOPATH=/go  &&"+
                                                 "export GOROOT=/usr/local/go &&" +
@@ -153,9 +153,15 @@ def main():
                                                 f"make install DST_DIR={args.output_dir} && "+
                                                 "cd .. && rm -rf rewardcalculator /usr/local/go ;")
         else:
-            run_execute(f"Build {repo_name}", f"cd {args.default_dir}/{repo_name} &&  " +
-                        f"pip3 install -r requirements.txt;export VERSION={revision} &&" +
-                        f"python3 setup.py bdist_wheel --dist-dir {args.output_dir}")
+            work_path = f"{args.default_dir}/{repo_name}"
+            if args.verbose > 1:
+                quiet_mode = ""
+            else:
+                quiet_mode = "-q"
+            run_execute(f"Build {repo_name}", f"work_path={work_path}")
+            run_execute(f"Install python dependencies", f"pip3 install {quiet_mode} -r requirements.txt", cwd=work_path)
+            run_execute(f"Build a wheel file", f"export VERSION={revision}; python3 setup.py bdist_wheel {quiet_mode} --dist-dir {args.output_dir}", cwd=work_path)
+
 
 
 def banner():
