@@ -441,12 +441,13 @@ elif [[ "$NETWORK_ENV" == "testnet" ]]; then
     termPeriod=43120
     blockValidationPenaltyThreshold=660
     CREP_ROOT_HASH="0x38ec404f0d0d90a9a8586eccf89e3e78de0d3c7580063b20823308e7f722cd12"
-    SWITCH_BH_VERSION3=2698900
-    SWITCH_BH_VERSION4=5055452
+    SWITCH_BH_VERSION3=1
+    SWITCH_BH_VERSION4=10
 else
     if [[ "$SERVICE" == "zicon" ]]; then
         iissCalculatePeriod=1800
         termPeriod=1800
+        CREP_ROOT_HASH="0x9718f5d6d6ddb77f547ecc7113c8f1bad1bf46220512fbde356eee74a90ba47c"
     fi
 
     builtinScoreOwner="hx6e1dd0d4432620778b54b2bbc21ac3df961adf89"
@@ -550,7 +551,7 @@ case "$IS_REG" in
        ;;
 esac
 
-if [[ "${SERVICE}" != "mainnet" ]] && [[ "${SERVICE}" != "testnet" ]]; then
+if [[ "${SERVICE}" != "mainnet" ]]; then
     FIRST_PEER_IP=$(curl -s  "$CONFIG_API_SERVER/conf/${SERVICE}_channel_manage_data.json" | jq -r ".icon_dex.peers[0].peer_target"  | cut -d ":" -f1)
     if [[ "${FIRST_PEER_IP}" == "$IPADDR" ]] && [[ "x${REG_STATUS}" == "x" ]];then  #REG_STATUS 가있으면 PASS
         FIRST_PEER="true"
