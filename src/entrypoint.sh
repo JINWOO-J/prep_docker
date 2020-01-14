@@ -710,7 +710,13 @@ else
                 rm -rf "${DEFAULT_STORAGE_PATH:?}"/* "${scoreRootPath:?}"/* "${stateDbRootPath:?}"/*
                 mkdir -p "$DEFAULT_STORAGE_PATH" "$scoreRootPath" "$stateDbRootPath" "${DEFAULT_PATH}"
                 if [[ -z "$FASTEST_START_POINT" ]]; then
-                    FAST_S3_REGION=$(/src/find_region_async.py)
+                    if [[ "$NETWORK_ENV" == "mainnet" ]];then
+                        FAST_S3_REGION=$(/src/find_region_async.py)
+                    elif [[ "$NETWORK_ENV" == "testnet" ]]; then
+                        FAST_S3_REGION="https://icon-leveldb-backup-jp.s3.amazonaws.com"
+                    elif [[ "$NETWORK_ENV" == "PREP-TestNet" ]]; then
+                        FAST_S3_REGION="https://icon-leveldb-backup-mb.s3.amazonaws.com"
+                    fi
                     CPrint "Download from [  $FAST_S3_REGION  ]" "GREEN"
                     DOWNLOAD_PREFIX="$FAST_S3_REGION/${NETWORK_NAME}"
                     LASTEST_VERSION=$(curl -k -s "${DOWNLOAD_PREFIX}/backup_list" | head -n 1)
@@ -725,7 +731,8 @@ else
                 axel_option="-k -n 6 --verbose"
                 CPrint "axel ${axel_option} ${DOWNLOAD_URL} -o ${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"
                 snapshot_log="snapshot.$(date +%Y%m%d%H%M%S)"
-                axel "${axel_option}" "${DOWNLOAD_URL}" -o "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"  >> "${DEFAULT_LOG_PATH}/${snapshot_log}" &
+                axel ${axel_option} "${DOWNLOAD_URL}" -o "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"  >> "${DEFAULT_LOG_PATH}/${snapshot_log}" &
+                axel_chk=$!
                 sleep 2;
                 CPrint "$(head -n 3 "${DEFAULT_LOG_PATH}/${snapshot_log}")"
                 while true;
@@ -734,7 +741,7 @@ else
                     proc_check=$(pgrep -c -f "axel")
                     if [[ ${proc_check} == 0 ]];
                     then
-                        CPrint "Completed download"
+                        wait ${axel_chk} && PrintOK "Completed download" $? || PrintOK "Failed to download" $?
                         break
                     fi
                     printf "."
@@ -742,16 +749,38 @@ else
                 done
                 ## check the file
                 axel_down_res=$(head -n3 "${DEFAULT_LOG_PATH}/${snapshot_log}")
-                is_file=$(echo "${axel_down_res}" | grep -C "File")
+                is_file=$(echo "${axel_down_res}" | grep -c "File")
                 is_unavailable=$(echo "${axel_down_res}" | grep -cE "HTTP/1.0|Unable to")
                 CPrint "is_file = ${is_file}, is_unavailable = ${is_unavailable}"
                 if [[ "${is_unavailable}" == "1" ]] || [[ "${is_file}" == "0" ]];then
-                    CPrint "Failed to download"
+                    CPrint "Failed to download" "RED"
+                    exit 127;
                 fi
                 CPrint "$(tail -n1 "${DEFAULT_LOG_PATH}/${snapshot_log}")"
                 PrintOK "Download $LASTEST_VERSION(${DEFAULT_PATH}/${BASENAME})  to $DEFAULT_PATH" $?
 
-                tar -I pigz -xf "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}" -C "${DEFAULT_PATH}"
+                org_filesize=$(echo "${axel_down_res}" | grep ^"File size" | awk '{print $3}')
+                local_filesize=$(ls -l "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}" | awk '{print $5}')
+                CPrint "Remote File Size : ${org_filesize} Local File Size  : ${local_filesize}" "GREEN"
+                if [[ "${org_filesize}" != "${local_filesize}" ]];then
+                    CPrint "Failed to download. check the file size." "RED"
+                    exit 127;
+                fi
+
+                tar -I pigz -xf "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}" -C "${DEFAULT_PATH}" &
+                tar_chk=$!
+                while true;
+                do
+                    proc_check=$(pgrep -c -f "tar")
+                    if [[ ${proc_check} == 0 ]];
+                    then
+                        wait ${tar_chk} && PrintOK "Completed extract from archive" $? || PrintOK "Failed to extract from archive" $?
+                        break
+                    fi
+                    printf "."
+                    sleep 1;
+                done
+
                 rm  -f "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"
                 touch "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"
 
