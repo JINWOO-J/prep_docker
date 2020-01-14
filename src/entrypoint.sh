@@ -391,10 +391,12 @@ function autogen_certkey(){
 #    PrintOK "Generate public key" $?
 }
 
-if [[ "${IS_AUTOGEN_CERT}" == "true" && ! -f "${PRIVATE_PATH}" ]]  ; then
-    CPrint "Auto generataion cert key"
+if [[ "${IS_AUTOGEN_CERT}" == "true" ]]; then
+    CPrint "Using auto generataion cert key"
     PRIVATE_PATH="${CERT_PATH}/autogen_cert.pem"
-    autogen_certkey "${PRIVATE_PATH}"
+    if [[ ! -f "${PRIVATE_PATH}" ]]  ; then
+        autogen_certkey "${PRIVATE_PATH}"
+    fi
 fi
 
 
