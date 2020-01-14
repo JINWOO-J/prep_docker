@@ -1,10 +1,11 @@
 #!/bin/sh
 today=$(date +"%Y-%m-%d %T")
 cp README_HEADER.md README_HEADER_TMP.md
-for image in prep-node
+images="prep-node"
+for image in $images
 do
-    echo "## $image docker setting" >README_TAIL.md
-    echo "###### made date at $today " >>README_TAIL.md
+    echo "## $image docker environment settings" >README_TAIL.md
+    echo "###### Generated on $today " >>README_TAIL.md
     cat src/entrypoint.sh  | grep ^export | grep -v except| cut -d "=" -f1 | sed 's/export//g' | sed 's/_/\\_/g' | sed -e 's/^/\|/' > text1
     cat src/entrypoint.sh | grep ^export | grep -v except | cut -d "-" -f2- | cut -d "#" -f1 | sed 's/ *$//'| sed -E 's/-$|}$|"//g'  |  sed 's/_/\\_/g' > text2
     cat src/entrypoint.sh | grep ^export | grep -v except| cut -d "-" -f2- | cut -d "#" -f2 | sed 's/ *$//'| sed -E 's/-$|}$|"//g'  | sed 's/_/\\_/g'  > text3
@@ -15,6 +16,10 @@ do
 done
 
 cat README_HEADER_TMP.md  > README.md
+echo "\`\`\`yaml"  >> README.md
+cat docker-compose.yml >> README.md
+echo " "  >> README.md
+echo "\`\`\`"  >> README.md
 echo "" >> README.md
 cat README_TAIL.md  >> README.md
 

@@ -1,17 +1,21 @@
-version: '3'
+version: "3"
 services:
    prep:
-      image: iconloop/prep-node:2001031535x7965ba
-      container_name: "prep-node"
+      image: "iconloop/prep-node"
+      container_name: "prep-mainnet"
       network_mode: host
+      restart: "always"
       environment:
+         NETWORK_ENV: "mainnet"  # mainnet, testnet, PREP-TestNet (zicon)
+         CERT_PATH: "/cert"
          LOOPCHAIN_LOG_LEVEL: "DEBUG"
-         LOCAL_TEST: "true"
-         LOG_OUTPUT_TYPE: "file"
+         ICON_LOG_LEVEL: "DEBUG"
+         PRIVATE_KEY_FILENAME: "YOUR_KEYSTORE or YOUR_CERTKEY FILENAME" # only filename
+         PRIVATE_PASSWORD: "YOUR_KEY_PASSWORD"
       cap_add:
          - SYS_TIME
       volumes:
-         - ./data:/data
+         - ./data:/data # mount a data volumes
          - ./cert:/cert # Automatically generate cert key files here
       ports:
          - 9000:9000
