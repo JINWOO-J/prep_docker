@@ -13,9 +13,9 @@ fi
 
 export TZ=${TZ:-"Asia/Seoul"}  # Setting the TimeZone Environment #[List of TZ name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
 export NETWORK_ENV=${NETWORK_ENV:-"PREP-TestNet"}  # Network Environment name  # mainnet or PREP-TestNet
-export SERVICE=${SERVICE:-"zicon"}               # Service Name
+export SERVICE=${SERVICE:-"zicon"}               # Service Name # mainnet/testnet/zicon
 export ENDPOINT_URL=${ENDPOINT_URL:-""}      #  ENDPOINT API URI #URI
-export FIND_NEIGHBOR=${FIND_NEIGHBOR:-"true"}          # Find fastest neighborhood PRrep
+export FIND_NEIGHBOR=${FIND_NEIGHBOR:-"true"}          # Find fastest neighborhood PRep
 export FIND_NEIGHBOR_COUNT=${FIND_NEIGHBOR_COUNT:-5}   # neighborhood count
 
 if [[ "x${ENDPOINT_URL}" == "x" ]]; then
@@ -37,7 +37,7 @@ export SERVICE_API=${SERVICE_API:-"${ENDPOINT_URL}/api/v3"} # SERVICE_API URI #U
 export NTP_SERVER=${NTP_SERVER:-"time.google.com"}     # NTP SERVER ADDRESS
 export NTP_REFRESH_TIME=${NTP_REFRESH_TIME:-"21600"}   # NTP refresh time
 export USE_NTP_SYNC=${USE_NTP_SYNC:-"true"}            # whether use ntp or not # boolean (true/false)
-export FASTEST_START=${FASTEST_START:-"no"}
+export FASTEST_START=${FASTEST_START:-"no"}            # It can be restored from Snapshot DB. # yes/no
 export FASTEST_START_POINT=${FASTEST_START_POINT:-""}
 export GENESIS_NODE=${GENESIS_NODE:-"false"}
 
@@ -86,6 +86,7 @@ export GENESIS_DATA_PATH=${GENESIS_DATA_PATH:-"${CONF_PATH}/genesis.json"}
 export BLOCK_VERSIONS=${BLOCK_VERSIONS:-""}
 export SWITCH_BH_VERSION3=${SWITCH_BH_VERSION3:-""}
 export SWITCH_BH_VERSION4=${SWITCH_BH_VERSION4:-""}
+export SWITCH_BH_VERSION5=${SWITCH_BH_VERSION5:-""}
 
 export RADIOSTATIONS=${RADIOSTATIONS:-""}
 export SHUTDOWN_TIMER=${SHUTDOWN_TIMER:-7200} # SHUTDOWN_TIMER for citizen
@@ -391,10 +392,24 @@ function autogen_certkey(){
 #    PrintOK "Generate public key" $?
 }
 
-if [[ "${IS_AUTOGEN_CERT}" == "true" && ! -f "${PRIVATE_PATH}" ]]  ; then
-    CPrint "Auto generataion cert key"
+function progress(){
+    PROGRESS_STRING=${1:-"."}
+    ENTER_TIME=${2:-10}
+    UNIXTIME_NOW=$(date +%s)
+    mod=$((UNIXTIME_NOW % ENTER_TIME))
+    if [[ ${mod} == 0 ]]; then
+        printf "\n"
+    else
+        printf "%s" "${PROGRESS_STRING}"
+    fi
+}
+
+if [[ "${IS_AUTOGEN_CERT}" == "true" ]]; then
+    CPrint "Using auto generataion cert key"
     PRIVATE_PATH="${CERT_PATH}/autogen_cert.pem"
-    autogen_certkey "${PRIVATE_PATH}"
+    if [[ ! -f "${PRIVATE_PATH}" ]]  ; then
+        autogen_certkey "${PRIVATE_PATH}"
+    fi
 fi
 
 
@@ -432,6 +447,7 @@ if [[ "$NETWORK_ENV" == "mainnet" ]]; then
     CREP_ROOT_HASH="0xd421ad83f81a31abd7f6813bb6a3b92fa547bdb6d5abc98d2d0852c1a97bcca5"
     SWITCH_BH_VERSION3=10324749
     SWITCH_BH_VERSION4=12640761
+    SWITCH_BH_VERSION5=14473622
     jq '.CHANNEL_OPTION.icon_dex.hash_versions.genesis = 0' "$configure_json" | sponge "$configure_json"
 
 elif [[ "$NETWORK_ENV" == "testnet" ]]; then
@@ -441,12 +457,17 @@ elif [[ "$NETWORK_ENV" == "testnet" ]]; then
     termPeriod=43120
     blockValidationPenaltyThreshold=660
     CREP_ROOT_HASH="0x38ec404f0d0d90a9a8586eccf89e3e78de0d3c7580063b20823308e7f722cd12"
-    SWITCH_BH_VERSION3=2698900
-    SWITCH_BH_VERSION4=5055452
+    SWITCH_BH_VERSION3=1
+    SWITCH_BH_VERSION4=10
+    SWITCH_BH_VERSION5=524360
 else
     if [[ "$SERVICE" == "zicon" ]]; then
         iissCalculatePeriod=1800
         termPeriod=1800
+        CREP_ROOT_HASH="0x9718f5d6d6ddb77f547ecc7113c8f1bad1bf46220512fbde356eee74a90ba47c"
+        SWITCH_BH_VERSION3=1
+        SWITCH_BH_VERSION4=1587271
+        SWITCH_BH_VERSION5=3077345
     fi
 
     builtinScoreOwner="hx6e1dd0d4432620778b54b2bbc21ac3df961adf89"
@@ -511,6 +532,11 @@ if [[ -n $SWITCH_BH_VERSION4 ]]; then
     jq --argjson SWITCH_BH_VERSION4 "$SWITCH_BH_VERSION4" '.CHANNEL_OPTION.icon_dex.block_versions."0.4" = $SWITCH_BH_VERSION4' "$configure_json"| sponge "$configure_json"
 fi
 
+if [[ -n $SWITCH_BH_VERSION5 ]]; then
+    CPrint "SWITCH_BH_VERSION5 = ${SWITCH_BH_VERSION5}"
+    jq --argjson SWITCH_BH_VERSION5 "$SWITCH_BH_VERSION5" '.CHANNEL_OPTION.icon_dex.block_versions."0.5" = $SWITCH_BH_VERSION5' "$configure_json"| sponge "$configure_json"
+fi
+
 # jq --arg LEADER_COMPLAIN_RATIO "$LEADER_COMPLAIN_RATIO" '.LEADER_COMPLAIN_RATIO = "\($LEADER_COMPLAIN_RATIO)"' $configure_json| sponge $configure_json
 jq --arg DEFAULT_STORAGE_PATH "$DEFAULT_STORAGE_PATH" '.DEFAULT_STORAGE_PATH = "\($DEFAULT_STORAGE_PATH)"' "$configure_json"| sponge "$configure_json"
 jq --arg LOOPCHAIN_LOG_LEVEL "$LOOPCHAIN_LOG_LEVEL" '.LOOPCHAIN_LOG_LEVEL = "\($LOOPCHAIN_LOG_LEVEL)"' "$configure_json"| sponge "$configure_json"
@@ -550,7 +576,7 @@ case "$IS_REG" in
        ;;
 esac
 
-if [[ "${SERVICE}" != "mainnet" ]] && [[ "${SERVICE}" != "testnet" ]]; then
+if [[ "${SERVICE}" != "mainnet" ]]; then
     FIRST_PEER_IP=$(curl -s  "$CONFIG_API_SERVER/conf/${SERVICE}_channel_manage_data.json" | jq -r ".icon_dex.peers[0].peer_target"  | cut -d ":" -f1)
     if [[ "${FIRST_PEER_IP}" == "$IPADDR" ]] && [[ "x${REG_STATUS}" == "x" ]];then  #REG_STATUS 가있으면 PASS
         FIRST_PEER="true"
@@ -707,7 +733,13 @@ else
                 rm -rf "${DEFAULT_STORAGE_PATH:?}"/* "${scoreRootPath:?}"/* "${stateDbRootPath:?}"/*
                 mkdir -p "$DEFAULT_STORAGE_PATH" "$scoreRootPath" "$stateDbRootPath" "${DEFAULT_PATH}"
                 if [[ -z "$FASTEST_START_POINT" ]]; then
-                    FAST_S3_REGION=$(/src/find_region_async.py)
+                    if [[ "$NETWORK_ENV" == "mainnet" ]];then
+                        FAST_S3_REGION=$(/src/find_region_async.py)
+                    elif [[ "$NETWORK_ENV" == "testnet" ]]; then
+                        FAST_S3_REGION="https://icon-leveldb-backup-jp.s3.amazonaws.com"
+                    elif [[ "$NETWORK_ENV" == "PREP-TestNet" ]]; then
+                        FAST_S3_REGION="https://icon-leveldb-backup-mb.s3.amazonaws.com"
+                    fi
                     CPrint "Download from [  $FAST_S3_REGION  ]" "GREEN"
                     DOWNLOAD_PREFIX="$FAST_S3_REGION/${NETWORK_NAME}"
                     LASTEST_VERSION=$(curl -k -s "${DOWNLOAD_PREFIX}/backup_list" | head -n 1)
@@ -722,7 +754,8 @@ else
                 axel_option="-k -n 6 --verbose"
                 CPrint "axel ${axel_option} ${DOWNLOAD_URL} -o ${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"
                 snapshot_log="snapshot.$(date +%Y%m%d%H%M%S)"
-                axel "${axel_option}" "${DOWNLOAD_URL}" -o "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"  >> "${DEFAULT_LOG_PATH}/${snapshot_log}" &
+                axel ${axel_option} "${DOWNLOAD_URL}" -o "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"  >> "${DEFAULT_LOG_PATH}/${snapshot_log}" &
+                axel_chk=$!
                 sleep 2;
                 CPrint "$(head -n 3 "${DEFAULT_LOG_PATH}/${snapshot_log}")"
                 while true;
@@ -731,24 +764,46 @@ else
                     proc_check=$(pgrep -c -f "axel")
                     if [[ ${proc_check} == 0 ]];
                     then
-                        CPrint "Completed download"
+                        wait ${axel_chk} && PrintOK "Completed download" $? || PrintOK "Failed to download" $?
                         break
                     fi
-                    printf "."
+                    progress "."
                     sleep 1;
                 done
                 ## check the file
                 axel_down_res=$(head -n3 "${DEFAULT_LOG_PATH}/${snapshot_log}")
-                is_file=$(echo "${axel_down_res}" | grep -C "File")
+                is_file=$(echo "${axel_down_res}" | grep -c "File")
                 is_unavailable=$(echo "${axel_down_res}" | grep -cE "HTTP/1.0|Unable to")
                 CPrint "is_file = ${is_file}, is_unavailable = ${is_unavailable}"
                 if [[ "${is_unavailable}" == "1" ]] || [[ "${is_file}" == "0" ]];then
-                    CPrint "Failed to download"
+                    CPrint "Failed to download" "RED"
+                    exit 127;
                 fi
                 CPrint "$(tail -n1 "${DEFAULT_LOG_PATH}/${snapshot_log}")"
                 PrintOK "Download $LASTEST_VERSION(${DEFAULT_PATH}/${BASENAME})  to $DEFAULT_PATH" $?
 
-                tar -I pigz -xf "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}" -C "${DEFAULT_PATH}"
+                org_filesize=$(echo "${axel_down_res}" | grep ^"File size" | awk '{print $3}')
+                local_filesize=$(ls -l "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}" | awk '{print $5}')
+                CPrint "Remote File Size : ${org_filesize} Local File Size  : ${local_filesize}" "GREEN"
+                if [[ "${org_filesize}" != "${local_filesize}" ]];then
+                    CPrint "Failed to download. check the file size." "RED"
+                    exit 127;
+                fi
+
+                tar -I pigz -xf "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}" -C "${DEFAULT_PATH}" &
+                tar_chk=$!
+                while true;
+                do
+                    proc_check=$(pgrep -c -f "tar")
+                    if [[ ${proc_check} == 0 ]];
+                    then
+                        wait ${tar_chk} && PrintOK "Completed extract from archive" $? || PrintOK "Failed to extract from archive" $?
+                        break
+                    fi
+                    progress "."
+                    sleep 1;
+                done
+
                 rm  -f "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"
                 touch "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"
 

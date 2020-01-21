@@ -8,9 +8,11 @@
 
 
 #### Travis-build
-[![Build Status](https://travis-ci.org/JINWOO-J/prep_docker.svg?branch=master)](https://travis-ci.org/JINWOO-J/prep_docker) 
+[![Master Build Status](https://travis-ci.org/JINWOO-J/prep_docker.svg?branch=master)](https://travis-ci.org/JINWOO-J/prep_docker) 
 
-[![Build History](https://buildstats.info/travisci/chart/jinwoo-j/prep_docker?branch=master&includeBuildsFromPullRequest=false&buildCount=50)](https://travis-ci.org/jinwoo-j/prep_docker)
+[![Build History](https://buildstats.info/travisci/chart/jinwoo-j/prep_docker?branch=master&includeBuildsFromPullRequest=false&buildCount=30)](https://travis-ci.org/jinwoo-j/prep_docker)
+[![Build History](https://buildstats.info/travisci/chart/jinwoo-j/prep_docker?branch=devel&includeBuildsFromPullRequest=false&buildCount=30)](https://travis-ci.org/jinwoo-j/prep_docker)
+
 
 ## Introduction to prep-node
 This project was created to help ICON's PRep-node.
@@ -58,9 +60,96 @@ Removing intermediate container cd88bf497d89
 
 ![entrypoint.sh](./imgs/entrypoint_diagram.jpg)
 
+## How to create a cert file
 
-## prep-node docker setting
-###### made date at 2020-01-02 19:31:17 
+A certificate is required to operate a node. <br>
+There are three ways to create certificate file or keystore file.
+
+a. When you start a docker, you can create a certificate using `IS_AUTOGEN_CERT` environment variables. 
+ 
+```yaml
+      environment:
+         IS_AUTOGEN_CERT: "true"
+         PRIVATE_PASSWORD: "password123!@#"
+```
+- `${CERT_PATH}/autogen_cert.pem` file is created with password `password123!@#`
+
+b. You can create a certificate through the openssl command.
+```
+#  openssl ecparam -genkey -name secp256k1 | openssl ec -aes-256-cbc -out my_private.pem -passout pass:'password123!@#'
+read EC key
+writing EC key
+```
+ - It is created as `password123!@#` under the name `my_private.pem`. 
+ - `my_private.pem` file is created with password `password123!@#`
+ - If you want to use special characters, you can use `'` or `"`
+
+c. You can create a certificate using tbears command.
+
+ - https://www.icondev.io/docs/tbears-installation
+
+If you have tbears
+```
+# tbears keystore keystore_tbears.json  -p 'password123!@#'
+```  
+- `keystore_tbears.json` file is created with password `password123!@#`
+
+If you using docker image
+```
+# docker run -it --rm -v ${PWD}/cert:/cert/ iconloop/prep-node tbears keystore /cert/keystore_tbears.json -p 'password123!@#'
+Made keystore file successfully
+```  
+    
+- `-it` running interactive mode
+- `--rm` Running containers with --rm flag is good for those containers that you use for very short while just to accomplish something
+- `-v` ${PWD}/cert:/cert/
+- `tbears keystore /cert/keystore_tbears.json -p 'password123^^&'` It executes with the tbears command in docker   
+
+d. Create an account and download keystore file using ICONex(wallet)
+
+- https://www.icondev.io/docs/account-management#section-using-ico-nex
+
+    
+
+## How to start docker container
+
+If you don't already have docker installed, you can install it here:
+
+https://www.icondev.io/docs/p-rep-installation-and-configuration-1#section-p-rep-installation-using-docker
+
+#### Using docker-compose command (Recommended)
+
+Open docker-compose.yml in a text editor and add the following content:
+
+For MainNet
+
+```yaml
+version: "3"
+services:
+   prep:
+      image: "iconloop/prep-node"
+      container_name: "prep-mainnet"
+      network_mode: host
+      restart: "always"
+      environment:
+         NETWORK_ENV: "mainnet"  # mainnet, testnet, PREP-TestNet (zicon)
+         CERT_PATH: "/cert"
+         LOOPCHAIN_LOG_LEVEL: "DEBUG"
+         ICON_LOG_LEVEL: "DEBUG"
+         PRIVATE_KEY_FILENAME: "YOUR_KEYSTORE or YOUR_CERTKEY FILENAME" # only filename
+         PRIVATE_PASSWORD: "YOUR_KEY_PASSWORD"
+      cap_add:
+         - SYS_TIME
+      volumes:
+         - ./data:/data # mount a data volumes
+         - ./cert:/cert # Automatically generate cert key files here
+      ports:
+         - 9000:9000
+         - 7100:7100 
+```
+
+## prep-node docker environment settings
+###### Generated on 2020-01-21 17:50:22 
 | Environment variable | Description|Default value| Allowed value|
 |--------|--------|-------|-------|
 | EXT\_IPADDR| Getting external IP address|$(curl http://checkip.amazonaws.com)||
@@ -68,15 +157,15 @@ Removing intermediate container cd88bf497d89
 | LOCAL\_TEST|false|false||
 | TZ| Setting the TimeZone Environment|Asia/Seoul|[List of TZ name](https://en.wikipedia.org/wiki/List\_of\_tz\_database\_time\_zones)|
 | NETWORK\_ENV| Network Environment name|PREP-TestNet| mainnet or PREP-TestNet|
-| SERVICE| Service Name|zicon||
+| SERVICE| Service Name|zicon| mainnet/testnet/zicon|
 | ENDPOINT\_URL|  ENDPOINT API URI||URI|
-| FIND\_NEIGHBOR| Find fastest neighborhood PRrep|true||
+| FIND\_NEIGHBOR| Find fastest neighborhood PRep|true||
 | FIND\_NEIGHBOR\_COUNT| neighborhood count|5||
 | SERVICE\_API| SERVICE\_API URI|${ENDPOINT\_URL}/api/v3|URI|
 | NTP\_SERVER| NTP SERVER ADDRESS|time.google.com||
 | NTP\_REFRESH\_TIME| NTP refresh time|21600||
 | USE\_NTP\_SYNC| whether use ntp or not|true| boolean (true/false)|
-| FASTEST\_START|no|no||
+| FASTEST\_START| It can be restored from Snapshot DB.|no| yes/no|
 | FASTEST\_START\_POINT||||
 | GENESIS\_NODE|false|false||
 | DEFAULT\_PATH| Setting the Default Root PATH|/data/${NETWORK\_ENV}||
@@ -113,6 +202,7 @@ Removing intermediate container cd88bf497d89
 | BLOCK\_VERSIONS||||
 | SWITCH\_BH\_VERSION3||||
 | SWITCH\_BH\_VERSION4||||
+| SWITCH\_BH\_VERSION5||||
 | RADIOSTATIONS||||
 | SHUTDOWN\_TIMER| SHUTDOWN\_TIMER for citizen|7200||
 | SUBSCRIBE\_LIMIT|60|60||

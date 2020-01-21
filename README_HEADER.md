@@ -8,9 +8,11 @@
 
 
 #### Travis-build
-[![Build Status](https://travis-ci.org/JINWOO-J/prep_docker.svg?branch=master)](https://travis-ci.org/JINWOO-J/prep_docker) 
+[![Master Build Status](https://travis-ci.org/JINWOO-J/prep_docker.svg?branch=master)](https://travis-ci.org/JINWOO-J/prep_docker) 
 
-[![Build History](https://buildstats.info/travisci/chart/jinwoo-j/prep_docker?branch=master&includeBuildsFromPullRequest=false&buildCount=50)](https://travis-ci.org/jinwoo-j/prep_docker)
+[![Build History](https://buildstats.info/travisci/chart/jinwoo-j/prep_docker?branch=master&includeBuildsFromPullRequest=false&buildCount=30)](https://travis-ci.org/jinwoo-j/prep_docker)
+[![Build History](https://buildstats.info/travisci/chart/jinwoo-j/prep_docker?branch=devel&includeBuildsFromPullRequest=false&buildCount=30)](https://travis-ci.org/jinwoo-j/prep_docker)
+
 
 ## Introduction to prep-node
 This project was created to help ICON's PRep-node.
@@ -57,4 +59,67 @@ Removing intermediate container cd88bf497d89
 ## Entrypoint.sh diagram
 
 ![entrypoint.sh](./imgs/entrypoint_diagram.jpg)
+
+## How to create a cert file
+
+A certificate is required to operate a node. <br>
+There are three ways to create certificate file or keystore file.
+
+a. When you start a docker, you can create a certificate using `IS_AUTOGEN_CERT` environment variables. 
+ 
+```yaml
+      environment:
+         IS_AUTOGEN_CERT: "true"
+         PRIVATE_PASSWORD: "password123!@#"
+```
+- `${CERT_PATH}/autogen_cert.pem` file is created with password `password123!@#`
+
+b. You can create a certificate through the openssl command.
+```
+#  openssl ecparam -genkey -name secp256k1 | openssl ec -aes-256-cbc -out my_private.pem -passout pass:'password123!@#'
+read EC key
+writing EC key
+```
+ - It is created as `password123!@#` under the name `my_private.pem`. 
+ - `my_private.pem` file is created with password `password123!@#`
+ - If you want to use special characters, you can use `'` or `"`
+
+c. You can create a certificate using tbears command.
+
+ - https://www.icondev.io/docs/tbears-installation
+
+If you have tbears
+```
+# tbears keystore keystore_tbears.json  -p 'password123!@#'
+```  
+- `keystore_tbears.json` file is created with password `password123!@#`
+
+If you using docker image
+```
+# docker run -it --rm -v ${PWD}/cert:/cert/ iconloop/prep-node tbears keystore /cert/keystore_tbears.json -p 'password123!@#'
+Made keystore file successfully
+```  
+    
+- `-it` running interactive mode
+- `--rm` Running containers with --rm flag is good for those containers that you use for very short while just to accomplish something
+- `-v` ${PWD}/cert:/cert/
+- `tbears keystore /cert/keystore_tbears.json -p 'password123^^&'` It executes with the tbears command in docker   
+
+d. Create an account and download keystore file using ICONex(wallet)
+
+- https://www.icondev.io/docs/account-management#section-using-ico-nex
+
+    
+
+## How to start docker container
+
+If you don't already have docker installed, you can install it here:
+
+https://www.icondev.io/docs/p-rep-installation-and-configuration-1#section-p-rep-installation-using-docker
+
+#### Using docker-compose command (Recommended)
+
+Open docker-compose.yml in a text editor and add the following content:
+
+For MainNet
 

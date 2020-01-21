@@ -1,7 +1,7 @@
 REPO_HUB = iconloop
 NAME = prep-node
-VERSION = 1912090356xb1e1fe
-RABBITMQ_VERSION = "3.7.17"
+VERSION = 2001091813x7eba36
+RABBITMQ_VERSION = "3.7.23"
 GO_VERSION = "1.12.7"
 DOCKERIZE_VERSION = "v0.6.1"
 ICON_RC_VERSION="1.0.0"
@@ -184,6 +184,11 @@ build_hub: print_version
 bash: make_debug_mode print_version
 		docker run  $(shell cat DEBUG_ARGS) -p 9000:9000 -p 7100:7100 -it -v $(PWD)/cert:/prep_peer/cert \
 		-v $(PWD)/data:/data -e VERSION=$(TAGNAME) -v $(PWD)/src:/src --entrypoint /bin/bash \
+		--name $(NAME) --rm $(REPO_HUB)/$(NAME):$(TAGNAME)
+
+ent_bash: make_debug_mode print_version
+		docker run  $(shell cat DEBUG_ARGS) -p 9000:9000 -p 7100:7100 -it -v $(PWD)/cert:/prep_peer/cert \
+		-v $(PWD)/data:/data -e VERSION=$(TAGNAME) -v $(PWD)/src:/src --entrypoint /src/entrypoint_test.sh \
 		--name $(NAME) --rm $(REPO_HUB)/$(NAME):$(TAGNAME)
 
 list:
