@@ -33,6 +33,15 @@ commandTests:
         /src/getPeerID.py /my_private.pem $KEY_PASSWORD
     expectedOutput: ["hx.*"]
 
+  - name: "Generate a private key and Check peer_id without extension"
+    command: "bash"
+    args:
+      - -c
+      - |
+        openssl ecparam -genkey -name secp256k1 | openssl ec -aes-256-cbc -out /my_private -passout pass:$KEY_PASSWORD &&
+        /src/getPeerID.py /my_private $KEY_PASSWORD
+    expectedOutput: ["hx.*"]
+
   - name: "Generate a keystore file and Check peer_id"
     command: "bash"
     args:
@@ -40,4 +49,26 @@ commandTests:
       - |
         tbears keystore /keystore.json  -p $KEY_PASSWORD &&
         /src/getPeerID.py /keystore.json $KEY_PASSWORD
+    expectedOutput: ["hx.*"]
+
+
+  - name: "Generate a keystore file and Check peer_id without extension"
+    command: "bash"
+    args:
+      - -c
+      - |
+        tbears keystore /keystore  -p $KEY_PASSWORD &&
+        /src/getPeerID.py /keystore  $KEY_PASSWORD
+    expectedOutput: ["hx.*"]
+
+
+  - name: "Generate a keystore file and Check peer_id with UTF-8 BOM"
+    command: "bash"
+    args:
+      - -c
+      - |
+        tbears keystore /keystore.json  -p $KEY_PASSWORD &&
+        printf '\xEF\xBB\xBF' > /keystore_with_bom.json &&
+        cat /keystore.json >> /keystore_with_bom.json &&
+        /src/getPeerID.py /keystore_with_bom.json $KEY_PASSWORD
     expectedOutput: ["hx.*"]

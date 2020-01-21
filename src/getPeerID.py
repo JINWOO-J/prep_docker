@@ -20,7 +20,7 @@ def is_binaray_string(filename):
 
 def is_json(jsonfile):
     try:
-        with open(jsonfile, 'r') as j:
+        with open(jsonfile, 'r', encoding="utf-8-sig") as j:
             json_object = json.loads(j.read())
     except ValueError as e:
         return False
@@ -68,6 +68,7 @@ def from_prikey_file(prikey_file: str, password):
 
 priv_key = sys.argv[1:][0]
 password = sys.argv[1:][1]
+
 
 if os.path.isfile(priv_key):
     if is_binaray_string(priv_key):
