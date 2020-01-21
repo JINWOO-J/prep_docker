@@ -86,6 +86,7 @@ export GENESIS_DATA_PATH=${GENESIS_DATA_PATH:-"${CONF_PATH}/genesis.json"}
 export BLOCK_VERSIONS=${BLOCK_VERSIONS:-""}
 export SWITCH_BH_VERSION3=${SWITCH_BH_VERSION3:-""}
 export SWITCH_BH_VERSION4=${SWITCH_BH_VERSION4:-""}
+export SWITCH_BH_VERSION5=${SWITCH_BH_VERSION5:-""}
 
 export RADIOSTATIONS=${RADIOSTATIONS:-""}
 export SHUTDOWN_TIMER=${SHUTDOWN_TIMER:-7200} # SHUTDOWN_TIMER for citizen
@@ -434,6 +435,7 @@ if [[ "$NETWORK_ENV" == "mainnet" ]]; then
     CREP_ROOT_HASH="0xd421ad83f81a31abd7f6813bb6a3b92fa547bdb6d5abc98d2d0852c1a97bcca5"
     SWITCH_BH_VERSION3=10324749
     SWITCH_BH_VERSION4=12640761
+    SWITCH_BH_VERSION5=14473622
     jq '.CHANNEL_OPTION.icon_dex.hash_versions.genesis = 0' "$configure_json" | sponge "$configure_json"
 
 elif [[ "$NETWORK_ENV" == "testnet" ]]; then
@@ -445,11 +447,15 @@ elif [[ "$NETWORK_ENV" == "testnet" ]]; then
     CREP_ROOT_HASH="0x38ec404f0d0d90a9a8586eccf89e3e78de0d3c7580063b20823308e7f722cd12"
     SWITCH_BH_VERSION3=1
     SWITCH_BH_VERSION4=10
+    SWITCH_BH_VERSION5=524360
 else
     if [[ "$SERVICE" == "zicon" ]]; then
         iissCalculatePeriod=1800
         termPeriod=1800
         CREP_ROOT_HASH="0x9718f5d6d6ddb77f547ecc7113c8f1bad1bf46220512fbde356eee74a90ba47c"
+        SWITCH_BH_VERSION3=1
+        SWITCH_BH_VERSION4=1587271
+        SWITCH_BH_VERSION5=3077345
     fi
 
     builtinScoreOwner="hx6e1dd0d4432620778b54b2bbc21ac3df961adf89"
@@ -512,6 +518,11 @@ fi
 if [[ -n $SWITCH_BH_VERSION4 ]]; then
     CPrint "SWITCH_BH_VERSION4 = ${SWITCH_BH_VERSION4}"
     jq --argjson SWITCH_BH_VERSION4 "$SWITCH_BH_VERSION4" '.CHANNEL_OPTION.icon_dex.block_versions."0.4" = $SWITCH_BH_VERSION4' "$configure_json"| sponge "$configure_json"
+fi
+
+if [[ -n $SWITCH_BH_VERSION5 ]]; then
+    CPrint "SWITCH_BH_VERSION5 = ${SWITCH_BH_VERSION5}"
+    jq --argjson SWITCH_BH_VERSION5 "$SWITCH_BH_VERSION5" '.CHANNEL_OPTION.icon_dex.block_versions."0.5" = $SWITCH_BH_VERSION5' "$configure_json"| sponge "$configure_json"
 fi
 
 # jq --arg LEADER_COMPLAIN_RATIO "$LEADER_COMPLAIN_RATIO" '.LEADER_COMPLAIN_RATIO = "\($LEADER_COMPLAIN_RATIO)"' $configure_json| sponge $configure_json
