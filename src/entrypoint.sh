@@ -13,9 +13,9 @@ fi
 
 export TZ=${TZ:-"Asia/Seoul"}  # Setting the TimeZone Environment #[List of TZ name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
 export NETWORK_ENV=${NETWORK_ENV:-"PREP-TestNet"}  # Network Environment name  # mainnet or PREP-TestNet
-export SERVICE=${SERVICE:-"zicon"}               # Service Name
+export SERVICE=${SERVICE:-"zicon"}               # Service Name # mainnet/testnet/zicon
 export ENDPOINT_URL=${ENDPOINT_URL:-""}      #  ENDPOINT API URI #URI
-export FIND_NEIGHBOR=${FIND_NEIGHBOR:-"true"}          # Find fastest neighborhood PRrep
+export FIND_NEIGHBOR=${FIND_NEIGHBOR:-"true"}          # Find fastest neighborhood PRep
 export FIND_NEIGHBOR_COUNT=${FIND_NEIGHBOR_COUNT:-5}   # neighborhood count
 
 if [[ "x${ENDPOINT_URL}" == "x" ]]; then
@@ -37,7 +37,7 @@ export SERVICE_API=${SERVICE_API:-"${ENDPOINT_URL}/api/v3"} # SERVICE_API URI #U
 export NTP_SERVER=${NTP_SERVER:-"time.google.com"}     # NTP SERVER ADDRESS
 export NTP_REFRESH_TIME=${NTP_REFRESH_TIME:-"21600"}   # NTP refresh time
 export USE_NTP_SYNC=${USE_NTP_SYNC:-"true"}            # whether use ntp or not # boolean (true/false)
-export FASTEST_START=${FASTEST_START:-"no"}
+export FASTEST_START=${FASTEST_START:-"no"}            # It can be restored from Snapshot DB. # yes/no
 export FASTEST_START_POINT=${FASTEST_START_POINT:-""}
 export GENESIS_NODE=${GENESIS_NODE:-"false"}
 
@@ -390,6 +390,18 @@ function autogen_certkey(){
     PrintOK "Generate private key " $?
 #    openssl ec -in ${FILENAME}  -pubout -out ${PUBLIC_PATH} -passin pass:${PRIVATE_PASSWORD}
 #    PrintOK "Generate public key" $?
+}
+
+function progress(){
+    PROGRESS_STRING=${1:-"."}
+    ENTER_TIME=${2:-10}
+    UNIXTIME_NOW=$(date +%s)
+    mod=$((UNIXTIME_NOW % ENTER_TIME))
+    if [[ ${mod} == 0 ]]; then
+        printf "\n"
+    else
+        printf "%s" "${PROGRESS_STRING}"
+    fi
 }
 
 if [[ "${IS_AUTOGEN_CERT}" == "true" ]]; then
@@ -755,7 +767,7 @@ else
                         wait ${axel_chk} && PrintOK "Completed download" $? || PrintOK "Failed to download" $?
                         break
                     fi
-                    printf "."
+                    progress "."
                     sleep 1;
                 done
                 ## check the file
@@ -788,7 +800,7 @@ else
                         wait ${tar_chk} && PrintOK "Completed extract from archive" $? || PrintOK "Failed to extract from archive" $?
                         break
                     fi
-                    printf "."
+                    progress "."
                     sleep 1;
                 done
 

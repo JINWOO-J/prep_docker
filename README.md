@@ -149,7 +149,7 @@ services:
 ```
 
 ## prep-node docker environment settings
-###### Generated on 2020-01-14 13:40:34 
+###### Generated on 2020-01-21 17:50:22 
 | Environment variable | Description|Default value| Allowed value|
 |--------|--------|-------|-------|
 | EXT\_IPADDR| Getting external IP address|$(curl http://checkip.amazonaws.com)||
@@ -157,15 +157,15 @@ services:
 | LOCAL\_TEST|false|false||
 | TZ| Setting the TimeZone Environment|Asia/Seoul|[List of TZ name](https://en.wikipedia.org/wiki/List\_of\_tz\_database\_time\_zones)|
 | NETWORK\_ENV| Network Environment name|PREP-TestNet| mainnet or PREP-TestNet|
-| SERVICE| Service Name|zicon||
+| SERVICE| Service Name|zicon| mainnet/testnet/zicon|
 | ENDPOINT\_URL|  ENDPOINT API URI||URI|
-| FIND\_NEIGHBOR| Find fastest neighborhood PRrep|true||
+| FIND\_NEIGHBOR| Find fastest neighborhood PRep|true||
 | FIND\_NEIGHBOR\_COUNT| neighborhood count|5||
 | SERVICE\_API| SERVICE\_API URI|${ENDPOINT\_URL}/api/v3|URI|
 | NTP\_SERVER| NTP SERVER ADDRESS|time.google.com||
 | NTP\_REFRESH\_TIME| NTP refresh time|21600||
 | USE\_NTP\_SYNC| whether use ntp or not|true| boolean (true/false)|
-| FASTEST\_START|no|no||
+| FASTEST\_START| It can be restored from Snapshot DB.|no| yes/no|
 | FASTEST\_START\_POINT||||
 | GENESIS\_NODE|false|false||
 | DEFAULT\_PATH| Setting the Default Root PATH|/data/${NETWORK\_ENV}||
@@ -202,6 +202,7 @@ services:
 | BLOCK\_VERSIONS||||
 | SWITCH\_BH\_VERSION3||||
 | SWITCH\_BH\_VERSION4||||
+| SWITCH\_BH\_VERSION5||||
 | RADIOSTATIONS||||
 | SHUTDOWN\_TIMER| SHUTDOWN\_TIMER for citizen|7200||
 | SUBSCRIBE\_LIMIT|60|60||

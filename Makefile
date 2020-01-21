@@ -186,6 +186,11 @@ bash: make_debug_mode print_version
 		-v $(PWD)/data:/data -e VERSION=$(TAGNAME) -v $(PWD)/src:/src --entrypoint /bin/bash \
 		--name $(NAME) --rm $(REPO_HUB)/$(NAME):$(TAGNAME)
 
+ent_bash: make_debug_mode print_version
+		docker run  $(shell cat DEBUG_ARGS) -p 9000:9000 -p 7100:7100 -it -v $(PWD)/cert:/prep_peer/cert \
+		-v $(PWD)/data:/data -e VERSION=$(TAGNAME) -v $(PWD)/src:/src --entrypoint /src/entrypoint_test.sh \
+		--name $(NAME) --rm $(REPO_HUB)/$(NAME):$(TAGNAME)
+
 list:
 		@echo "$(OK_COLOR) Tag List - $(REPO_HUB)/$(NAME) $(NO_COLOR)"
 		@curl -s  https://registry.hub.docker.com/v1/repositories/$(REPO_HUB)/$(NAME)/tags | jq --arg REPO "$(REPO_HUB)/$(NAME):" -r '.=("\($$REPO)"+.[].name)'
