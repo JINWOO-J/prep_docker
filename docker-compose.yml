@@ -4,7 +4,7 @@ services:
       image: "iconloop/prep-node"
       container_name: "prep-mainnet"
       network_mode: host
-      restart: "always"
+      restart: "on-failure"
       environment:
          NETWORK_ENV: "mainnet"  # mainnet, testnet, PREP-TestNet (zicon)
          CERT_PATH: "/cert"
