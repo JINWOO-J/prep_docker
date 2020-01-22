@@ -162,7 +162,7 @@ function getBlockCheck(){
         if [[ "${blockheight}" -eq ${PREV_ERROR_COUNT} ]];then
             if [[ "${blockheight}" -ge 1 ]];then
                 echo "${blockheight}"  >> ${ERROR_COUNT_FILE}
-                ERROR_COUNT=$(grep -c "${ERROR_COUNT_FILE}")
+                ERROR_COUNT=$(grep -c "" "${ERROR_COUNT_FILE}")
                 CPrint "blockheight=${blockheight}, ERROR_COUNT=${ERROR_COUNT}, HELL_LIMIT=${HELL_LIMIT}"
                 if [[ ${ERROR_COUNT} -ge ${HELL_LIMIT} ]];then
                     CPrint "[FAIL] (${ERROR_COUNT}/${HELL_LIMIT}) (HELL) It will be terminated / reason: Hell  "
@@ -295,7 +295,7 @@ function PrintOK() {
     else
         CPrint "[FAIL] CHECK=${CHECK}, ${MSG}" "RED"
         logging "Stopped script"
-        exit 127;
+        exit 0;
     fi
 }
 function download_file() {
@@ -311,7 +311,7 @@ function download_file() {
             CPrint "Your External IP:${EXT_IPADDR} / Your Enviroment IPADDR:${IPADDR}" "RED"
         fi
         rm -f "${DOWNLOAD_DEST}"
-        exit 127;
+        exit 0;
     fi
 }
 function check_valid_ip(){
@@ -354,7 +354,7 @@ function validationViewConfig() {
         FILESIZE=$(stat --printf="%s" "$filename")
         if [[ ${FILESIZE} == 0 ]];then
             CPrint "[FAIL] $filename size=$FILESIZE " "RED"
-            exit 3
+            exit 0
         fi
         PrintOK "Check config -> filename=$filename,size=$FILESIZE" $?
     fi
@@ -453,6 +453,7 @@ if [[ "$NETWORK_ENV" == "mainnet" ]]; then
 elif [[ "$NETWORK_ENV" == "testnet" ]]; then
     builtinScoreOwner="hxba096790caa1804a8828939839a901a5978020a7"
     SERVICE="testnet"
+    mainPRepCount=7
     iissCalculatePeriod=43200
     termPeriod=43120
     blockValidationPenaltyThreshold=660
@@ -696,7 +697,7 @@ do
     validationViewConfig "$config"
 done
 
-cd "/$APP_DIR" || exit 1
+cd "/$APP_DIR" || exit 0
 
 echo $#
 
@@ -777,7 +778,7 @@ else
                 CPrint "is_file = ${is_file}, is_unavailable = ${is_unavailable}"
                 if [[ "${is_unavailable}" == "1" ]] || [[ "${is_file}" == "0" ]];then
                     CPrint "Failed to download" "RED"
-                    exit 127;
+                    exit 0;
                 fi
                 CPrint "$(tail -n1 "${DEFAULT_LOG_PATH}/${snapshot_log}")"
                 PrintOK "Download $LASTEST_VERSION(${DEFAULT_PATH}/${BASENAME})  to $DEFAULT_PATH" $?
@@ -787,7 +788,7 @@ else
                 CPrint "Remote File Size : ${org_filesize} Local File Size  : ${local_filesize}" "GREEN"
                 if [[ "${org_filesize}" != "${local_filesize}" ]];then
                     CPrint "Failed to download. check the file size." "RED"
-                    exit 127;
+                    exit 0;
                 fi
 
                 tar -I pigz -xf "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}" -C "${DEFAULT_PATH}" &
