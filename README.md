@@ -127,10 +127,10 @@ For MainNet
 version: "3"
 services:
    prep:
-      image: "iconloop/prep-node"
+      image: "iconloop/prep-node:2001091813x7eba36
       container_name: "prep-mainnet"
       network_mode: host
-      restart: "always"
+      restart: "on-failure"
       environment:
          NETWORK_ENV: "mainnet"  # mainnet, testnet, PREP-TestNet (zicon)
          CERT_PATH: "/cert"
@@ -145,11 +145,12 @@ services:
          - ./cert:/cert # Automatically generate cert key files here
       ports:
          - 9000:9000
-         - 7100:7100 
+         - 7100:7100
+ 
 ```
 
 ## prep-node docker environment settings
-###### Generated on 2020-01-21 17:50:22 
+###### Generated on 2020-01-28 12:04:55 
 | Environment variable | Description|Default value| Allowed value|
 |--------|--------|-------|-------|
 | EXT\_IPADDR| Getting external IP address|$(curl http://checkip.amazonaws.com)||
