@@ -68,6 +68,8 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
     if [ ! -f "/src/rabbitmq-server_${RABBITMQ_VERSION}-1_all.deb" ]; then \
         wget https://github.com/rabbitmq/rabbitmq-server/releases/download/v${RABBITMQ_VERSION}/rabbitmq-server_${RABBITMQ_VERSION}-1_all.deb -P /src/ ; \
     fi;\
+#    # Fix mirror for erlang
+    echo "99.84.224.112 binaries.erlang-solutions.com ">> /etc/hosts ;\
     apt update && \
     apt-get install -y $ERLANG_PACKAGE && \
     dpkg -i /src/rabbitmq-server_${RABBITMQ_VERSION}-1_all.deb || exit 1; \
