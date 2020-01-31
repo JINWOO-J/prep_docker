@@ -149,12 +149,17 @@ build: make_build_args
 build_python_exmq: make_build_args
 		docker build --no-cache --rm=true -f python_37_exmq/Dockerfile \
 		$(shell cat BUILD_ARGS) \
-		-t $(REPO_HUB)/$(NAME):$(TAGNAME) .
+		-t $(REPO_HUB)/$(NAME)-exmq:$(TAGNAME) .
 
 build_python: make_build_args
 		docker build --no-cache --rm=true -f python_37/Dockerfile \
 		$(shell cat BUILD_ARGS) \
 		-t $(REPO_HUB)/$(NAME):$(TAGNAME) .
+
+build_python_base: make_build_args
+		docker build --no-cache --rm=true -f python_37_base/Dockerfile \
+		$(shell cat BUILD_ARGS) \
+		-t $(REPO_HUB)/$(NAME)-base:$(TAGNAME) .
 
 
 push: print_version
