@@ -33,7 +33,6 @@ if [[ "x${ENDPOINT_URL}" == "x" ]]; then
     fi
 fi
 export SERVICE_API=${SERVICE_API:-"${ENDPOINT_URL}/api/v3"} # SERVICE_API URI #URI
-
 export NTP_SERVER=${NTP_SERVER:-"time.google.com"}     # NTP SERVER ADDRESS
 export NTP_REFRESH_TIME=${NTP_REFRESH_TIME:-"21600"}   # NTP refresh time
 export USE_NTP_SYNC=${USE_NTP_SYNC:-"true"}            # whether use ntp or not # boolean (true/false)
@@ -209,13 +208,18 @@ function post_to_slack () {
 }
 function logging() {
     MSG=$1
-    LOG_TYPE=${2:-"booting"}
-    LOG_PATH=${3:-"$DEFAULT_LOG_PATH"}
+    APPEND_STRING=${2:-"\n"}
+    LOG_TYPE=${3:-"booting"}
+    LOG_PATH=${4:-"$DEFAULT_LOG_PATH"}
     LOG_DATE=$(date +%Y%m%d)
     if [[ ! -e "$LOG_PATH" ]];then
         mkdir -p "$LOG_PATH"
     fi
-    echo "[$(date '+%Y-%m-%d %T.%3N')] $MSG " >> "${LOG_PATH}/${LOG_TYPE}_${LOG_DATE}.log"
+    if [[ ${APPEND_STRING} == "\n" ]] ;then
+        echo -ne "[$(date '+%Y-%m-%d %T.%3N')] $MSG ${APPEND_STRING}" >> "${LOG_PATH}/${LOG_TYPE}_${LOG_DATE}.log"
+    else
+        echo -ne "$MSG ${APPEND_STRING}" >> "${LOG_PATH}/${LOG_TYPE}_${LOG_DATE}.log"
+    fi
 }
 
 function returnErrorCount(){
@@ -394,13 +398,14 @@ function autogen_certkey(){
 
 function progress(){
     PROGRESS_STRING=${1:-"."}
-    ENTER_TIME=${2:-10}
+    ENTER_TIME=${2:-20}
     UNIXTIME_NOW=$(date +%s)
     mod=$((UNIXTIME_NOW % ENTER_TIME))
     if [[ ${mod} == 0 ]]; then
         printf "\n"
     else
-        printf "%s" "${PROGRESS_STRING}"
+        printf "%s " "${PROGRESS_STRING}"
+        logging "${PROGRESS_STRING}" " "
     fi
 }
 
@@ -510,8 +515,8 @@ fi
 
 
 PEER_ID=$(/src/getPeerID.py "${PRIVATE_PATH}" "${PRIVATE_PASSWORD}" 2>&1)
-CPrint "Peer ID: ${PEER_ID}"
 PrintOK "Peer ID: ${PEER_ID}" $?
+CPrint "Peer ID: ${PEER_ID}"
 
 if [[ "${VIEW_CONFIG}" == "true" ]]; then
     CPrint "builtinScoreOwner = $builtinScoreOwner"
@@ -770,17 +775,19 @@ else
                         wait ${axel_chk} && PrintOK "Completed download" $? || PrintOK "Failed to download" $?
                         break
                     fi
-                    progress "."
-                    sleep 1;
+                    download_status=$(tail -n1   "${DEFAULT_LOG_PATH}/${snapshot_log}" | awk '/^\[/ {sub("]",""); print $2}')
+                    progress "${download_status}"
+                    sleep 3;
                 done
                 ## check the file
                 axel_down_res=$(head -n3 "${DEFAULT_LOG_PATH}/${snapshot_log}")
                 is_file=$(echo "${axel_down_res}" | grep -c "File")
                 is_unavailable=$(echo "${axel_down_res}" | grep -cE "HTTP/1.0|Unable to")
+                CPrint "[DONE] downloaded file"
                 CPrint "is_file = ${is_file}, is_unavailable = ${is_unavailable}"
                 if [[ "${is_unavailable}" == "1" ]] || [[ "${is_file}" == "0" ]];then
                     CPrint "Failed to download" "RED"
-                    exit 0;
+                    exit 127;
                 fi
                 CPrint "$(tail -n1 "${DEFAULT_LOG_PATH}/${snapshot_log}")"
                 PrintOK "Download $LASTEST_VERSION(${DEFAULT_PATH}/${BASENAME})  to $DEFAULT_PATH" $?
@@ -788,11 +795,14 @@ else
                 org_filesize=$(echo "${axel_down_res}" | grep ^"File size" | awk '{print $3}')
                 local_filesize=$(ls -l "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}" | awk '{print $5}')
                 CPrint "Remote File Size : ${org_filesize} Local File Size  : ${local_filesize}" "GREEN"
+
+                rm -f ${DEFAULT_LOG_PATH}/${snapshot_log}
+
                 if [[ "${org_filesize}" != "${local_filesize}" ]];then
                     CPrint "Failed to download. check the file size." "RED"
-                    exit 0;
+                    exit 127;
                 fi
-
+                CPrint "Start extract from ${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"
                 tar -I pigz -xf "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}" -C "${DEFAULT_PATH}" &
                 tar_chk=$!
                 while true;
@@ -803,10 +813,10 @@ else
                         wait ${tar_chk} && PrintOK "Completed extract from archive" $? || PrintOK "Failed to extract from archive" $?
                         break
                     fi
-                    progress "."
-                    sleep 1;
+                    file_count=$(find ${DEFAULT_PATH} | wc -l)
+                    progress "${file_count}"
+                    sleep 3;
                 done
-
                 rm  -f "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"
                 touch "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"
 

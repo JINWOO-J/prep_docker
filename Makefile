@@ -28,6 +28,7 @@ BUILD_DATE = $(strip $(shell date -u +"%Y-%m-%dT%H:%M:%S%Z"))
 
 ifeq ($(MAKECMDGOALS) , bash)
 #ifeq ($(findstring $(MAKECMDGOALS) , dbash),)
+	IS_AUTOGEN_CERT:=true
 	LOOPCHAIN_LOG_LEVEL:="DEBUG"
 	ICON_LOG_LEVEL:="DEBUG"
     IS_DOWNLOAD_CERT:="false"
@@ -36,14 +37,17 @@ ifeq ($(MAKECMDGOALS) , bash)
 	TIMEOUT_FOR_LEADER_COMPLAIN:=60
 	blockValidationPenaltyThreshold:=10
 	LOCAL_TEST:="true"
-	LOG_OUTPUT_TYPE:="file|console"
-	ENDPOINT_URL:="http://20.20.3.26:8000"
+#	LOG_OUTPUT_TYPE:="file|console"
+	LOG_OUTPUT_TYPE:="file"
+	FASTEST_START:="yes"
+#	FASTEST_START_POINT:="http://20.20.1.149:9090/zicon.tar.gz"
+	FASTEST_START_POINT:="https://icon-leveldb-backup-jp.s3.amazonaws.com/ZiconPrepNet/ZiconPrepNet_BH177514_data-20191113_1522.tar.gz"
+#	ENDPOINT_URL:="http://20.20.3.26:8000"
+#	SERVICE:="prep"
 	FIND_NEIGHBOR:="true"
 	GENESIS_NODE:="false"
 	NTP_REFRESH_TIME:="30"
 	mainPRepCount:= 6
-	LOG_OUTPUT_TYPE:="file|console"
-	SERVICE:="prep"
 	mainAndSubPRepCount:= 20
 	decentralizeTrigger:= 0.0001
 	# decentralizeTrigger: 0
