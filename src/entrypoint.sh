@@ -386,8 +386,8 @@ function ntp_check(){
 function autogen_certkey(){
     FILENAME=${1:-"$PRIVATE_PATH"}
     openssl ecparam -genkey -name secp256k1 | openssl ec -aes-256-cbc -out "${FILENAME}" -passout pass:"${PRIVATE_PASSWORD}"
-    CPrint "Generate key file $FILENAME"
-    PrintOK "Generate private key " $?
+    CPrint "Generate a key file $FILENAME"
+    PrintOK "Generate a private key " $?
 #    openssl ec -in ${FILENAME}  -pubout -out ${PUBLIC_PATH} -passin pass:${PRIVATE_PASSWORD}
 #    PrintOK "Generate public key" $?
 }
@@ -496,20 +496,22 @@ if [[ "x${CREP_ROOT_HASH}" != "x" ]]; then
     jq --arg CREP_ROOT_HASH "$CREP_ROOT_HASH" '.CHANNEL_OPTION.icon_dex.crep_root_hash = "\($CREP_ROOT_HASH)"' "$configure_json"| sponge "$configure_json"
 fi
 
-if [[ $NETWORK_ENV == "mainnet" || $NETWORK_ENV == "testnet" ]];then
-    if [[  ! -f "${PRIVATE_PATH}"  ]]; then
-        autogen_certkey "${PRIVATE_PATH}"
+if [[ ${NETWORK_ENV} == "mainnet" || ${NETWORK_ENV} == "testnet" ]];then
+    if [[ ! -f "${PRIVATE_PATH}" ]]; then
+        CPrint "Keystore file not found -> '${PRIVATE_PATH}'" "RED"
+        exit 127;
+#        PRIVATE_PATH="${CERT_PATH}/autogen_cert.pem"
+#        autogen_certkey "${PRIVATE_PATH}"
     else
         PRIVATE_KEY=$(ls "${PRIVATE_PATH}")
-#        PUBLIC_KEY=`ls ${PUBLIC_PATH}`
         CPrint "Already cert keys= ${PRIVATE_KEY}"
     fi
 fi
 
 
 PEER_ID=$(/src/getPeerID.py "${PRIVATE_PATH}" "${PRIVATE_PASSWORD}" 2>&1)
+CPrint "Peer ID: ${PEER_ID}"
 PrintOK "Peer ID: ${PEER_ID}" $?
-
 
 if [[ "${VIEW_CONFIG}" == "true" ]]; then
     CPrint "builtinScoreOwner = $builtinScoreOwner"
