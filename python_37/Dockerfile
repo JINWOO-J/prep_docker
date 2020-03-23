@@ -117,6 +117,8 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
     fi ; \
     apt-get purge -y --auto-remove $DELETE_PACKAGE && \
     rm -rf /var/lib/apt/lists/* ; \
+    #TODO CHANGE temporary function
+    pip3 install msgpack==0.6.2 ;\
     rm -rf /build
 
 EXPOSE 9000

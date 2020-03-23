@@ -398,7 +398,7 @@ function autogen_certkey(){
 
 function progress(){
     PROGRESS_STRING=${1:-"."}
-    ENTER_TIME=${2:-20}
+    ENTER_TIME=${2:-10}
     UNIXTIME_NOW=$(date +%s)
     mod=$((UNIXTIME_NOW % ENTER_TIME))
     if [[ ${mod} == 0 ]]; then
@@ -817,6 +817,7 @@ else
                     progress "${file_count}"
                     sleep 3;
                 done
+                CPrint "[DONE] extracted file"
                 rm  -f "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"
                 touch "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"
 
