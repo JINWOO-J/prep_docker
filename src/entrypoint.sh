@@ -135,6 +135,7 @@ export SLACK_PREFIX=${SLACK_PREFIX:-""} # slack's prefix header message
 export IS_BROADCAST_MULTIPROCESSING=${IS_BROADCAST_MULTIPROCESSING:-"false"}
 export IS_DOWNLOAD_CERT=${IS_DOWNLOAD_CERT:-"false"}
 export IS_AUTOGEN_CERT=${IS_AUTOGEN_CERT:-"false"} # auto generate cert key # true, false
+export IS_COMPRESS_LOG=${IS_COMPRESS_LOG:-"false"} # auto compress loopchain and icon log via crontab # true, false
 # export LEADER_COMPLAIN_RATIO=${LEADER_COMPLAIN_RATIO:-"0.67"}
 export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 
@@ -696,6 +697,13 @@ done
 if [[ -n "${USER_DEFINED_ENV}" ]]; then
     CPrint "Add USER_DEFINED_ENV"
     CPrint "$(/src/genconfig.py)"
+fi
+
+if [[ "${IS_COMPRESS_LOG}" == "true" ]]; then
+    declare -p | grep -Ev 'BASHOPTS|BASH_VERSINFO|EUID|PPID|SHELLOPTS|UID' > /container.env
+    echo -e 'SHELL=/bin/bash\nBASH_ENV=/container.env\n# auto compress loopchain and icon log\n30 */4 * * * find $DEFAULT_PATH/log -name "*.log.*" ! -name "*.gz" -exec gzip {} \; ' > scheduler.txt
+    crontab scheduler.txt
+    cron -f &
 fi
 
 ## check config file

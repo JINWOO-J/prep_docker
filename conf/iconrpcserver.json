@@ -7,10 +7,10 @@
 		"outputType": "console|file",
 		"rotate": {
 			"type": "period|bytes",
-			"period": "daily",
+			"period": "midnight",
 			"interval": 1,
 			"backupCount": 10,
-			"maxBytes": 50000000
+			"maxBytes": 3072000000
 		}
 	},
 	"channel": "icon_dex",
