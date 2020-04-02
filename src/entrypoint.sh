@@ -147,8 +147,10 @@ export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 
 function getBlockCheck(){
     if [[ ${USE_HELL_CHECK} == "yes" ]]; then
-        CPrint "Start BlockCheck"
-        blockheight=$(curl "localhost:${RPC_PORT}/api/v1/status/peer" | jq -r .block_height)
+#        blockheight=$(curl "localhost:${RPC_PORT}/api/v1/status/peer" | jq -r .block_height)
+        read blockheight total_tx unconfirmed_tx state < <(curl "localhost:${RPC_PORT}/api/v1/status/peer" | \
+            jq  -r '[.block_height,.total_tx,.unconfirmed_tx,.state] | @tsv')
+        CPrint "BlockCheck: BH=${blockheight}, TX=${total_tx}, UN_TX=${unconfirmed_tx}, state=${state}"
         ERROR_DIR="/.health_check"
         ERROR_COUNT_FILE="${ERROR_DIR}/blockcount"
         NOW_COUNT_FILE="${ERROR_DIR}/blockcount_now"
@@ -291,10 +293,10 @@ function PrintOK() {
     RESET='\e[0m'  # RESET
     MSG=${1}
     CHECK=${2:-0}
-    VIEW_CONFIG=${3:-"$VIEW_CONFIG"}
+    PRINT_VIEW=${3:-"$VIEW_CONFIG"}
     if [[ ${CHECK} == 0 ]];
     then
-        if [[ "$VIEW_CONFIG" == "true" ]];then
+        if [[ "$PRINT_VIEW" == "true" ]];then
             CPrint "[OK] CHECK=${CHECK}, ${MSG}" "GREEN"
         fi
     else
@@ -374,14 +376,22 @@ function find_neighbor_func(){
 }
 
 function ntp_check(){
-    CPrint "Time synchronization with NTP / NTP SERVER: ${NTP_SERVER}"
-
-    if ntpdate "${NTP_SERVER}"; then
-        CPrint "Success Time Synchronization!!" "GREEN"
+    if [[ -z "${NTP_FIRST}" ]];then
+        NTP_FIRST=0
+    fi
+    if [[ ${NTP_FIRST} -eq 0 ]];then
+        CPrint "Time synchronization with NTP / NTP SERVER: ${NTP_SERVER} "
+    fi
+    if ntpdate -s "${NTP_SERVER}"; then
+        if [[ "$VIEW_CONFIG" == "true" ]]; then
+            CPrint "Success Time Synchronization!!" "GREEN"
+        fi
     else
         ## AWS NTP NTP_SERVER
-        if ntpdate "169.254.169.123" ; then
-            CPrint "Success Time Synchronization!! with AWS NTP Server" "GREEN"
+        if ntpdate -s "169.254.169.123" ; then
+            if [[ "$VIEW_CONFIG" == "true" ]]; then
+                CPrint "Success Time Synchronization!! with AWS NTP Server" "GREEN"
+            fi
         else
             CPrint "[FAIL] Time Synchronization!!" "RED"
         fi
@@ -417,7 +427,6 @@ if [[ "${IS_AUTOGEN_CERT}" == "true" ]]; then
         autogen_certkey "${PRIVATE_PATH}"
     fi
 fi
-
 
 mkdir -p "${DEFAULT_PATH}"
 
@@ -893,9 +902,9 @@ if [[ "${USE_EXTERNAL_MQ}" == "false" ]];then
 fi
 
 function proc_check(){
-    PROC_NAME=$1
 #    PROC_CNT=`ps -ef | grep -v grep | grep $PROC_NAME | wc -l`
     PROC_CNT=$(pgrep -c -f "${PROC_NAME}")
+
     if [[ ${PROC_CNT} -eq 0 ]] ;then
         if [[ ${VIEW_CONFIG} == "true" ]]; then
             CPrint "[FAIL] '${PROC_NAME}' process down " "RED"
@@ -929,7 +938,7 @@ if [[ "${HEALTH_ENV_CHECK}" == "true" ]]; then
         sleep "${HEALTH_CHECK_INTERVAL}";
 
         if [[ "${USE_PROC_HEALTH_CHECK}" == "yes" ]] ;then
-            if [[ "$VIEW_CONFIG" == "true" ]]; then
+            if [[ "${VIEW_CONFIG}" == "true" ]]; then
                 CPrint "Start PROC_HEALTH_CHECK ... ${HEALTH_CHECK_INTERVAL}s"
             fi
             for PROC_NAME in ${CHECK_PROC_LIST}
@@ -938,7 +947,7 @@ if [[ "${HEALTH_ENV_CHECK}" == "true" ]]; then
             done
         fi
         if [[ "${USE_API_HEALTH_CHECK}" == "yes" ]];then
-            if [[ "$VIEW_CONFIG" == "true" ]]; then
+            if [[ "${VIEW_CONFIG}" == "true" ]]; then
                 CPrint "Start API_HEALTH_CHECK  ... ${HEALTH_CHECK_INTERVAL}s"
             fi
 
