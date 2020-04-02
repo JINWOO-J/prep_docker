@@ -4,7 +4,7 @@ ARG VCS_REF
 ARG VERSION
 LABEL maintainer="JINWOO <jinwoo@iconloop.com>" \
       org.label-schema.build-date=$BUILD_DATE \
-      org.label-schema.name="prep-node" \
+      org.label-schema.name="python_37_base" \
       org.label-schema.description="This project was created to help ICON's PRep-node." \
       org.label-schema.url="https://www.iconloop.com/" \
       org.label-schema.vcs-ref=$VCS_REF \
@@ -69,57 +69,9 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
         wget https://github.com/rabbitmq/rabbitmq-server/releases/download/v${RABBITMQ_VERSION}/rabbitmq-server_${RABBITMQ_VERSION}-1_all.deb -P /src/ ; \
     fi;\
 #    # Fix mirror for erlang
-#    echo "99.84.224.112 binaries.erlang-solutions.com ">> /etc/hosts ;\
+    echo "99.84.224.112 binaries.erlang-solutions.com ">> /etc/hosts ;\
     apt update && \
-    apt-get install -y $ERLANG_PACKAGE && \
-    dpkg -i /src/rabbitmq-server_${RABBITMQ_VERSION}-1_all.deb || exit 1; \
-    rm -f /src/rabbitmq-server* ; \
-    mkdir -p $APP_DIR && \
-    mkdir -p $APP_DIR/whl && \
-    mkdir -p $APP_DIR/cert && \
-    pip install --upgrade pip && \
-    pip install $PIP3_PACKAGE  && \
-    if [ "$IS_STATIC_BUILD" = "true" ];then \
-        echo "start static build" ;\
-        /src/static_builder.py -o /${APP_DIR}/whl ;\
-    elif [ "x$DOWNLOAD_PACKAGE" != "x" ]; then  \
-        ls /$APP_DIR/whl/ ; \
-        wget $DOWNLOAD_PACKAGE -O /$APP_DIR/whl/DOWNLOAD.tar.gz || exit 1; \
-        tar zxvf /$APP_DIR/whl/*.gz --strip 1 -C /$APP_DIR/whl/ ; \
-#        cp /$APP_DIR/whl/icon_rc /usr/local/bin ; \
-    fi ; \
-    WHL_LIST=`find /$APP_DIR/ -name "*.whl"` && \
-    ICON_RC=`find /$APP_DIR/ -name "icon_rc"` && \
-    if [ "x${ICON_RC}" != "x" ]; then \
-        cp $ICON_RC /usr/local/bin  || exit 1;\
-    fi; \
-    if [ ! -f "/usr/local/bin/icon_rc" ]; then \
-        echo "icon_rc not found"; \
-        exit 127;\
-    fi; \
-    for FILE in $WHL_LIST; \
-        do pip3 install $FILE; \
-        if [ $? != 0 ]; \
-            then exit 127; \
-        fi;\
-    done && \
-    if [ "x$RC_BUILD" != "x" ];then \
-        wget https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz ; \
-        tar zxf go${GO_VERSION}.linux-amd64.tar.gz ; \
-        rm go${GO_VERSION}.linux-amd64.tar.gz ; \
-        mv go /usr/local/ ; \
-        git clone https://github.com/icon-project/rewardcalculator ; \
-        cd rewardcalculator ; \
-        git checkout ${ICON_RC_VERSION} ; \
-        make linux ; \
-        make install DST_DIR=/usr/local/bin ; \
-        cd .. && rm -rf rewardcalculator /usr/local/go ; \
-    fi ; \
-    apt-get purge -y --auto-remove $DELETE_PACKAGE && \
-    rm -rf /var/lib/apt/lists/* ; \
-    #TODO CHANGE temporary function
-    pip3 install msgpack==0.6.2 ;\
-    rm -rf /build
+    apt-get install -y $ERLANG_PACKAGE
 
 EXPOSE 9000
 EXPOSE 7100

@@ -127,16 +127,17 @@ For MainNet
 version: "3"
 services:
    prep:
-      image: "iconloop/prep-node:2001091813x7eba36
+      image: iconloop/prep-node:2001091813x7eba36
       container_name: "prep-mainnet"
       network_mode: host
       restart: "on-failure"
+#      entrypoint: bash -c "while [ 1 ]; do sleep 1; done"
       environment:
          NETWORK_ENV: "mainnet"  # mainnet, testnet, PREP-TestNet (zicon)
          CERT_PATH: "/cert"
          LOOPCHAIN_LOG_LEVEL: "DEBUG"
          ICON_LOG_LEVEL: "DEBUG"
-         PRIVATE_KEY_FILENAME: "YOUR_KEYSTORE or YOUR_CERTKEY FILENAME" # only filename
+         PRIVATE_KEY_FILENAME: "YOUR_KEYSTORE_or_YOUR_CERTKEY_FILENAME" # only filename
          PRIVATE_PASSWORD: "YOUR_KEY_PASSWORD"
       cap_add:
          - SYS_TIME
@@ -150,7 +151,7 @@ services:
 ```
 
 ## prep-node docker environment settings
-###### Generated on 2020-01-28 12:04:55 
+###### Generated on 2020-03-27 14:31:29 
 | Environment variable | Description|Default value| Allowed value|
 |--------|--------|-------|-------|
 | EXT\_IPADDR| Getting external IP address|$(curl http://checkip.amazonaws.com)||
