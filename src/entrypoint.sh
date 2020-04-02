@@ -377,19 +377,21 @@ function find_neighbor_func(){
 
 function ntp_check(){
     if [[ -z "${NTP_FIRST}" ]];then
+        NTP_FIRST=1
+    else
         NTP_FIRST=0
     fi
-    if [[ ${NTP_FIRST} -eq 0 ]];then
-        CPrint "Time synchronization with NTP / NTP SERVER: ${NTP_SERVER} "
+    if [[ ${NTP_FIRST} -eq 1 ]];then
+        CPrint "Time synchronization with NTP / NTP SERVER: ${NTP_SERVER} - ${NTP_FIRST}"
     fi
     if ntpdate -s "${NTP_SERVER}"; then
-        if [[ "$VIEW_CONFIG" == "true" ]]; then
+        if [[ "$VIEW_CONFIG" == "true" || ${NTP_FIRST} -eq 1 ]]; then
             CPrint "Success Time Synchronization!!" "GREEN"
         fi
     else
         ## AWS NTP NTP_SERVER
         if ntpdate -s "169.254.169.123" ; then
-            if [[ "$VIEW_CONFIG" == "true" ]]; then
+            if [[ "$VIEW_CONFIG" == "true" || ${NTP_FIRST} -eq 1 ]]; then
                 CPrint "Success Time Synchronization!! with AWS NTP Server" "GREEN"
             fi
         else
