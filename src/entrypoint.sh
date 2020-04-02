@@ -904,6 +904,7 @@ if [[ "${USE_EXTERNAL_MQ}" == "false" ]];then
 fi
 
 function proc_check(){
+    PROC_NAME=$1
 #    PROC_CNT=`ps -ef | grep -v grep | grep $PROC_NAME | wc -l`
     PROC_CNT=$(pgrep -c -f "${PROC_NAME}")
 
