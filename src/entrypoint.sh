@@ -161,11 +161,16 @@ function getBlockCheck(){
         touch "${NOW_COUNT_FILE}" "${PREV_COUNT_FILE}"
         echo "${blockheight}" > ${NOW_COUNT_FILE}
         PREV_ERROR_COUNT=$(cat ${PREV_COUNT_FILE})
+
         if [[ "${blockheight}" -eq ${PREV_ERROR_COUNT} ]];then
             if [[ "${blockheight}" -ge 1 ]];then
                 echo "${blockheight}"  >> ${ERROR_COUNT_FILE}
                 ERROR_COUNT=$(grep -c "" "${ERROR_COUNT_FILE}")
-                CPrint "blockheight=${blockheight}, ERROR_COUNT=${ERROR_COUNT}, HELL_LIMIT=${HELL_LIMIT}"
+
+                if [[ ${ERROR_COUNT} -ge 3 ]]; then
+                    CPrint "[DELAY] PREV_BH=${PREV_ERROR_COUNT}, NOW_BH=${blockheight}, ERROR_COUNT=${ERROR_COUNT}, HELL_LIMIT=${HELL_LIMIT}"
+                fi
+
                 if [[ ${ERROR_COUNT} -ge ${HELL_LIMIT} ]];then
                     CPrint "[FAIL] (${ERROR_COUNT}/${HELL_LIMIT}) (HELL) It will be terminated / reason: Hell  "
                     post_to_slack "[FAIL] (${ERROR_COUNT}/${HELL_LIMIT}) It will be terminated / reason: Hell "
