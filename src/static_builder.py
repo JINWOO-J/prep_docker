@@ -6,6 +6,7 @@ import subprocess
 import json
 import argparse, binascii, sys, os
 import timeit
+import requests
 from halo import Halo
 
 # args.default_dir = "/build"
@@ -39,6 +40,7 @@ def kvPrint(key, value, color="yellow"):
 
     print(bcolors.OKGREEN + "{:>{key_width}} : ".format(key, key_width=key_width) + bcolors.ENDC, end="")
     print(bcolors.WARNING + "{:>{key_value}} ".format(str(value), key_value=key_value) + bcolors.ENDC)
+
 
 def run_execute(text, cmd, cwd=None, status_check="OK"):
     global args
@@ -106,25 +108,40 @@ def git_clone(repo_name, url, revision=None):
     os.chdir(pwd)
 
 
+def getConfigFile(config=None):
+    if config is not None:
+        res = requests.get(f"https://networkinfo.solidwallet.io/conf/{config}.json")
+        package_info = res.json().get("package_info")
+        return package_info
+
+
 def main():
     global args
     parser = argparse.ArgumentParser(description='Command Line Interface for deploy ')
     parser.add_argument('-v', '--verbose', action='count', help=f'verbose mode. view level', default=1)
     parser.add_argument('-d', '--default-dir', type=str, help=f'working directory', default="/build")
     parser.add_argument('-o', '--output-dir', type=str, help=f'output directory', default="/build/output")
+    parser.add_argument('-c', '--config', type=str, help=f'get config file', choices=["mainnet", "testnet", "zicon", "bicon"], default=None)
 
     args = parser.parse_args()
 
-    version_info_file = f'{args.default_dir}/static_version_info.json'
-    if os.path.isfile(version_info_file) is False:
-        if os.path.isdir(args.default_dir) is False:
-            os.mkdir(args.default_dir)
-        run_execute("static_vesion_info.json not found.", f'cp /src/static_version_info.json {version_info_file}')
+    if args.config is not None:
+        print(f"using config : {args.config}")
+        version_info = getConfigFile(args.config)
 
-    if os.path.isdir(args.output_dir) is False:
-        os.mkdir(args.output_dir)
+    else:
+        version_info_file = f'{args.default_dir}/static_version_info.json'
+        if os.path.isfile(version_info_file) is False:
+            if os.path.isdir(args.default_dir) is False:
+                os.mkdir(args.default_dir)
+            run_execute("static_vesion_info.json not found.", f'cp /src/static_version_info.json {version_info_file}')
 
-    version_info = openJson(f"{version_info_file}")
+        if os.path.isdir(args.output_dir) is False:
+            os.mkdir(args.output_dir)
+        version_info = openJson(f"{version_info_file}")
+
+    print(version_info)
+
     which_git = run_execute("find git", "which git", status_check="No")
 
     if which_git != 0:
