@@ -18,20 +18,25 @@ export ENDPOINT_URL=${ENDPOINT_URL:-""}      #  ENDPOINT API URI #URI
 export FIND_NEIGHBOR=${FIND_NEIGHBOR:-"true"}          # Find fastest neighborhood PRep
 export FIND_NEIGHBOR_COUNT=${FIND_NEIGHBOR_COUNT:-5}   # neighborhood count
 
+shopt -s nocasematch # enable
 if [[ "x${ENDPOINT_URL}" == "x" ]]; then
     if [[ "$NETWORK_ENV" == "mainnet" ]]; then
         ENDPOINT_URL="https://ctz.solidwallet.io"
         FIND_NEIGHBOR=false
         SERVICE="mainnet"
+        NETWORK_ENV="mainnet"
     elif [[ "$NETWORK_ENV" == "testnet" ]]; then
         ENDPOINT_URL="https://test-ctz.solidwallet.io"
         FIND_NEIGHBOR=false
         SERVICE="testnet"
+        NETWORK_ENV="testnet"
 #    elif [[ $(echo $SERVICE | grep -i "icon" | wc -l) ]];then
     elif echo "${SERVICE}" | grep -q "icon" ;then
         ENDPOINT_URL="https://${SERVICE}.net.solidwallet.io"
     fi
 fi
+shopt -u nocasematch # disable
+
 export SERVICE_API=${SERVICE_API:-"${ENDPOINT_URL}/api/v3"} # SERVICE_API URI #URI
 export NTP_SERVER=${NTP_SERVER:-"time.google.com"}     # NTP SERVER ADDRESS
 export NTP_REFRESH_TIME=${NTP_REFRESH_TIME:-"21600"}   # NTP refresh time
@@ -427,6 +432,15 @@ function progress(){
     fi
 }
 
+function check_var(){
+    VAR_NAME=${1:-""}
+    VAR_VALUE=${2:-""}
+    if [[ -z "$VAR_VALUE" ]]; then
+        CPrint "${VAR_NAME} environment is NULL ", "RED"
+        exit 127;
+    fi
+}
+
 if [[ "${IS_AUTOGEN_CERT}" == "true" ]]; then
     CPrint "Using auto generataion cert key"
     PRIVATE_PATH="${CERT_PATH}/autogen_cert.pem"
@@ -456,8 +470,6 @@ fi
 CPrint "P-REP package version info - ${APP_VERSION}"
 PIP_LIST=$(pip list | grep -E "loopchain|icon" | tr -d '')
 CPrint "$PIP_LIST"
-
-CPrint "NETWORK_ENV=${NETWORK_ENV}, SERVICE=${SERVICE}, ENDPOINT_URL=${ENDPOINT_URL}, SERVICE_API = $SERVICE_API"
 
 ## set builtinScoreOwner and block setting
 if [[ "$NETWORK_ENV" == "mainnet" ]]; then
@@ -513,6 +525,14 @@ else
         fi
     fi
 fi
+
+CPrint "NETWORK_ENV=${NETWORK_ENV}, SERVICE=${SERVICE}, ENDPOINT_URL=${ENDPOINT_URL}, SERVICE_API=${SERVICE_API}"
+
+for mandatory_var in "SERVICE" "NETWORK_ENV" "ENDPOINT_URL" "SERVICE_API";
+do
+    check_var "${mandatory_var}" "${!mandatory_var}"
+done
+
 
 if [[ "x${CREP_ROOT_HASH}" != "x" ]]; then
     jq --arg CREP_ROOT_HASH "$CREP_ROOT_HASH" '.CHANNEL_OPTION.icon_dex.crep_root_hash = "\($CREP_ROOT_HASH)"' "$configure_json"| sponge "$configure_json"
