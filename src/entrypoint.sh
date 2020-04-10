@@ -437,7 +437,7 @@ function check_var(){
     VAR_VALUE=${2:-""}
     if [[ -z "$VAR_VALUE" ]]; then
         CPrint "${VAR_NAME} environment is NULL ", "RED"
-        exit 127;
+        exit 0;
     fi
 }
 
