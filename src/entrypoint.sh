@@ -141,6 +141,7 @@ export IS_BROADCAST_MULTIPROCESSING=${IS_BROADCAST_MULTIPROCESSING:-"false"}
 export IS_DOWNLOAD_CERT=${IS_DOWNLOAD_CERT:-"false"}
 export IS_AUTOGEN_CERT=${IS_AUTOGEN_CERT:-"false"} # auto generate cert key # true, false
 export IS_COMPRESS_LOG=${IS_COMPRESS_LOG:-"false"} # auto compress loopchain and icon log via crontab # true, false
+export IS_WRITE_BH=${IS_WRITE_BH:-"true"} # write BH, TX, UX_TX, state on booting log  # true, false
 # export LEADER_COMPLAIN_RATIO=${LEADER_COMPLAIN_RATIO:-"0.67"}
 export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 
@@ -153,9 +154,11 @@ export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 function getBlockCheck(){
     if [[ ${USE_HELL_CHECK} == "yes" ]]; then
 #        blockheight=$(curl "localhost:${RPC_PORT}/api/v1/status/peer" | jq -r .block_height)
-        read blockheight total_tx unconfirmed_tx state < <(curl "localhost:${RPC_PORT}/api/v1/status/peer" | \
-            jq  -r '[.block_height,.total_tx,.unconfirmed_tx,.state] | @tsv')
-        CPrint "BlockCheck: BH=${blockheight}, TX=${total_tx}, UN_TX=${unconfirmed_tx}, state=${state}"
+        if [[ ${IS_WRITE_BH} == "true" ]]; then
+            read blockheight total_tx unconfirmed_tx state < <(curl "localhost:${RPC_PORT}/api/v1/status/peer" | \
+                jq  -r '[.block_height,.total_tx,.unconfirmed_tx,.state] | @tsv')
+            CPrint "BlockCheck: BH=${blockheight}, TX=${total_tx}, UN_TX=${unconfirmed_tx}, state=${state}"
+        fi
         ERROR_DIR="/.health_check"
         ERROR_COUNT_FILE="${ERROR_DIR}/blockcount"
         NOW_COUNT_FILE="${ERROR_DIR}/blockcount_now"
