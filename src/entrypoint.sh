@@ -131,7 +131,7 @@ export USE_PROC_HEALTH_CHECK=${USE_PROC_HEALTH_CHECK:-"yes"}
 export USE_API_HEALTH_CHECK=${USE_API_HEALTH_CHECK:-"yes"}
 export USE_HELL_CHECK=${USE_HELL_CHECK:-"yes"}
 export HEALTH_CHECK_INTERVAL=${HEALTH_CHECK_INTERVAL:-"30"}  # Trigger if greater than 1
-export ERROR_LIMIT=${ERROR_LIMIT:-3}
+export ERROR_LIMIT=${ERROR_LIMIT:-6}
 export HELL_LIMIT=${HELL_LIMIT:-300}
 
 export USE_SLACK=${USE_SLACK:-"no"}  #  if you want to use the slack

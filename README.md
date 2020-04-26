@@ -127,7 +127,7 @@ For MainNet
 version: "3"
 services:
    prep:
-      image: iconloop/prep-node
+      image: iconloop/prep-node:2004011830xf66922
       container_name: "prep-mainnet"
       network_mode: host
       restart: "on-failure"
@@ -151,7 +151,7 @@ services:
 ```
 
 ## prep-node docker environment settings
-###### Generated on 2020-04-10 11:55:48 
+###### Generated on 2020-04-10 12:03:41 
 | Environment variable | Description|Default value| Allowed value|
 |--------|--------|-------|-------|
 | EXT\_IPADDR| Getting external IP address|$(curl http://checkip.amazonaws.com)||
@@ -236,7 +236,7 @@ services:
 | USE\_API\_HEALTH\_CHECK|yes|yes||
 | USE\_HELL\_CHECK|yes|yes||
 | HEALTH\_CHECK\_INTERVAL| Trigger if greater than 1|30||
-| ERROR\_LIMIT|3|3||
+| ERROR\_LIMIT|6|6||
 | HELL\_LIMIT|300|300||
 | USE\_SLACK|  if you want to use the slack|no||
 | SLACK\_URL|  slack's webhook URL|||
