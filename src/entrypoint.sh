@@ -153,16 +153,28 @@ export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 
 function getBlockCheck(){
     if [[ ${USE_HELL_CHECK} == "yes" ]]; then
-#        blockheight=$(curl "localhost:${RPC_PORT}/api/v1/status/peer" | jq -r .block_height)
-        if [[ ${IS_WRITE_BH} == "true" ]]; then
-            read blockheight total_tx unconfirmed_tx state < <(curl "localhost:${RPC_PORT}/api/v1/status/peer" | \
-                jq  -r '[.block_height,.total_tx,.unconfirmed_tx,.state] | @tsv')
-            CPrint "BlockCheck: BH=${blockheight}, TX=${total_tx}, UN_TX=${unconfirmed_tx}, state=${state}"
-        fi
         ERROR_DIR="/.health_check"
         ERROR_COUNT_FILE="${ERROR_DIR}/blockcount"
         NOW_COUNT_FILE="${ERROR_DIR}/blockcount_now"
         PREV_COUNT_FILE="${ERROR_DIR}/blockcount_prev"
+        RESULT=""
+        if [[ ${IS_WRITE_BH} == "true" ]]; then
+#            read blockheight total_tx unconfirmed_tx state < <(curl "localhost:${RPC_PORT}/api/v1/status/peer" | \
+#                jq  -r '[.block_height,.total_tx,.unconfirmed_tx,.state] | @tsv')
+            RESULT=$(curl "localhost:${RPC_PORT}/api/v1/status/peer")
+            if jq -e . >/dev/null 2>&1 <<< "${RESULT}"; then
+                blockheight=$(echo ${RESULT} | jq -r .block_height)
+                total_tx=$(echo ${RESULT} | jq -r .total_tx)
+                unconfirmed_tx=$(echo ${RESULT} | jq -r .unconfirmed_tx)
+                state=$(echo ${RESULT} | jq -r .state)
+                CPrint "BlockCheck: BH=${blockheight}, TX=${total_tx}, UN_TX=${unconfirmed_tx}, state=${state}"
+            else
+                CPrint "[ERR] get status"
+            fi
+        else
+            blockheight=$(curl "localhost:${RPC_PORT}/api/v1/status/peer" | jq -r .block_height)
+        fi
+
         if [[ ! -d "$ERROR_DIR" ]]; then
             mkdir -p ${ERROR_DIR}
         fi
