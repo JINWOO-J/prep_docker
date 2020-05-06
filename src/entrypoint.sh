@@ -18,20 +18,25 @@ export ENDPOINT_URL=${ENDPOINT_URL:-""}      #  ENDPOINT API URI #URI
 export FIND_NEIGHBOR=${FIND_NEIGHBOR:-"true"}          # Find fastest neighborhood PRep
 export FIND_NEIGHBOR_COUNT=${FIND_NEIGHBOR_COUNT:-5}   # neighborhood count
 
+shopt -s nocasematch # enable
 if [[ "x${ENDPOINT_URL}" == "x" ]]; then
     if [[ "$NETWORK_ENV" == "mainnet" ]]; then
         ENDPOINT_URL="https://ctz.solidwallet.io"
         FIND_NEIGHBOR=false
         SERVICE="mainnet"
+        NETWORK_ENV="mainnet"
     elif [[ "$NETWORK_ENV" == "testnet" ]]; then
         ENDPOINT_URL="https://test-ctz.solidwallet.io"
         FIND_NEIGHBOR=false
         SERVICE="testnet"
+        NETWORK_ENV="testnet"
 #    elif [[ $(echo $SERVICE | grep -i "icon" | wc -l) ]];then
     elif echo "${SERVICE}" | grep -q "icon" ;then
         ENDPOINT_URL="https://${SERVICE}.net.solidwallet.io"
     fi
 fi
+shopt -u nocasematch # disable
+
 export SERVICE_API=${SERVICE_API:-"${ENDPOINT_URL}/api/v3"} # SERVICE_API URI #URI
 export NTP_SERVER=${NTP_SERVER:-"time.google.com"}     # NTP SERVER ADDRESS
 export NTP_REFRESH_TIME=${NTP_REFRESH_TIME:-"21600"}   # NTP refresh time
@@ -126,7 +131,7 @@ export USE_PROC_HEALTH_CHECK=${USE_PROC_HEALTH_CHECK:-"yes"}
 export USE_API_HEALTH_CHECK=${USE_API_HEALTH_CHECK:-"yes"}
 export USE_HELL_CHECK=${USE_HELL_CHECK:-"yes"}
 export HEALTH_CHECK_INTERVAL=${HEALTH_CHECK_INTERVAL:-"30"}  # Trigger if greater than 1
-export ERROR_LIMIT=${ERROR_LIMIT:-3}
+export ERROR_LIMIT=${ERROR_LIMIT:-6}
 export HELL_LIMIT=${HELL_LIMIT:-300}
 
 export USE_SLACK=${USE_SLACK:-"no"}  #  if you want to use the slack
@@ -136,6 +141,7 @@ export IS_BROADCAST_MULTIPROCESSING=${IS_BROADCAST_MULTIPROCESSING:-"false"}
 export IS_DOWNLOAD_CERT=${IS_DOWNLOAD_CERT:-"false"}
 export IS_AUTOGEN_CERT=${IS_AUTOGEN_CERT:-"false"} # auto generate cert key # true, false
 export IS_COMPRESS_LOG=${IS_COMPRESS_LOG:-"false"} # auto compress loopchain and icon log via crontab # true, false
+export IS_WRITE_BH=${IS_WRITE_BH:-"true"} # write BH, TX, UX_TX, state on booting log  # true, false
 # export LEADER_COMPLAIN_RATIO=${LEADER_COMPLAIN_RATIO:-"0.67"}
 export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 
@@ -147,14 +153,28 @@ export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 
 function getBlockCheck(){
     if [[ ${USE_HELL_CHECK} == "yes" ]]; then
-#        blockheight=$(curl "localhost:${RPC_PORT}/api/v1/status/peer" | jq -r .block_height)
-        read blockheight total_tx unconfirmed_tx state < <(curl "localhost:${RPC_PORT}/api/v1/status/peer" | \
-            jq  -r '[.block_height,.total_tx,.unconfirmed_tx,.state] | @tsv')
-        CPrint "BlockCheck: BH=${blockheight}, TX=${total_tx}, UN_TX=${unconfirmed_tx}, state=${state}"
         ERROR_DIR="/.health_check"
         ERROR_COUNT_FILE="${ERROR_DIR}/blockcount"
         NOW_COUNT_FILE="${ERROR_DIR}/blockcount_now"
         PREV_COUNT_FILE="${ERROR_DIR}/blockcount_prev"
+        RESULT=""
+        if [[ ${IS_WRITE_BH} == "true" ]]; then
+#            read blockheight total_tx unconfirmed_tx state < <(curl "localhost:${RPC_PORT}/api/v1/status/peer" | \
+#                jq  -r '[.block_height,.total_tx,.unconfirmed_tx,.state] | @tsv')
+            RESULT=$(curl "localhost:${RPC_PORT}/api/v1/status/peer")
+            if jq -e . >/dev/null 2>&1 <<< "${RESULT}"; then
+                blockheight=$(echo ${RESULT} | jq -r .block_height)
+                total_tx=$(echo ${RESULT} | jq -r .total_tx)
+                unconfirmed_tx=$(echo ${RESULT} | jq -r .unconfirmed_tx)
+                state=$(echo ${RESULT} | jq -r .state)
+                CPrint "BlockCheck: BH=${blockheight}, TX=${total_tx}, UN_TX=${unconfirmed_tx}, state=${state}"
+            else
+                CPrint "[ERR] get status"
+            fi
+        else
+            blockheight=$(curl "localhost:${RPC_PORT}/api/v1/status/peer" | jq -r .block_height)
+        fi
+
         if [[ ! -d "$ERROR_DIR" ]]; then
             mkdir -p ${ERROR_DIR}
         fi
@@ -427,6 +447,15 @@ function progress(){
     fi
 }
 
+function check_var(){
+    VAR_NAME=${1:-""}
+    VAR_VALUE=${2:-""}
+    if [[ -z "$VAR_VALUE" ]]; then
+        CPrint "${VAR_NAME} environment is NULL ", "RED"
+        exit 0;
+    fi
+}
+
 if [[ "${IS_AUTOGEN_CERT}" == "true" ]]; then
     CPrint "Using auto generataion cert key"
     PRIVATE_PATH="${CERT_PATH}/autogen_cert.pem"
@@ -456,8 +485,6 @@ fi
 CPrint "P-REP package version info - ${APP_VERSION}"
 PIP_LIST=$(pip list | grep -E "loopchain|icon" | tr -d '')
 CPrint "$PIP_LIST"
-
-CPrint "NETWORK_ENV=${NETWORK_ENV}, SERVICE=${SERVICE}, ENDPOINT_URL=${ENDPOINT_URL}, SERVICE_API = $SERVICE_API"
 
 ## set builtinScoreOwner and block setting
 if [[ "$NETWORK_ENV" == "mainnet" ]]; then
@@ -513,6 +540,14 @@ else
         fi
     fi
 fi
+
+CPrint "NETWORK_ENV=${NETWORK_ENV}, SERVICE=${SERVICE}, ENDPOINT_URL=${ENDPOINT_URL}, SERVICE_API=${SERVICE_API}"
+
+for mandatory_var in "SERVICE" "NETWORK_ENV" "ENDPOINT_URL" "SERVICE_API";
+do
+    check_var "${mandatory_var}" "${!mandatory_var}"
+done
+
 
 if [[ "x${CREP_ROOT_HASH}" != "x" ]]; then
     jq --arg CREP_ROOT_HASH "$CREP_ROOT_HASH" '.CHANNEL_OPTION.icon_dex.crep_root_hash = "\($CREP_ROOT_HASH)"' "$configure_json"| sponge "$configure_json"
