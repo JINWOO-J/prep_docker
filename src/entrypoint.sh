@@ -22,12 +22,12 @@ shopt -s nocasematch # enable
 if [[ "x${ENDPOINT_URL}" == "x" ]]; then
     if [[ "$NETWORK_ENV" == "mainnet" ]]; then
         ENDPOINT_URL="https://ctz.solidwallet.io"
-        FIND_NEIGHBOR=false
+        #FIND_NEIGHBOR=false
         SERVICE="mainnet"
         NETWORK_ENV="mainnet"
     elif [[ "$NETWORK_ENV" == "testnet" ]]; then
         ENDPOINT_URL="https://test-ctz.solidwallet.io"
-        FIND_NEIGHBOR=false
+        #FIND_NEIGHBOR=false
         SERVICE="testnet"
         NETWORK_ENV="testnet"
 #    elif [[ $(echo $SERVICE | grep -i "icon" | wc -l) ]];then
