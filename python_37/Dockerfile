@@ -39,7 +39,7 @@ ENV TZ="Asia/Seoul"  \
     xz-utils tk-dev libffi-dev liblzma-dev automake \
     libtool unzip jq netcat moreutils libsecp256k1-dev \
     git gnupg2 socat ntp  logrotate ntpdate vim procps \
-    iproute2 lsof jq pigz axel monit gawk" \
+    iproute2 lsof jq pigz axel monit gawk libcurl4-openssl-dev" \
     ERLANG_PACKAGE="erlang-base erlang-asn1 erlang-crypto \
     erlang-eldap erlang-ftp erlang-inets \
     erlang-mnesia erlang-os-mon erlang-parsetools \
@@ -47,7 +47,7 @@ ENV TZ="Asia/Seoul"  \
     erlang-ssl  erlang-syntax-tools erlang-tftp \
     erlang-tools erlang-xmerl"\
     DELETE_PACKAGE="gcc gcc-6 g++* g++-6* make git automake" \
-    PIP3_PACKAGE="tbears iconsdk python-hosts halo termcolor" \
+    PIP3_PACKAGE="tbears iconsdk python-hosts halo termcolor pycurl" \
     IS_STATIC_BUILD=${IS_STATIC_BUILD}
 COPY src /src
 COPY src/pip.conf /etc/

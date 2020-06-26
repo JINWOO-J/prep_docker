@@ -17,17 +17,16 @@ export SERVICE=${SERVICE:-"zicon"}               # Service Name # mainnet/testne
 export ENDPOINT_URL=${ENDPOINT_URL:-""}      #  ENDPOINT API URI #URI
 export FIND_NEIGHBOR=${FIND_NEIGHBOR:-"true"}          # Find fastest neighborhood PRep
 export FIND_NEIGHBOR_COUNT=${FIND_NEIGHBOR_COUNT:-5}   # neighborhood count
+export FIND_NEIGHBOR_OPTION=${FIND_NEIGHBOR_OPTION:-""}   # neighborhood option # -t (main|sub|all)
 
 shopt -s nocasematch # enable
 if [[ "x${ENDPOINT_URL}" == "x" ]]; then
     if [[ "$NETWORK_ENV" == "mainnet" ]]; then
         ENDPOINT_URL="https://ctz.solidwallet.io"
-        FIND_NEIGHBOR=false
         SERVICE="mainnet"
         NETWORK_ENV="mainnet"
     elif [[ "$NETWORK_ENV" == "testnet" ]]; then
         ENDPOINT_URL="https://test-ctz.solidwallet.io"
-        FIND_NEIGHBOR=false
         SERVICE="testnet"
         NETWORK_ENV="testnet"
 #    elif [[ $(echo $SERVICE | grep -i "icon" | wc -l) ]];then
@@ -151,6 +150,15 @@ export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 #echo $@
 #exec $@
 
+TIME_1=$(date +%s)
+sleep 5
+TIME_2=$(date +%s)
+
+DIFF=$((${TIME_2}-${TIME_1}))
+echo $DIFF
+
+
+
 function getBlockCheck(){
     if [[ ${USE_HELL_CHECK} == "yes" ]]; then
         ERROR_DIR="/.health_check"
@@ -181,7 +189,6 @@ function getBlockCheck(){
         touch "${NOW_COUNT_FILE}" "${PREV_COUNT_FILE}"
         echo "${blockheight}" > ${NOW_COUNT_FILE}
         PREV_ERROR_COUNT=$(cat ${PREV_COUNT_FILE})
-
         if [[ "${blockheight}" -eq ${PREV_ERROR_COUNT} ]];then
             if [[ "${blockheight}" -ge 1 ]];then
                 echo "${blockheight}"  >> ${ERROR_COUNT_FILE}
@@ -395,7 +402,7 @@ function validationViewConfig() {
 function find_neighbor_func(){
     WRITE_OPTION=${1:-""}
     if [[ "${FIND_NEIGHBOR}" == "true" ]] && [[ -n "${ENDPOINT_URL}" ]]; then
-        FIND_NEIGHBOR_HOSTS=$(/src/find_neighbor.py ${ENDPOINT_URL} ${FIND_NEIGHBOR_COUNT} ${WRITE_OPTION})
+        FIND_NEIGHBOR_HOSTS=$(/src/find_neighbor.py ${ENDPOINT_URL} ${FIND_NEIGHBOR_COUNT} ${WRITE_OPTION} ${FIND_NEIGHBOR_OPTION})
         CPrint "== ${FIND_NEIGHBOR_HOSTS}"
     fi
 }
