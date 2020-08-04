@@ -521,7 +521,7 @@ else
     if [[ "$SERVICE" == "zicon" ]]; then
         iissCalculatePeriod=1800
         termPeriod=1800
-        CREP_ROOT_HASH="0x9718f5d6d6ddb77f547ecc7113c8f1bad1bf46220512fbde356eee74a90ba47c"
+        CREP_ROOT_HASH="0xb7cc19da5bff37a2c4954e16473ab65610a9481f8f864d7ea587c65bff82402f"
         SWITCH_BH_VERSION3=1
         SWITCH_BH_VERSION4=10
         SWITCH_BH_VERSION5=20
