@@ -22,6 +22,7 @@ ARG DOWNLOAD_PACKAGE=$DOWNLOAD_PACKAGE
 ARG RABBITMQ_VERSION="3.7.17"
 ARG GO_VERSION="1.12.7"
 ARG DOCKERIZE_VERSION="v0.6.1"
+ARG REMOVE_BUILD_PACKAGE="true"
 ENV TZ="Asia/Seoul"  \
     TERM="xterm-256color" \
     USERID=24988 \
@@ -48,7 +49,9 @@ ENV TZ="Asia/Seoul"  \
     erlang-tools erlang-xmerl"\
     DELETE_PACKAGE="gcc gcc-6 g++* g++-6* make git automake" \
     PIP3_PACKAGE="tbears iconsdk python-hosts halo termcolor pycurl" \
-    IS_STATIC_BUILD=${IS_STATIC_BUILD}
+    IS_STATIC_BUILD=${IS_STATIC_BUILD} \
+    REMOVE_BUILD_PACKAGE=${REMOVE_BUILD_PACKAGE}
+
 COPY src /src
 COPY src/pip.conf /etc/
 COPY src/erlang /etc/apt/preferences.d/erlang
@@ -116,11 +119,15 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
         make install DST_DIR=/usr/local/bin ; \
         cd .. && rm -rf rewardcalculator /usr/local/go ; \
     fi ; \
-    apt-get purge -y --auto-remove $DELETE_PACKAGE && \
-    rm -rf /var/lib/apt/lists/* ; \
-    #TODO CHANGE temporary function
     pip3 install msgpack==0.6.2 ;\
-    rm -rf /build
+    if [ "$REMOVE_BUILD_PACKAGE" = "true" ]; then \
+        apt-get purge -y --auto-remove $DELETE_PACKAGE && \
+        rm -rf /var/lib/apt/lists/* ; \
+        #TODO CHANGE temporary function
+        rm -rf /build ;\
+    fi;
+
+
 
 EXPOSE 9000
 EXPOSE 7100

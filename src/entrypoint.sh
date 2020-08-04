@@ -217,7 +217,7 @@ function getBlockCheck(){
 function post_to_slack () {
   #escapedText=$(echo $1 | sed 's/"/\"/g' | sed "s/'/\'/g" | sed 's/(?(?=\\n)[^\\n]|\\)/\\\\/g')
     escapedText=$(echo "$1" | sed 's/"/\"/g' | sed "s/'/\'/g")
-    SLACK_MESSAGE="\`\`\`${SLACK_PREFIX}[$(date '+%Y-%m-%d %T.%3N')] ${HOSTNAME} ${escapedText}\`\`\`"
+    SLACK_MESSAGE="\`\`\`${SLACK_PREFIX}[$(date '+%Y-%m-%d %T.%3N')] ${IPADDR} ${HOSTNAME} ${escapedText}\`\`\`"
     #  SLACK_URL=$2
     case "$2" in
     INFO)

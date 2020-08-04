@@ -163,8 +163,20 @@ build_python: make_build_args
 build_python_base: make_build_args
 		docker build --no-cache --rm=true -f python_37_base/Dockerfile \
 		$(shell cat BUILD_ARGS) \
-		-t $(REPO_HUB)/$(NAME)-base:$(TAGNAME) .
+		-t $(REPO_HUB)/$(NAME)-base .
 
+builder: make_build_args
+		docker build --no-cache --rm=true -f python_37_base/Dockerfile  \
+		--build-arg IS_LOCAL=true --build-arg IS_STATIC_BUILD=true --build-arg REMOVE_BUILD_PACKAGE=false \
+		$(shell cat BUILD_ARGS) \
+		-t $(REPO_HUB)/$(NAME):builder .
+
+static: make_build_args
+		docker build --no-cache --rm=true -f python_37/Dockerfile.static_builder  \
+		--build-arg IS_STATIC=true  --build-arg IS_LOCAL=true  \
+		$(shell cat BUILD_ARGS) \
+		-t $(REPO_HUB)/$(NAME):$(TAGNAME) .
+		docker inspect $(REPO_HUB)/$(NAME):$(TAGNAME) | jq -r ".[].Size" | numfmt --to=iec-i
 
 push: print_version
 		docker tag  $(NAME):$(VERSION) $(REPO_HUB)/$(NAME):$(TAGNAME)
