@@ -523,8 +523,8 @@ else
         termPeriod=1800
         CREP_ROOT_HASH="0x9718f5d6d6ddb77f547ecc7113c8f1bad1bf46220512fbde356eee74a90ba47c"
         SWITCH_BH_VERSION3=1
-        SWITCH_BH_VERSION4=1587271
-        SWITCH_BH_VERSION5=3077345
+        SWITCH_BH_VERSION4=10
+        SWITCH_BH_VERSION5=20
     fi
 
     builtinScoreOwner="hx6e1dd0d4432620778b54b2bbc21ac3df961adf89"
