@@ -17,17 +17,16 @@ export SERVICE=${SERVICE:-"zicon"}               # Service Name # mainnet/testne
 export ENDPOINT_URL=${ENDPOINT_URL:-""}      #  ENDPOINT API URI #URI
 export FIND_NEIGHBOR=${FIND_NEIGHBOR:-"true"}          # Find fastest neighborhood PRep
 export FIND_NEIGHBOR_COUNT=${FIND_NEIGHBOR_COUNT:-5}   # neighborhood count
+export FIND_NEIGHBOR_OPTION=${FIND_NEIGHBOR_OPTION:-""}   # neighborhood option # -t (main|sub|all)
 
 shopt -s nocasematch # enable
 if [[ "x${ENDPOINT_URL}" == "x" ]]; then
     if [[ "$NETWORK_ENV" == "mainnet" ]]; then
         ENDPOINT_URL="https://ctz.solidwallet.io"
-        FIND_NEIGHBOR=false
         SERVICE="mainnet"
         NETWORK_ENV="mainnet"
     elif [[ "$NETWORK_ENV" == "testnet" ]]; then
         ENDPOINT_URL="https://test-ctz.solidwallet.io"
-        FIND_NEIGHBOR=false
         SERVICE="testnet"
         NETWORK_ENV="testnet"
 #    elif [[ $(echo $SERVICE | grep -i "icon" | wc -l) ]];then
@@ -151,6 +150,15 @@ export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 #echo $@
 #exec $@
 
+TIME_1=$(date +%s)
+sleep 5
+TIME_2=$(date +%s)
+
+DIFF=$((${TIME_2}-${TIME_1}))
+echo $DIFF
+
+
+
 function getBlockCheck(){
     if [[ ${USE_HELL_CHECK} == "yes" ]]; then
         ERROR_DIR="/.health_check"
@@ -181,7 +189,6 @@ function getBlockCheck(){
         touch "${NOW_COUNT_FILE}" "${PREV_COUNT_FILE}"
         echo "${blockheight}" > ${NOW_COUNT_FILE}
         PREV_ERROR_COUNT=$(cat ${PREV_COUNT_FILE})
-
         if [[ "${blockheight}" -eq ${PREV_ERROR_COUNT} ]];then
             if [[ "${blockheight}" -ge 1 ]];then
                 echo "${blockheight}"  >> ${ERROR_COUNT_FILE}
@@ -210,7 +217,7 @@ function getBlockCheck(){
 function post_to_slack () {
   #escapedText=$(echo $1 | sed 's/"/\"/g' | sed "s/'/\'/g" | sed 's/(?(?=\\n)[^\\n]|\\)/\\\\/g')
     escapedText=$(echo "$1" | sed 's/"/\"/g' | sed "s/'/\'/g")
-    SLACK_MESSAGE="\`\`\`${SLACK_PREFIX}[$(date '+%Y-%m-%d %T.%3N')] ${HOSTNAME} ${escapedText}\`\`\`"
+    SLACK_MESSAGE="\`\`\`${SLACK_PREFIX}[$(date '+%Y-%m-%d %T.%3N')] ${IPADDR} ${HOSTNAME} ${escapedText}\`\`\`"
     #  SLACK_URL=$2
     case "$2" in
     INFO)
@@ -395,7 +402,7 @@ function validationViewConfig() {
 function find_neighbor_func(){
     WRITE_OPTION=${1:-""}
     if [[ "${FIND_NEIGHBOR}" == "true" ]] && [[ -n "${ENDPOINT_URL}" ]]; then
-        FIND_NEIGHBOR_HOSTS=$(/src/find_neighbor.py ${ENDPOINT_URL} ${FIND_NEIGHBOR_COUNT} ${WRITE_OPTION})
+        FIND_NEIGHBOR_HOSTS=$(/src/find_neighbor.py ${ENDPOINT_URL} ${FIND_NEIGHBOR_COUNT} ${WRITE_OPTION} ${FIND_NEIGHBOR_OPTION})
         CPrint "== ${FIND_NEIGHBOR_HOSTS}"
     fi
 }
@@ -514,10 +521,10 @@ else
     if [[ "$SERVICE" == "zicon" ]]; then
         iissCalculatePeriod=1800
         termPeriod=1800
-        CREP_ROOT_HASH="0x9718f5d6d6ddb77f547ecc7113c8f1bad1bf46220512fbde356eee74a90ba47c"
+        CREP_ROOT_HASH="0xb7cc19da5bff37a2c4954e16473ab65610a9481f8f864d7ea587c65bff82402f"
         SWITCH_BH_VERSION3=1
-        SWITCH_BH_VERSION4=1587271
-        SWITCH_BH_VERSION5=3077345
+        SWITCH_BH_VERSION4=10
+        SWITCH_BH_VERSION5=20
     fi
 
     builtinScoreOwner="hx6e1dd0d4432620778b54b2bbc21ac3df961adf89"
