@@ -26,7 +26,6 @@ prep_docker (master) ✗ make build_python
   DOCKERIZE_VERSION="v0.6.1"
   DOWNLOAD_PACKAGE="http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/docker_resource/1910211829xc2286d/docker_1910211829xc2286d_packages.tar.gz"
   GO_VERSION="1.12.7"
-  ICON_RC_VERSION="1.0.0"
   IS_LOCAL=true
   NAME=prep-node
   RABBITMQ_VERSION="3.7.17"
@@ -127,7 +126,7 @@ For MainNet
 version: "3"
 services:
    prep:
-      image: iconloop/prep-node:2004011830xf66922
+      image: iconloop/prep-node:2008032356xc7087e
       container_name: "prep-mainnet"
       network_mode: host
       restart: "on-failure"
@@ -151,7 +150,7 @@ services:
 ```
 
 ## prep-node docker environment settings
-###### Generated on 2020-04-10 12:03:41 
+###### Generated on 2020-08-10 09:49:50 
 | Environment variable | Description|Default value| Allowed value|
 |--------|--------|-------|-------|
 | EXT\_IPADDR| Getting external IP address|$(curl http://checkip.amazonaws.com)||
@@ -163,6 +162,7 @@ services:
 | ENDPOINT\_URL|  ENDPOINT API URI||URI|
 | FIND\_NEIGHBOR| Find fastest neighborhood PRep|true||
 | FIND\_NEIGHBOR\_COUNT| neighborhood count|5||
+| FIND\_NEIGHBOR\_OPTION| neighborhood option|| -t (main\|sub|all)|
 | SERVICE\_API| SERVICE\_API URI|${ENDPOINT\_URL}/api/v3|URI|
 | NTP\_SERVER| NTP SERVER ADDRESS|time.google.com||
 | NTP\_REFRESH\_TIME| NTP refresh time|21600||
@@ -245,4 +245,5 @@ services:
 | IS\_DOWNLOAD\_CERT|false|false||
 | IS\_AUTOGEN\_CERT| auto generate cert key|false| true, false|
 | IS\_COMPRESS\_LOG| auto compress loopchain and icon log via crontab|false| true, false|
+| IS\_WRITE\_BH| write BH, TX, UX\_TX, state on booting log|true| true, false|
 | USER\_DEFINED\_ENV||||

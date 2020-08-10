@@ -20,7 +20,7 @@ import pycurl
 CURL_TIME_ATTRS = ('NAMELOOKUP_TIME', 'CONNECT_TIME', 'APPCONNECT_TIME',
                    'PRETRANSFER_TIME', 'REDIRECT_TIME', 'STARTTRANSFER_TIME', 'TOTAL_TIME')
 
-TIMEOUT = 2
+TIMEOUT = 10
 
 def todaydate(date_type=None):
     """
@@ -143,7 +143,7 @@ def check_port(ipaddr, port=9000):
     if port is None:
         port = 9000
     result, return_result,  ip_address, status, error = (None, {}, None, None, None)
-    timeout = 1
+    timeout = 2
     start_time = time.time()
     try:
         if is_valid_ipv4(ipaddr):
@@ -276,7 +276,7 @@ def call_api(API_SERVER, method, params=None, call_type=None, return_key=None):
                                     "method": method
                                 }
                             }
-    response = pycurl_request(append_api_url(API_SERVER), method="post", payload=payload, timeout=10)
+    response = pycurl_request(append_api_url(API_SERVER), method="post", payload=payload)
 
     if return_key is not None:
         return_value = find_the_key2(response.get("json"), return_key)
@@ -483,12 +483,15 @@ def is_valid_ipv4(ip):
     return pattern.match(ip) is not None
 
 
-def pycurl_request(url, method="get", payload={}, timeout=TIMEOUT):
+def pycurl_request(url, method="get", payload={}, timeout=None):
     """
     :param url:
     :param elapesd_type: (each | cumulative)
     :return:
     """
+    if timeout is None:
+        timeout = args.connect_timeout
+
     m = {}
     method = method.upper()
     buffer = io.BytesIO()
@@ -653,6 +656,7 @@ def main():
     parser.add_argument('-b', '--blockheight', metavar='blockheight', type=int, help=f'blockheight', default=0)
     parser.add_argument('-w', '--writeconfig', action='count', help=f'write to configure json', default=0)
     parser.add_argument('-t', '--type', type=str, help=f'prep grade type (all|main|sub)', default="main")
+    parser.add_argument('-ct', '--connect-timeout', type=int, help=f'connect timeout (seconds)', default=10)
     args = parser.parse_args()
     args.url = append_http(args.url)
 

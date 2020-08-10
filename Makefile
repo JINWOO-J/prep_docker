@@ -1,10 +1,9 @@
 REPO_HUB = iconloop
 NAME = prep-node
-VERSION = 2004011830xf66922
+VERSION = 2008032356xc7087e
 RABBITMQ_VERSION = "3.7.23"
 GO_VERSION = "1.12.7"
 DOCKERIZE_VERSION = "v0.6.1"
-ICON_RC_VERSION="1.0.0"
 DOWNLOAD_PACKAGE = "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/docker_resource/$(VERSION)/docker_$(VERSION)_packages.tar.gz"
 IS_LOCAL = true
 
