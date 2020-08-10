@@ -26,7 +26,6 @@ prep_docker (master) ✗ make build_python
   DOCKERIZE_VERSION="v0.6.1"
   DOWNLOAD_PACKAGE="http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/docker_resource/1910211829xc2286d/docker_1910211829xc2286d_packages.tar.gz"
   GO_VERSION="1.12.7"
-  ICON_RC_VERSION="1.0.0"
   IS_LOCAL=true
   NAME=prep-node
   RABBITMQ_VERSION="3.7.17"
