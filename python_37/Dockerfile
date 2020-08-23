@@ -48,7 +48,7 @@ ENV TZ="Asia/Seoul"  \
     erlang-ssl  erlang-syntax-tools erlang-tftp \
     erlang-tools erlang-xmerl"\
     DELETE_PACKAGE="gcc gcc-6 g++* g++-6* make git automake" \
-    PIP3_PACKAGE="tbears iconsdk python-hosts halo termcolor pycurl" \
+    PIP3_PACKAGE="secp256k1 tbears iconsdk python-hosts halo termcolor pycurl" \
     IS_STATIC_BUILD=${IS_STATIC_BUILD} \
     REMOVE_BUILD_PACKAGE=${REMOVE_BUILD_PACKAGE}
 
