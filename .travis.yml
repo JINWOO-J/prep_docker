@@ -24,12 +24,12 @@ jobs:
     - os: linux
       arch: amd64
       env: IS_STATIC_BUILD="false"
-    - os: linux
-      arch: arm64
-      env: IS_STATIC_BUILD="true" ARCH="arm64"
-    - os: linux
-      arch: arm64
-      env: IS_STATIC_BUILD="false" ARCH="arm64"
+#    - os: linux
+#      arch: arm64
+#      env: IS_STATIC_BUILD="true" ARCH="arm64"
+#    - os: linux
+#      arch: arm64
+#      env: IS_STATIC_BUILD="false" ARCH="arm64"
 
 branches:
   only:
