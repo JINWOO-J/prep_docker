@@ -2,6 +2,10 @@ language: python
 python:
   - "3.7"
 
+#arch:
+#  - amd64
+#  - arm64
+
 services:
   - docker
 
@@ -11,9 +15,22 @@ env:  # N times sandboxes created and built by jobs
     - CREP_ROOT_HASH="0x9718f5d6d6ddb77f547ecc7113c8f1bad1bf46220512fbde356eee74a90ba47c" #for mainnet
     - WAIT_RETRY=30
     - CURL_OPTION="--connect-timeout 1 --max-time 1 -s "
-  jobs:
-    - IS_STATIC_BUILD="true"
-    - IS_STATIC_BUILD="false"
+
+jobs:
+  include:
+    - os: linux
+      arch: amd64
+      env: IS_STATIC_BUILD="true"
+    - os: linux
+      arch: amd64
+      env: IS_STATIC_BUILD="false"
+#    - os: linux
+#      arch: arm64
+#      env: IS_STATIC_BUILD="true" ARCH="arm64"
+#    - os: linux
+#      arch: arm64
+#      env: IS_STATIC_BUILD="false" ARCH="arm64"
+
 branches:
   only:
     - master
@@ -28,7 +45,12 @@ before_install:
     shellcheck --version
 
 install:
-  - make build_python IS_LOCAL=$IS_LOCAL IS_STATIC_BUILD=$IS_STATIC_BUILD VERSION_ARG=$VERSION
+  - |
+    if [[ "${ARCH}" == "arm64" ]]; then
+      make build_python_arm64 IS_LOCAL=$IS_LOCAL IS_STATIC_BUILD=$IS_STATIC_BUILD VERSION_ARG=$VERSION
+    else
+      make build_python IS_LOCAL=$IS_LOCAL IS_STATIC_BUILD=$IS_STATIC_BUILD VERSION_ARG=$VERSION
+    fi
   - make test IS_LOCAL=$IS_LOCAL VERSION_ARG=$VERSION
   - >
     docker run -d --rm -p 9000:9000
@@ -59,6 +81,6 @@ script:
       echo "something wrong"
       docker logs prep-node
       exit 1
-    fi  
+    fi
 
 after_failure: docker logs prep-node
