@@ -150,7 +150,7 @@ services:
 ```
 
 ## prep-node docker environment settings
-###### Generated on 2020-08-10 09:49:50 
+###### Generated on 2020-08-27 13:14:27 
 | Environment variable | Description|Default value| Allowed value|
 |--------|--------|-------|-------|
 | EXT\_IPADDR| Getting external IP address|$(curl http://checkip.amazonaws.com)||

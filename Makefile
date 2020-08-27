@@ -1,6 +1,6 @@
 REPO_HUB = iconloop
 NAME = prep-node
-VERSION = 2008231003x8321c4
+VERSION = 2008271251x7da45b
 RABBITMQ_VERSION = "3.7.23"
 GO_VERSION = "1.12.7"
 DOCKERIZE_VERSION = "v0.6.1"
@@ -171,7 +171,7 @@ builder: make_build_args
 		-t $(REPO_HUB)/$(NAME):builder .
 
 static: make_build_args
-		docker build --no-cache --rm=true -f python_37/Dockerfile.static_builder  \
+		docker build --no-cache --rm=true -f python_37/Dockerfile.builder  \
 		--build-arg IS_STATIC=true  --build-arg IS_LOCAL=true  \
 		$(shell cat BUILD_ARGS) \
 		-t $(REPO_HUB)/$(NAME):$(TAGNAME) .

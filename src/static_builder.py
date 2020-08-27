@@ -142,8 +142,8 @@ def main():
             cprint(f" Using environment {revision} -> {os.environ.get(repo_name)}", "green")
             revision = os.environ.get(repo_name)
 
-        cprint(f" {repo_name} ,  {url} , {revision} ")
         kvPrint("\n\nRepository Name", repo_name)
+        cprint(f" url:  {url}  rev: {revision} ")
         git_clone(repo_name, url, revision)
         if repo_name == "icon_rc":
 

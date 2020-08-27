@@ -3,7 +3,7 @@ shopt -s expand_aliases
 #export CURL_OPTION=${CURL_OPTION:-"-vvv -s -S --fail --max-time 30"} #default curl options
 alias curl="curl -s -S --fail --max-time 30"
 export EXT_IPADDR=${EXT_IPADDR:-$(curl http://checkip.amazonaws.com)} # Getting external IP address
-export IPADDR=${IPADDR:-"$EXT_IPADDR"}  # Setting the IP address 
+export IPADDR=${IPADDR:-"$EXT_IPADDR"}  # Setting the IP address
 export LOCAL_TEST=${LOCAL_TEST:-"false"}
 if [[ ${LOCAL_TEST} == "true" ]]; then
     HOST_IP=$(/sbin/ip -o -4 addr list eth0 | awk '{print $4}' | cut -d/ -f1)
@@ -621,7 +621,7 @@ jq --argjson LOAD_PEERS_FROM_IISS "$LOAD_PEERS_FROM_IISS" '.LOAD_PEERS_FROM_IISS
 
 
 IS_REG=$(curl "${SERVICE_API}" -d '{"jsonrpc":"2.0","method":"icx_call","id":2696368077,"params":{"from":"hx0000000000000000000000000000000000000000","to":"cx0000000000000000000000000000000000000000","dataType":"call","data":{"method":"getPReps"}}}' |  \
- jq -r --arg PEER_ID "$PEER_ID" '.result.preps[] |select(.address=="\($PEER_ID)")|.grade')
+ jq -r --arg PEER_ID "$PEER_ID" '.result.preps[] |select(.nodeAddress=="\($PEER_ID)")|.grade')
 REG_STATUS=""
 
 case "$IS_REG" in
