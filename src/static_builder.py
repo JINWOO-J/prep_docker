@@ -1,15 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
-from termcolor import cprint
 import subprocess
 import json
-import argparse, binascii, sys, os
+import argparse, sys, os
 import timeit
 import requests
+from termcolor import cprint
 from halo import Halo
 
-# args.default_dir = "/build"
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 
 def openJson(filename):
     try:
@@ -24,37 +33,16 @@ def openJson(filename):
         result = {}
     return result
 
-def kvPrint(key, value, color="yellow"):
-    class bcolors:
-        HEADER = '\033[95m'
-        OKBLUE = '\033[94m'
-        OKGREEN = '\033[92m'
-        WARNING = '\033[93m'
-        FAIL = '\033[91m'
-        ENDC = '\033[0m'
-        BOLD = '\033[1m'
-        UNDERLINE = '\033[4m'
 
+def kvPrint(key, value, color="yellow"):
     key_width = 9
     key_value = 3
-
     print(bcolors.OKGREEN + "{:>{key_width}} : ".format(key, key_width=key_width) + bcolors.ENDC, end="")
     print(bcolors.WARNING + "{:>{key_value}} ".format(str(value), key_value=key_value) + bcolors.ENDC)
 
 
 def run_execute(text, cmd, cwd=None, status_check="OK"):
     global args
-
-    class bcolors:
-        HEADER = '\033[95m'
-        OKBLUE = '\033[94m'
-        OKGREEN = '\033[92m'
-        WARNING = '\033[93m'
-        FAIL = '\033[91m'
-        ENDC = '\033[0m'
-        BOLD = '\033[1m'
-        UNDERLINE = '\033[4m'
-
     if args.verbose:
         spinner = Halo(text=text, spinner='dots')
         spinner.start()
@@ -92,7 +80,7 @@ def git_clone(repo_name, url, revision=None):
     repo_dir = f"{args.default_dir}/{repo_name}"
     os.system(f"rm -rf {repo_dir}")
     os.makedirs(repo_dir, exist_ok=True)
-    kvPrint("\n\nRepository Name",repo_name)
+    # kvPrint("\n\nRepository Name", repo_name)
     # os.system(f"git clone --quiet -n {url} {repo_dir} ")
     run_execute(f"[git clone] {repo_name} ",f"git clone --quiet -n {url} {repo_dir} ")
     os.chdir(repo_dir)
@@ -104,7 +92,6 @@ def git_clone(repo_name, url, revision=None):
         cprint(f"Revision not found - {revision} ", "red")
         cprint(f"Latest Version -> ", "green")
         revision_res = os.system(f"git checkout ;git {GIT_OPTION} log {GIT_LOGGER_OPTION}")
-
     os.chdir(pwd)
 
 
@@ -139,9 +126,9 @@ def main():
         if os.path.isdir(args.output_dir) is False:
             os.mkdir(args.output_dir)
         version_info = openJson(f"{version_info_file}")
+        run_execute("remove the old output", f"rm  -rf  {args.output_dir}")
 
     print(version_info)
-
     which_git = run_execute("find git", "which git", status_check="No")
 
     if which_git != 0:
@@ -155,7 +142,8 @@ def main():
             cprint(f" Using environment {revision} -> {os.environ.get(repo_name)}", "green")
             revision = os.environ.get(repo_name)
 
-        cprint(f" {repo_name} ,  {url} , {revision} ")
+        kvPrint("\n\nRepository Name", repo_name)
+        cprint(f" url:  {url}  rev: {revision} ")
         git_clone(repo_name, url, revision)
         if repo_name == "icon_rc":
 
@@ -184,7 +172,6 @@ def main():
             run_execute(f"Build {repo_name}", f"work_path={work_path}")
             run_execute(f"Install python dependencies", f"pip3 install {quiet_mode} -r requirements.txt", cwd=work_path)
             run_execute(f"Build a wheel file", f"export VERSION={revision}; python3 setup.py bdist_wheel {quiet_mode} --dist-dir {args.output_dir} >>/dev/null", cwd=work_path)
-
 
 
 def banner():

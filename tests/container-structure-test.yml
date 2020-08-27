@@ -47,7 +47,7 @@ commandTests:
     args:
       - -c
       - |
-        tbears keystore /keystore.json  -p $KEY_PASSWORD &&
+        icon_wallet.py keystore -f /keystore.json  -p $KEY_PASSWORD &&
         /src/getPeerID.py /keystore.json $KEY_PASSWORD
     expectedOutput: ["hx.*"]
 
@@ -57,7 +57,7 @@ commandTests:
     args:
       - -c
       - |
-        tbears keystore /keystore  -p $KEY_PASSWORD &&
+        icon_wallet.py keystore -f /keystore  -p $KEY_PASSWORD &&
         /src/getPeerID.py /keystore  $KEY_PASSWORD
     expectedOutput: ["hx.*"]
 
@@ -67,7 +67,7 @@ commandTests:
     args:
       - -c
       - |
-        tbears keystore /keystore.json  -p $KEY_PASSWORD &&
+        icon_wallet.py keystore -f /keystore.json  -p $KEY_PASSWORD &&
         printf '\xEF\xBB\xBF' > /keystore_with_bom.json &&
         cat /keystore.json >> /keystore_with_bom.json &&
         /src/getPeerID.py /keystore_with_bom.json $KEY_PASSWORD

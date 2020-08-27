@@ -48,7 +48,7 @@ ENV TZ="Asia/Seoul"  \
     erlang-ssl  erlang-syntax-tools erlang-tftp \
     erlang-tools erlang-xmerl"\
     DELETE_PACKAGE="gcc gcc-6 g++* g++-6* make git automake" \
-    PIP3_PACKAGE="tbears iconsdk python-hosts halo termcolor pycurl" \
+    PIP3_PACKAGE="iconsdk python-hosts halo termcolor pycurl secp256k1==0.13.2 cryptography==2.8" \
     IS_STATIC_BUILD=${IS_STATIC_BUILD} \
     REMOVE_BUILD_PACKAGE=${REMOVE_BUILD_PACKAGE}
 
@@ -87,7 +87,6 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
     tar zxf go${GO_VERSION}.linux-amd64.tar.gz ; \
     rm go${GO_VERSION}.linux-amd64.tar.gz ; \
     mv go /usr/local/
-
 
 EXPOSE 9000
 EXPOSE 7100
