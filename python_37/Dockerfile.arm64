@@ -100,9 +100,9 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
         fi;\
     done && \
     if [ "x$RC_BUILD" != "x" ];then \
-        wget https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz ; \
-        tar zxf go${GO_VERSION}.linux-amd64.tar.gz ; \
-        rm go${GO_VERSION}.linux-amd64.tar.gz ; \
+        wget https://dl.google.com/go/go${GO_VERSION}.linux-arm64.tar.gz ; \
+        tar zxf go${GO_VERSION}.linux-arm64.tar.gz ; \
+        rm go${GO_VERSION}.linux-arm64.tar.gz ; \
         mv go /usr/local/ ; \
         git clone https://github.com/icon-project/rewardcalculator ; \
         cd rewardcalculator ; \

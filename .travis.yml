@@ -46,7 +46,7 @@ before_install:
 
 install:
   - |
-    if [[ "{$ARCH}" == "arm64" ]]; then
+    if [[ "${ARCH}" == "arm64" ]]; then
       make build_python_arm64 IS_LOCAL=$IS_LOCAL IS_STATIC_BUILD=$IS_STATIC_BUILD VERSION_ARG=$VERSION
     else
       make build_python IS_LOCAL=$IS_LOCAL IS_STATIC_BUILD=$IS_STATIC_BUILD VERSION_ARG=$VERSION
