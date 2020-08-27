@@ -2,9 +2,9 @@ language: python
 python:
   - "3.7"
 
-arch:
-  - amd64
-  - arm64
+#arch:
+#  - amd64
+#  - arm64
 
 services:
   - docker
@@ -19,15 +19,18 @@ env:  # N times sandboxes created and built by jobs
 jobs:
   include:
     - os: linux
-      env: IS_STATIC_BUILD="true"
-    - os: linux
-      env: IS_STATIC_BUILD="false"
-    - os: linux
       arch: amd64
       env: IS_STATIC_BUILD="true"
     - os: linux
-      arch: arm64
+      arch: amd64
       env: IS_STATIC_BUILD="false"
+    - os: linux
+      arch: arm64
+      env: IS_STATIC_BUILD="true" ARCH="arm64"
+    - os: linux
+      arch: arm64
+      env: IS_STATIC_BUILD="false" ARCH="arm64"
+
 branches:
   only:
     - master
@@ -42,7 +45,12 @@ before_install:
     shellcheck --version
 
 install:
-  - make build_python IS_LOCAL=$IS_LOCAL IS_STATIC_BUILD=$IS_STATIC_BUILD VERSION_ARG=$VERSION
+  - |
+    if [[ "{ARCH}" == "arm64" ]]; then
+      make build_python_arm64 IS_LOCAL=$IS_LOCAL IS_STATIC_BUILD=$IS_STATIC_BUILD VERSION_ARG=$VERSION
+    else
+      make build_python IS_LOCAL=$IS_LOCAL IS_STATIC_BUILD=$IS_STATIC_BUILD VERSION_ARG=$VERSION
+    fi
   - make test IS_LOCAL=$IS_LOCAL VERSION_ARG=$VERSION
   - >
     docker run -d --rm -p 9000:9000
