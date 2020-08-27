@@ -2,6 +2,10 @@ language: python
 python:
   - "3.7"
 
+arch:
+  - amd64
+  - arm64
+
 services:
   - docker
 
@@ -11,9 +15,19 @@ env:  # N times sandboxes created and built by jobs
     - CREP_ROOT_HASH="0x9718f5d6d6ddb77f547ecc7113c8f1bad1bf46220512fbde356eee74a90ba47c" #for mainnet
     - WAIT_RETRY=30
     - CURL_OPTION="--connect-timeout 1 --max-time 1 -s "
-  jobs:
-    - IS_STATIC_BUILD="true"
-    - IS_STATIC_BUILD="false"
+
+jobs:
+  include:
+    - os: linux
+      env: IS_STATIC_BUILD="true"
+    - os: linux
+      env: IS_STATIC_BUILD="false"
+    - os: linux
+      arch: amd64
+      env: IS_STATIC_BUILD="true"
+    - os: linux
+      arch: arm64
+      env: IS_STATIC_BUILD="false"
 branches:
   only:
     - master
@@ -59,6 +73,6 @@ script:
       echo "something wrong"
       docker logs prep-node
       exit 1
-    fi  
+    fi
 
 after_failure: docker logs prep-node

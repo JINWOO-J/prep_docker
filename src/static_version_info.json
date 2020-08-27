@@ -13,7 +13,7 @@
     },
     "iconservice": {
         "url": "https://github.com/icon-project/icon-service",
-        "revision": "1.7.5"
+        "revision": "1.7.6"
     },
     "iconrpcserver": {
         "url": "https://github.com/icon-project/icon-rpc-server",
