@@ -15,7 +15,7 @@ region_info = {
     "Seoul": ".s3",
     "Tokyo": "-jp.s3",
     "Virginia": "-va.s3",
-    "Hongkong": "-hk.s3.ap-east-1",
+    "Hongkong": "-hk.s3",
     "Singapore": "-sg.s3",
     "Mumbai"   : "-mb.s3",
     "Frankfurt": "-ff.s3",
