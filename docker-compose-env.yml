@@ -9,6 +9,7 @@ services:
          LOOPCHAIN_LOG_LEVEL: "DEBUG"
          LOCAL_TEST: "true"
          LOG_OUTPUT_TYPE: "file"
+         VIEW_CONFIG: "true"
          USER_DEFINED_ENV: | #join with newline  # position=value|config_file
             .CHANNEL_OPTION.icon_dex.block_versions."0.1a"=10|configure_json
             .CHANNEL_OPTION.icon_dex.block_versions."0.3"=2000|configure_json

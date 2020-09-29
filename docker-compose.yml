@@ -1,7 +1,7 @@
 version: "3"
 services:
    prep:
-      image: iconloop/prep-node:2008032356xc7087e
+      image: iconloop/prep-node:2009031457xdaf395
       container_name: "prep-mainnet"
       network_mode: host
       restart: "on-failure"

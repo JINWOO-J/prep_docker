@@ -126,7 +126,7 @@ For MainNet
 version: "3"
 services:
    prep:
-      image: iconloop/prep-node:2008032356xc7087e
+      image: iconloop/prep-node:2009031457xdaf395
       container_name: "prep-mainnet"
       network_mode: host
       restart: "on-failure"
@@ -150,7 +150,7 @@ services:
 ```
 
 ## prep-node docker environment settings
-###### Generated on 2020-08-27 13:14:27 
+###### Generated on 2020-09-29 09:27:01 
 | Environment variable | Description|Default value| Allowed value|
 |--------|--------|-------|-------|
 | EXT\_IPADDR| Getting external IP address|$(curl http://checkip.amazonaws.com)||

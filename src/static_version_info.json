@@ -13,11 +13,11 @@
     },
     "iconservice": {
         "url": "https://github.com/icon-project/icon-service",
-        "revision": "1.7.6"
+        "revision": "1.7.7"
     },
     "iconrpcserver": {
         "url": "https://github.com/icon-project/icon-rpc-server",
-        "revision": "1.5.0"
+        "revision": "1.5.1"
     },
     "icon_rc": {
         "url": "https://github.com/icon-project/rewardcalculator",
