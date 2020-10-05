@@ -176,7 +176,7 @@ builder: make_build_args
 		-t $(REPO_HUB)/$(NAME):builder .
 
 static: make_build_args
-		docker build --no-cache --rm=true -f python_37/Dockerfile.builder  \
+		docker build --no-cache --rm=true -f python_37/Dockerfile.static_builder  \
 		--build-arg IS_STATIC=true  --build-arg IS_LOCAL=true  \
 		$(shell cat BUILD_ARGS) \
 		-t $(REPO_HUB)/$(NAME):$(TAGNAME) .
