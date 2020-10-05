@@ -125,7 +125,7 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
         rm -rf /var/lib/apt/lists/* ; \
         #TODO CHANGE temporary function
         rm -rf /build ;\
-    fi; 
+    fi;
 
 
 EXPOSE 9000
