@@ -1,4 +1,4 @@
-FROM python:3.7.3-slim-stretch
+FROM python:3.7.4-slim-stretch
 ARG BUILD_DATE
 ARG VCS_REF
 ARG VERSION
