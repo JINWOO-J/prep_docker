@@ -119,7 +119,6 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
         make install DST_DIR=/usr/local/bin ; \
         cd .. && rm -rf rewardcalculator /usr/local/go ; \
     fi ; \
-    pip3 install msgpack==0.6.2 ;\
     if [ "$REMOVE_BUILD_PACKAGE" = "true" ]; then \
         apt-get purge -y --auto-remove $DELETE_PACKAGE && \
         rm -rf /var/lib/apt/lists/* ; \
