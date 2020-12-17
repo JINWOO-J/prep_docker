@@ -28,18 +28,19 @@ def dump(obj, nested_level=0, output=sys.stdout):
         print('%s{' % (def_spacing + (nested_level) * spacing))
         for k, v in obj.items():
             if hasattr(v, '__iter__'):
-                print(bcolors.OKGREEN + '%s%s:' % (def_spacing +(nested_level + 1) * spacing, k) + bcolors.ENDC, end="")
+                print(bcolors.OKGREEN + '%s%s:' % (def_spacing + (nested_level + 1) * spacing, k) + bcolors.ENDC, end="")
                 dump(v, nested_level + 1, output)
             else:
-                print(bcolors.OKGREEN + '%s%s:' % (def_spacing + (nested_level + 1) * spacing, k) + bcolors.WARNING + ' %s' % v + bcolors.ENDC, file=output)
+                print(bcolors.OKGREEN + '%s%s:' % (def_spacing + (nested_level + 1) * spacing, k) + bcolors.WARNING + ' %s' % v + bcolors.ENDC,
+                      file=output)
         print('%s}' % (def_spacing + nested_level * spacing), file=output)
     elif isinstance(obj, list):
-        print('%s[' % (def_spacing+ (nested_level) * spacing), file=output)
+        print('%s[' % (def_spacing + (nested_level) * spacing), file=output)
         for v in obj:
             if hasattr(v, '__iter__'):
                 dump(v, nested_level + 1, output)
             else:
-                print (bcolors.WARNING + '%s%s' % ( def_spacing + (nested_level + 1) * spacing, v) + bcolors.ENDC, file=output)
+                print(bcolors.WARNING + '%s%s' % (def_spacing + (nested_level + 1) * spacing, v) + bcolors.ENDC, file=output)
         print('%s]' % (def_spacing + (nested_level) * spacing), file=output)
     else:
         print(bcolors.WARNING + '%s%s' % (def_spacing + nested_level * spacing, obj) + bcolors.ENDC)
@@ -56,7 +57,7 @@ def get_bcolors(text, color, bold=False, width=None):
 
 def print_debug(text, color="WHITE"):
     time_string = todaydate('ms')
-    print(f"{get_bcolors(time_string, color='WHITE',bold=True)} {get_bcolors(text, color)}")
+    print(f"{get_bcolors(time_string, color='WHITE', bold=True)} {get_bcolors(text, color)}")
 
 
 def todaydate(date_type=None):
@@ -103,14 +104,14 @@ def get_loopchain_state(ipaddr="localhost", port=os.environ.get('RPC_PORT', 9000
     return return_result
 
 
-def second_to_dayhhmm(time):
-    day = int(time // (24 * 3600))
-    time = int(time % (24 * 3600))
-    hour = time // 3600
-    time %= 3600
-    minutes = time // 60
-    time %= 60
-    seconds = time
+def second_to_dayhhmm(input_time):
+    day = int(input_time // (24 * 3600))
+    input_time = int(input_time % (24 * 3600))
+    hour = input_time // 3600
+    input_time %= 3600
+    minutes = input_time // 60
+    input_time %= 60
+    seconds = input_time
     return f"{day}d {append_zero(hour)}:{append_zero(minutes)}:{append_zero(seconds)}"
 
 
@@ -145,6 +146,7 @@ if __name__ == '__main__':
     }
 
     bh_count = 0
+    reset_count = 20
     bh_tps_sum = 0
     bh_tps_mean = 0
 
@@ -168,25 +170,27 @@ if __name__ == '__main__':
 
         if now_blockheight:
             time_diff = now_dict.get("prev_time", 0) - prev_time
-            blockheight_tps = f"{(now_blockheight - prev_blockheight)/time_diff:.2f}"
-            total_tx_tps = f"{(now_total_tx - prev_total_tx)/time_diff:.2f}"
+            blockheight_tps = f"{(now_blockheight - prev_blockheight) / time_diff:.2f}"
+            total_tx_tps = f"{(now_total_tx - prev_total_tx) / time_diff:.2f}"
 
             if prev_blockheight != 0:
+                if bh_count >= reset_count:
+                    bh_count = 0
+                    bh_tps_sum = 0
+                    bh_tps_mean = 0
+
                 bh_count += 1
                 bh_tps_sum += float(blockheight_tps)
-                bh_tps_mean = round(bh_tps_sum/bh_count, 1)
+                bh_tps_mean = round(bh_tps_sum / bh_count, 1)
 
             if args.verbose > 0:
                 parent_network_info = get_loopchain_state(parent_network_url, port="")
                 left_block = parent_network_info.get("block_height") - now_blockheight
-                if float(left_block) > 0 and float(blockheight_tps) > 0:
-                    # left_time = int(left_block / float(blockheight_tps)) / 60
-
-                    left_time = second_to_dayhhmm(left_block /bh_tps_mean)
-                    # left_time = int(left_block) / 60
+                if float(left_block) > 0 and float(blockheight_tps) > 0 and bh_tps_mean > 0:
+                    left_time = second_to_dayhhmm(left_block / bh_tps_mean)
                 else:
-                   left_time = 0
-                   left_block = 0
+                    left_time = 0
+                    left_block = 0
 
                 left_string = f"left_block: {left_block:,}, left_time: {left_time}"
             else:
@@ -194,7 +198,7 @@ if __name__ == '__main__':
 
         if blockheight_tps:
             print_debug(f"BH:{now_blockheight:,}, TX:{now_total_tx:,}, bps:{blockheight_tps}, tps:{total_tx_tps}, " +
-                            f"state:{now_dict.get('state')}, nid:{now_dict.get('nid')}, bh_tps_mean:{bh_tps_mean}, {left_string}")
+                        f"state:{now_dict.get('state')}, nid:{now_dict.get('nid')}, bh_tps_mean:{bh_tps_mean}, {left_string}")
 
         prev_blockheight = now_blockheight
         prev_total_tx = now_total_tx
