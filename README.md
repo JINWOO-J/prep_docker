@@ -150,7 +150,7 @@ services:
 ```
 
 ## prep-node docker environment settings
-###### Generated on 2020-10-05 14:15:52 
+###### Generated on 2020-12-17 09:48:33 
 | Environment variable | Description|Default value| Allowed value|
 |--------|--------|-------|-------|
 | EXT\_IPADDR| Getting external IP address|$(curl http://checkip.amazonaws.com)||
@@ -241,7 +241,7 @@ services:
 | HEALTH\_CHECK\_INTERVAL| Trigger if greater than 1|30||
 | ERROR\_LIMIT|6|6||
 | HELL\_LIMIT|300|300||
-| CHECK\_PROC\_LIST|/bin/loop channel icon\_rc icon\_service gunicorn|/bin/loop channel icon\_rc icon\_service gunicorn||
+| CHECK\_PROC\_LIST|  Watchdog process names|/bin/loop channel icon\_rc icon\_service gunicorn||
 | USE\_SLACK|  if you want to use the slack|no||
 | SLACK\_URL|  slack's webhook URL|||
 | SLACK\_PREFIX| slack's prefix header message|||

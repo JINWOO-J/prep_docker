@@ -89,7 +89,7 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
     elif [ "x$DOWNLOAD_PACKAGE" != "x" ]; then  \
         ls /$APP_DIR/whl/ ; \
         wget $DOWNLOAD_PACKAGE -O /$APP_DIR/whl/DOWNLOAD.tar.gz || exit 1; \
-        tar zxvf /$APP_DIR/whl/*.gz --strip 1 -C /$APP_DIR/whl/ ; \
+        tar zxvf /$APP_DIR/whl/*.gz  -C /$APP_DIR/whl/ ; \
 #        cp /$APP_DIR/whl/icon_rc /usr/local/bin ; \
     fi ; \
     WHL_LIST=`find /$APP_DIR/ -name "*.whl"` && \
