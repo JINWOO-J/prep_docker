@@ -5,7 +5,7 @@ import requests
 import json
 import time
 from datetime import datetime
-
+import argparse
 
 class bcolors:
     HEADER = '\033[95m'
@@ -104,27 +104,57 @@ def disable_ssl_warnings():
 
 if __name__ == '__main__':
     disable_ssl_warnings()
+    parser = argparse.ArgumentParser(prog='checker')
+    parser.add_argument('url')
+    parser.add_argument('-n', '--network', type=str, help=f'network type (mainnet|testnet|bicon|zicon)', default="mainnet")
+    parser.add_argument('-v', '--verbose', action='count', help=f'verbose mode. view level', default=0)
+
+    args = parser.parse_args()
+
+    network_info = {
+        "mainnet": "https://ctz.solidwallet.io",
+        "testnet": "https://test-ctz.solidwallet.io",
+        "bicon": "https://bicon.net.solidwallet.io",
+        "zicon": "https://zicon.net.solidwallet.io",
+    }
+
     prev_blockheight = 0
     prev_total_tx = 0
     prev_time = 0
 
-    try:
-        ipaddr = sys.argv[1]
-    except IndexError:
-        ipaddr = "localhost"
+    parent_network_url = network_info.get(args.network)
+
+    print_debug(f"START get status from {args.url}")
+    if args.verbose > 0:
+        print_debug(f"get parent status from {parent_network_url}")
 
     while True:
-        now_dict = get_loopchain_state(ipaddr)
+        now_dict = get_loopchain_state(args.url)
         now_blockheight = now_dict.get("block_height", 0)
         now_total_tx = now_dict.get("total_tx", 0)
         now_time = now_dict.get("prev_time", 0)
 
         if now_blockheight:
+
             time_diff = now_dict.get("prev_time", 0) - prev_time
             blockheight_tps = f"{(now_blockheight - prev_blockheight)/time_diff:.2f}"
             total_tx_tps = f"{(now_total_tx - prev_total_tx)/time_diff:.2f}"
-            print_debug(f"BH:{now_blockheight:,}, TX:{now_total_tx:,}, bps:{blockheight_tps}, tps:{total_tx_tps}, " +
-                        f"state:{now_dict.get('state')}, nid:{now_dict.get('nid')}, peer_target: {now_dict.get('peer_target')}")
+
+            if args.verbose > 0:
+                parent_network_info = get_loopchain_state(parent_network_url, port="")
+                left_block = parent_network_info.get("block_height") - now_blockheight
+                if float(left_block) > 0 and float(blockheight_tps) > 0:
+                    left_time = int(left_block / float(blockheight_tps)) / 60
+                else:
+                   left_time = 0
+                   left_block = 0
+
+                left_string = f"left_block: {left_block}, left_time: {left_time}h"
+            else:
+                left_string = ""
+
+        print_debug(f"BH:{now_blockheight:,}, TX:{now_total_tx:,}, bps:{blockheight_tps}, tps:{total_tx_tps}, " +
+                        f"state:{now_dict.get('state')}, nid:{now_dict.get('nid')}, {left_string}")
 
         prev_blockheight = now_blockheight
         prev_total_tx = now_total_tx
