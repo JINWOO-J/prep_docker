@@ -227,10 +227,7 @@ list:
 change_docker:
 	sed -i $(SED_OPTION) "s/$(REPO_HUB)\/$(NAME).*/$(REPO_HUB)\/$(NAME):$(VERSION)/g" docker-compose.yml
 
-
-
-
-gendocs:
+gendocs: change_docker
 	@$(shell ./makeMarkDown.sh)
 #	@$(foreach image, prep-node, \
 #	    echo "## $(image) docker setting" >README.md ;\

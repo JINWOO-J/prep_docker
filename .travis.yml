@@ -69,7 +69,7 @@ script:
       NEXT_WAIT_TIME=$(( NEXT_WAIT_TIME+1 ));
       sleep 1;
     done
-  - sleep 40
+  - sleep 20
   - docker ps -a
   - peer_status=$(curl $CURL_OPTION http://localhost:9000/api/v1/status/peer)
   - echo $peer_status | jq

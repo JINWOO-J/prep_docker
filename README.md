@@ -8,10 +8,10 @@
 
 
 #### Travis-build
-[![Master Build Status](https://travis-ci.org/JINWOO-J/prep_docker.svg?branch=master)](https://travis-ci.org/JINWOO-J/prep_docker) 
+[![Master Build Status](https://travis-ci.org/JINWOO-J/prep_docker.svg?branch=master)](https://travis-ci.com/JINWOO-J/prep_docker) 
 
-[![Build History](https://buildstats.info/travisci/chart/jinwoo-j/prep_docker?branch=master&includeBuildsFromPullRequest=false&buildCount=30)](https://travis-ci.org/jinwoo-j/prep_docker)
-[![Build History](https://buildstats.info/travisci/chart/jinwoo-j/prep_docker?branch=devel&includeBuildsFromPullRequest=false&buildCount=30)](https://travis-ci.org/jinwoo-j/prep_docker)
+[![Build History](https://buildstats.info/travisci/chart/jinwoo-j/prep_docker?branch=master&includeBuildsFromPullRequest=false&buildCount=30)](https://travis-ci.com/jinwoo-j/prep_docker)
+[![Build History](https://buildstats.info/travisci/chart/jinwoo-j/prep_docker?branch=devel&includeBuildsFromPullRequest=false&buildCount=30)](https://travis-ci.com/jinwoo-j/prep_docker)
 
 
 ## Introduction to prep-node
@@ -126,7 +126,7 @@ For MainNet
 version: "3"
 services:
    prep:
-      image: iconloop/prep-node:2009031457xdaf395
+      image: iconloop/prep-node:2020.11rc5
       container_name: "prep-mainnet"
       network_mode: host
       restart: "on-failure"
@@ -150,7 +150,7 @@ services:
 ```
 
 ## prep-node docker environment settings
-###### Generated on 2020-12-17 09:48:33 
+###### Generated on 2020-12-17 10:21:08 
 | Environment variable | Description|Default value| Allowed value|
 |--------|--------|-------|-------|
 | EXT\_IPADDR| Getting external IP address|$(curl http://checkip.amazonaws.com)||
