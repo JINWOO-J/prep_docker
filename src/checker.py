@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
+from datetime import datetime
+from urllib.parse import urlparse
 import sys
 import os
-import requests
-import json
 import time
-from datetime import datetime
 import argparse
-from urllib.parse import urlparse
+import requests
 
 
 class bcolors:
@@ -87,7 +86,6 @@ def get_loopchain_state(ipaddr="localhost", port=os.environ.get('RPC_PORT', 9000
     return_result = {}
     try:
         session = requests.Session()
-        session.auth = ("guest", "guest")
         r = session.get(url, verify=False, timeout=10)
         return_result = r.json()
         return_result['prev_time'] = time.time()
@@ -95,12 +93,9 @@ def get_loopchain_state(ipaddr="localhost", port=os.environ.get('RPC_PORT', 9000
 
     except:
         print(f"error while connecting server... {url}")
-        # sys.exit(1)
-    # if r.status_code == 200:
-    #     return_result=r.json()
-    # else:
-    #     print(f"status_code error={r.status_code}")
-    #     sys.exit(1)
+        return_result = {
+            "block_height": 0
+        }
     return return_result
 
 
@@ -130,13 +125,10 @@ if __name__ == '__main__':
     disable_ssl_warnings()
     parser = argparse.ArgumentParser(prog='checker')
     parser.add_argument('url', nargs='?', default="localhost:9000")
-    parser.add_argument('-n', '--network', type=str, help=f'network type (mainnet|testnet|bicon|zicon)', default="mainnet")
+    parser.add_argument('-n', '--network', type=str, help=f'parent network type (mainnet|testnet|bicon|zicon)', default="mainnet")
     parser.add_argument('-v', '--verbose', action='count', help=f'verbose mode. view level', default=0)
 
     args = parser.parse_args()
-
-    if os.environ.get('NETWORK_ENV', None):
-        parser.network = os.environ.get('NETWORK_ENV', None)
 
     network_info = {
         "mainnet": "https://ctz.solidwallet.io",
@@ -145,10 +137,20 @@ if __name__ == '__main__':
         "zicon": "https://zicon.net.solidwallet.io",
     }
 
+    if os.environ.get('SERVICE', None):
+        args.network = os.environ['SERVICE']
+    elif os.environ.get('NETWORK_ENV', None):
+        args.network = os.environ['NETWORK_ENV']
+
+    if args.network in network_info.keys():
+        parent_network_url = network_info.get(args.network)
+    else:
+        parent_network_url = args.network
+
     bh_count = 0
     reset_count = 20
-    bh_tps_sum = 0
-    bh_tps_mean = 0
+    bps_sum = 0
+    bps_mean = 0
 
     prev_blockheight = 0
     prev_total_tx = 0
@@ -156,11 +158,9 @@ if __name__ == '__main__':
     blockheight_tps = 0
     total_tx_tps = 0
 
-    parent_network_url = network_info.get(args.network)
-
-    print_debug(f"START get status from {args.url}")
+    print_debug(f"Target peer: {args.url}")
     if args.verbose > 0:
-        print_debug(f"[{args.network}] get parent status from {parent_network_url}")
+        print_debug(f"Get parent status from {parent_network_url}")
 
     while True:
         now_dict = get_loopchain_state(args.url)
@@ -176,18 +176,18 @@ if __name__ == '__main__':
             if prev_blockheight != 0:
                 if bh_count >= reset_count:
                     bh_count = 0
-                    bh_tps_sum = 0
-                    bh_tps_mean = 0
+                    bps_sum = 0
+                    bps_mean = 0
 
                 bh_count += 1
-                bh_tps_sum += float(blockheight_tps)
-                bh_tps_mean = round(bh_tps_sum / bh_count, 1)
+                bps_sum += float(blockheight_tps)
+                bps_mean = round(bps_sum / bh_count, 1)
 
             if args.verbose > 0:
                 parent_network_info = get_loopchain_state(parent_network_url, port="")
                 left_block = parent_network_info.get("block_height") - now_blockheight
-                if float(left_block) > 0 and float(blockheight_tps) > 0 and bh_tps_mean > 0:
-                    left_time = second_to_dayhhmm(left_block / bh_tps_mean)
+                if float(left_block) > 0 and float(blockheight_tps) > 0 and bps_mean > 0:
+                    left_time = second_to_dayhhmm(left_block / bps_mean)
                 else:
                     left_time = 0
                     left_block = 0
@@ -198,7 +198,7 @@ if __name__ == '__main__':
 
         if blockheight_tps:
             print_debug(f"BH:{now_blockheight:,}, TX:{now_total_tx:,}, bps:{blockheight_tps}, tps:{total_tx_tps}, " +
-                        f"state:{now_dict.get('state')}, nid:{now_dict.get('nid')}, bh_tps_mean:{bh_tps_mean}, {left_string}")
+                        f"state:{now_dict.get('state')}, nid:{now_dict.get('nid')}, bps_mean:{bps_mean}, {left_string}")
 
         prev_blockheight = now_blockheight
         prev_total_tx = now_total_tx
