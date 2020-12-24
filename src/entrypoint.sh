@@ -935,10 +935,10 @@ else
         rabbitmqctl set_permissions -p / "$MQ_ADMIN" ".*" ".*" ".*"
         export AMQP_USERNAME=$MQ_ADMIN
         export AMQP_PASSWORD=$MQ_PASSWORD
+    fi
 
-        if [[ "${USE_LAZY_MQ}" == "true" ]]; then
-            rabbitmqctl set_policy Lazy "^amq" '{"queue-mode":"lazy"}' --apply-to queues
-        fi
+    if [[ "${USE_EXTERNAL_MQ}" == "false" ]] && [[ "${USE_LAZY_MQ}" == "true" ]]; then
+        rabbitmqctl set_policy Lazy "^amq" '{"queue-mode":"lazy"}' --apply-to queues
     fi
 
 #log_stderr() {
