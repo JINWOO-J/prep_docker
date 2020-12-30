@@ -196,6 +196,7 @@ function getBlockCheck(){
                 fi
 
                 if [[ ${ERROR_COUNT} -ge ${HELL_LIMIT} ]];then
+                    gen_rabbitmq_report;
                     CPrint "[FAIL] (${ERROR_COUNT}/${HELL_LIMIT}) (HELL) It will be terminated / reason: Hell  "
                     post_to_slack "[FAIL] (${ERROR_COUNT}/${HELL_LIMIT}) It will be terminated / reason: Hell "
                     if [[ -d ${ERROR_DIR} ]]; then
@@ -210,6 +211,15 @@ function getBlockCheck(){
         fi
     fi
 }
+
+
+function gen_rabbitmq_report() {
+    if [[ "${USE_EXTERNAL_MQ}" == "false" ]]; then
+        LOG_DATE=$(date +%Y%m%d)
+        rabbitmqctl report >> "${DEFAULT_LOG_PATH}/rabbitmq_report.${LOG_DATE}"
+    fi
+}
+
 
 function post_to_slack () {
   #escapedText=$(echo $1 | sed 's/"/\"/g' | sed "s/'/\'/g" | sed 's/(?(?=\\n)[^\\n]|\\)/\\\\/g')
@@ -272,6 +282,7 @@ function returnErrorCount(){
         echo "${MSG}" >> "${ERROR_COUNT_FILE}"
         ERROR_COUNT=$(< "${ERROR_COUNT_FILE}" grep -v grep | grep -c "${MSG}")
         if [[ ${ERROR_COUNT} -ge ${ERROR_LIMIT} ]];then
+            gen_rabbitmq_report;
             CPrint "[FAIL] (${ERROR_COUNT}/${ERROR_LIMIT}) It will be terminated / reason: ${MSG} "
             post_to_slack "[FAIL] (${ERROR_COUNT}/${ERROR_LIMIT}) It will be terminated / reason: ${MSG} "
             if [[ -d ${ERROR_DIR} ]]; then
@@ -982,9 +993,7 @@ function proc_check(){
     PROC_CNT=$(pgrep -c -f "${PROC_NAME}")
 
     if [[ ${PROC_CNT} -eq 0 ]] ;then
-        if [[ ${VIEW_CONFIG} == "true" ]]; then
-            CPrint "[FAIL] '${PROC_NAME}' process down " "RED"
-        fi
+        CPrint "[FAIL] '${PROC_NAME}' process down " "RED"
         returnErrorCount "${PROC_NAME} process down" "${PROC_NAME}"
     else
         returnErrorCount "${PROC_NAME} process down" "${PROC_NAME}" "init"
