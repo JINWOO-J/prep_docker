@@ -1,11 +1,15 @@
-#FROM python:3.7.3-slim-stretch
 ARG BASE_IMAGE
-#FROM ${BASE_IMAGE}
 FROM ${BASE_IMAGE} AS build_stage
+ARG BUILD_DATE
 ARG VERSION
 ARG NAME
 ARG TAGNAME
 ARG IS_STATIC=$IS_STATIC
+
+LABEL org.label-schema.build-date=$BUILD_DATE \
+      org.label-schema.version=$VERSION \
+      org.label-schema.is_static=$IS_STATIC
+
 ENV TZ="Asia/Seoul"  \
     TERM="xterm-256color" \
     USERID=24988 \

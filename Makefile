@@ -181,6 +181,7 @@ static: make_build_args
 		$(shell cat BUILD_ARGS) \
 		-t $(REPO_HUB)/$(NAME):$(TAGNAME) .
 		docker inspect $(REPO_HUB)/$(NAME):$(TAGNAME) | jq -r ".[].Size" | numfmt --to=iec-i
+		docker inspect $(REPO_HUB)/$(NAME):$(TAGNAME) | jq ".[].ContainerConfig.Labels"
 
 pip_version:
 		docker run --rm --entrypoint "" -it $(REPO_HUB)/$(NAME):$(TAGNAME) pip3 list | egrep 'icon|loopchain'
