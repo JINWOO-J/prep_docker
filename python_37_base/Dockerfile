@@ -2,6 +2,7 @@ FROM python:3.7.3-slim-stretch
 ARG BUILD_DATE
 ARG VCS_REF
 ARG VERSION
+ARG REMOVE_BUILD_PACKAGE="true"
 LABEL maintainer="JINWOO <jinwoo@iconloop.com>" \
       org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.name="prep-node" \
@@ -22,7 +23,6 @@ ARG DOWNLOAD_PACKAGE=$DOWNLOAD_PACKAGE
 ARG RABBITMQ_VERSION="3.7.17"
 ARG GO_VERSION="1.12.7"
 ARG DOCKERIZE_VERSION="v0.6.1"
-ARG REMOVE_BUILD_PACKAGE="true"
 ENV TZ="Asia/Seoul"  \
     TERM="xterm-256color" \
     USERID=24988 \

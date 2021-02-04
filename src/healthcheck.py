@@ -37,7 +37,7 @@ def dump(obj, nested_level=0, output=sys.stdout):
         print(bcolors.WARNING + '%s%s' % (def_spacing + nested_level * spacing, obj) + bcolors.ENDC)
 
 
-def getLoopchainState(ipaddr="localhost", port=os.environ.get('RPC_PORT', 9000)):    
+def get_loopchain_state(ipaddr="localhost", port=os.environ.get('RPC_PORT', 9000)):
     url = f"http://{ipaddr}:{port}/api/v1/status/peer"
     try:
         r = requests.get(url, verify=False, timeout=15)
@@ -51,5 +51,6 @@ def getLoopchainState(ipaddr="localhost", port=os.environ.get('RPC_PORT', 9000))
         sys.exit(1)
     return
 
+
 if __name__ == '__main__':
-    getLoopchainState()
+    get_loopchain_state()

@@ -8,10 +8,10 @@
 
 
 #### Travis-build
-[![Master Build Status](https://travis-ci.org/JINWOO-J/prep_docker.svg?branch=master)](https://travis-ci.org/JINWOO-J/prep_docker) 
+[![Master Build Status](https://travis-ci.org/JINWOO-J/prep_docker.svg?branch=master)](https://travis-ci.com/JINWOO-J/prep_docker) 
 
-[![Build History](https://buildstats.info/travisci/chart/jinwoo-j/prep_docker?branch=master&includeBuildsFromPullRequest=false&buildCount=30)](https://travis-ci.org/jinwoo-j/prep_docker)
-[![Build History](https://buildstats.info/travisci/chart/jinwoo-j/prep_docker?branch=devel&includeBuildsFromPullRequest=false&buildCount=30)](https://travis-ci.org/jinwoo-j/prep_docker)
+[![Build History](https://buildstats.info/travisci/chart/jinwoo-j/prep_docker?branch=master&includeBuildsFromPullRequest=false&buildCount=30)](https://travis-ci.com/jinwoo-j/prep_docker)
+[![Build History](https://buildstats.info/travisci/chart/jinwoo-j/prep_docker?branch=devel&includeBuildsFromPullRequest=false&buildCount=30)](https://travis-ci.com/jinwoo-j/prep_docker)
 
 
 ## Introduction to prep-node
@@ -126,7 +126,7 @@ For MainNet
 version: "3"
 services:
    prep:
-      image: iconloop/prep-node:2008032356xc7087e
+      image: iconloop/prep-node:2020.11
       container_name: "prep-mainnet"
       network_mode: host
       restart: "on-failure"
@@ -150,7 +150,7 @@ services:
 ```
 
 ## prep-node docker environment settings
-###### Generated on 2020-08-27 13:14:27 
+###### Generated on 2020-12-17 14:48:33 
 | Environment variable | Description|Default value| Allowed value|
 |--------|--------|-------|-------|
 | EXT\_IPADDR| Getting external IP address|$(curl http://checkip.amazonaws.com)||
@@ -230,14 +230,18 @@ services:
 | STAKE\_LOCK\_MAX||||
 | STAKE\_LOCK\_MIN||||
 | RPC\_PORT| Choose a RPC service port|9000||
+| PORT|${RPC\_PORT}|${RPC\_PORT}||
 | RPC\_WORKER|Setting the number of RPC workers|3||
 | RPC\_GRACEFUL\_TIMEOUT| rpc graceful timeout|0||
+| AMQP\_KEY|Choose a AMQP\_KEY for Rabbitmq connection|7100| 7100|
+| PORT\_PEER|Choose a gRPC PORT|7100| 7100|
 | USE\_PROC\_HEALTH\_CHECK|yes|yes||
 | USE\_API\_HEALTH\_CHECK|yes|yes||
 | USE\_HELL\_CHECK|yes|yes||
 | HEALTH\_CHECK\_INTERVAL| Trigger if greater than 1|30||
 | ERROR\_LIMIT|6|6||
 | HELL\_LIMIT|300|300||
+| CHECK\_PROC\_LIST|  Watchdog process names|/bin/loop channel icon\_rc icon\_service gunicorn||
 | USE\_SLACK|  if you want to use the slack|no||
 | SLACK\_URL|  slack's webhook URL|||
 | SLACK\_PREFIX| slack's prefix header message|||

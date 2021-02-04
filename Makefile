@@ -1,10 +1,10 @@
 REPO_HUB = iconloop
 NAME = prep-node
-VERSION = 2008271251x7da45b
+VERSION = 2020.11.3
 RABBITMQ_VERSION = "3.7.23"
 GO_VERSION = "1.12.7"
 DOCKERIZE_VERSION = "v0.6.1"
-DOWNLOAD_PACKAGE = "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/docker_resource/$(VERSION)/docker_$(VERSION)_packages.tar.gz"
+DOWNLOAD_PACKAGE = "https://github.com/icon-project/icon-release/releases/download/$(VERSION)/$(VERSION)_packages.tar.gz"
 IS_LOCAL = true
 
 ifdef version
@@ -176,11 +176,15 @@ builder: make_build_args
 		-t $(REPO_HUB)/$(NAME):builder .
 
 static: make_build_args
-		docker build --no-cache --rm=true -f python_37/Dockerfile.builder  \
+		docker build --no-cache --rm=true -f python_37/Dockerfile.static_builder  \
 		--build-arg IS_STATIC=true  --build-arg IS_LOCAL=true  \
 		$(shell cat BUILD_ARGS) \
 		-t $(REPO_HUB)/$(NAME):$(TAGNAME) .
 		docker inspect $(REPO_HUB)/$(NAME):$(TAGNAME) | jq -r ".[].Size" | numfmt --to=iec-i
+		docker inspect $(REPO_HUB)/$(NAME):$(TAGNAME) | jq ".[].ContainerConfig.Labels"
+
+pip_version:
+		docker run --rm --entrypoint "" -it $(REPO_HUB)/$(NAME):$(TAGNAME) pip3 list | egrep 'icon|loopchain'
 
 push: print_version
 		docker tag  $(NAME):$(VERSION) $(REPO_HUB)/$(NAME):$(TAGNAME)
@@ -224,11 +228,8 @@ list:
 change_docker:
 	sed -i $(SED_OPTION) "s/$(REPO_HUB)\/$(NAME).*/$(REPO_HUB)\/$(NAME):$(VERSION)/g" docker-compose.yml
 
-
-
-
-gendocs:
-	@$(shell ./makeMakeDown.sh)
+gendocs: change_docker
+	@$(shell ./makeMarkDown.sh)
 #	@$(foreach image, prep-node, \
 #	    echo "## $(image) docker setting" >README.md ;\
 #		cat src/entrypoint.sh  | grep ^export | grep -v except| cut -d "=" -f 1 | sed 's/export//g' | sed 's/_/\\_/g' | sed -e 's/^/\|/' > text1 ;\

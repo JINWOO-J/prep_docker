@@ -1,4 +1,4 @@
-FROM python:3.7.3-slim-stretch
+FROM python:3.7.4-slim-stretch
 ARG BUILD_DATE
 ARG VCS_REF
 ARG VERSION
@@ -89,7 +89,7 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
     elif [ "x$DOWNLOAD_PACKAGE" != "x" ]; then  \
         ls /$APP_DIR/whl/ ; \
         wget $DOWNLOAD_PACKAGE -O /$APP_DIR/whl/DOWNLOAD.tar.gz || exit 1; \
-        tar zxvf /$APP_DIR/whl/*.gz --strip 1 -C /$APP_DIR/whl/ ; \
+        tar zxvf /$APP_DIR/whl/*.gz  -C /$APP_DIR/whl/ ; \
 #        cp /$APP_DIR/whl/icon_rc /usr/local/bin ; \
     fi ; \
     WHL_LIST=`find /$APP_DIR/ -name "*.whl"` && \
@@ -119,13 +119,12 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
         make install DST_DIR=/usr/local/bin ; \
         cd .. && rm -rf rewardcalculator /usr/local/go ; \
     fi ; \
-    pip3 install msgpack==0.6.2 ;\
     if [ "$REMOVE_BUILD_PACKAGE" = "true" ]; then \
         apt-get purge -y --auto-remove $DELETE_PACKAGE && \
         rm -rf /var/lib/apt/lists/* ; \
         #TODO CHANGE temporary function
         rm -rf /build ;\
-    fi; 
+    fi;
 
 
 EXPOSE 9000

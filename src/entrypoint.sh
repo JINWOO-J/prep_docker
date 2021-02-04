@@ -53,6 +53,8 @@ export NETWORK_NAME=${NETWORK_NAME:-""}
 export VIEW_CONFIG=${VIEW_CONFIG:-"false"}  # for check deployment state # boolean (true/false)
 export AMQP_TARGET=${AMQP_TARGET:-"127.0.0.1"}
 export USE_EXTERNAL_MQ=${USE_EXTERNAL_MQ:-"false"}
+export USE_LAZY_MQ=${USE_LAZY_MQ:-"false"}
+
 export USE_MQ_ADMIN=${USE_MQ_ADMIN:-"false"} # Enable RabbitMQ management Web interface.The management UI can be accessed  using a Web browser at http://{node-hostname}:15672/. For example, for a node running on a machine with the hostname of prep-node, it can be accessed at http://prepnode:15672/  # boolean (true/false)
 export MQ_ADMIN=${MQ_ADMIN:-"admin"}          # RabbitMQ management username
 export MQ_PASSWORD=${MQ_PASSWORD:-"iamicon"}     # RabbitMQ management password
@@ -122,9 +124,12 @@ export penaltyGracePeriod=${penaltyGracePeriod:-86400}
 export STAKE_LOCK_MAX=${STAKE_LOCK_MAX:-""}
 export STAKE_LOCK_MIN=${STAKE_LOCK_MIN:-""}
 
-export RPC_PORT=${PORT:-"9000"} # Choose a RPC service port
+export RPC_PORT=${RPC_PORT:-"9000"} # Choose a RPC service port
+export PORT=${PORT:-"${RPC_PORT}"}
 export RPC_WORKER=${RPC_WORKER:-"3"} #Setting the number of RPC workers
 export RPC_GRACEFUL_TIMEOUT=${RPC_GRACEFUL_TIMEOUT:-"0"} # rpc graceful timeout
+export AMQP_KEY=${AMQP_KEY:-"7100"} #Choose a AMQP_KEY for Rabbitmq connection # 7100
+export PORT_PEER=${PORT_PEER:-7100} #Choose a gRPC PORT # 7100
 
 export USE_PROC_HEALTH_CHECK=${USE_PROC_HEALTH_CHECK:-"yes"}
 export USE_API_HEALTH_CHECK=${USE_API_HEALTH_CHECK:-"yes"}
@@ -132,6 +137,7 @@ export USE_HELL_CHECK=${USE_HELL_CHECK:-"yes"}
 export HEALTH_CHECK_INTERVAL=${HEALTH_CHECK_INTERVAL:-"30"}  # Trigger if greater than 1
 export ERROR_LIMIT=${ERROR_LIMIT:-6}
 export HELL_LIMIT=${HELL_LIMIT:-300}
+export CHECK_PROC_LIST=${CHECK_PROC_LIST:-"/bin/loop channel icon_rc icon_service gunicorn"} #  Watchdog process names
 
 export USE_SLACK=${USE_SLACK:-"no"}  #  if you want to use the slack
 export SLACK_URL=${SLACK_URL:-""}    #  slack's webhook URL
@@ -141,7 +147,6 @@ export IS_DOWNLOAD_CERT=${IS_DOWNLOAD_CERT:-"false"}
 export IS_AUTOGEN_CERT=${IS_AUTOGEN_CERT:-"false"} # auto generate cert key # true, false
 export IS_COMPRESS_LOG=${IS_COMPRESS_LOG:-"false"} # auto compress loopchain and icon log via crontab # true, false
 export IS_WRITE_BH=${IS_WRITE_BH:-"true"} # write BH, TX, UX_TX, state on booting log  # true, false
-# export LEADER_COMPLAIN_RATIO=${LEADER_COMPLAIN_RATIO:-"0.67"}
 export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 
 #for bash prompt without entrypoint
@@ -149,14 +154,6 @@ export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 #$@ # instead of exec $@
 #echo $@
 #exec $@
-
-TIME_1=$(date +%s)
-sleep 5
-TIME_2=$(date +%s)
-
-DIFF=$((${TIME_2}-${TIME_1}))
-echo $DIFF
-
 
 
 function getBlockCheck(){
@@ -199,6 +196,7 @@ function getBlockCheck(){
                 fi
 
                 if [[ ${ERROR_COUNT} -ge ${HELL_LIMIT} ]];then
+                    gen_rabbitmq_report;
                     CPrint "[FAIL] (${ERROR_COUNT}/${HELL_LIMIT}) (HELL) It will be terminated / reason: Hell  "
                     post_to_slack "[FAIL] (${ERROR_COUNT}/${HELL_LIMIT}) It will be terminated / reason: Hell "
                     if [[ -d ${ERROR_DIR} ]]; then
@@ -213,6 +211,15 @@ function getBlockCheck(){
         fi
     fi
 }
+
+
+function gen_rabbitmq_report() {
+    if [[ "${USE_EXTERNAL_MQ}" == "false" ]]; then
+        LOG_DATE=$(date +%Y%m%d)
+        rabbitmqctl report >> "${DEFAULT_LOG_PATH}/rabbitmq_report.${LOG_DATE}"
+    fi
+}
+
 
 function post_to_slack () {
   #escapedText=$(echo $1 | sed 's/"/\"/g' | sed "s/'/\'/g" | sed 's/(?(?=\\n)[^\\n]|\\)/\\\\/g')
@@ -275,6 +282,7 @@ function returnErrorCount(){
         echo "${MSG}" >> "${ERROR_COUNT_FILE}"
         ERROR_COUNT=$(< "${ERROR_COUNT_FILE}" grep -v grep | grep -c "${MSG}")
         if [[ ${ERROR_COUNT} -ge ${ERROR_LIMIT} ]];then
+            gen_rabbitmq_report;
             CPrint "[FAIL] (${ERROR_COUNT}/${ERROR_LIMIT}) It will be terminated / reason: ${MSG} "
             post_to_slack "[FAIL] (${ERROR_COUNT}/${ERROR_LIMIT}) It will be terminated / reason: ${MSG} "
             if [[ -d ${ERROR_DIR} ]]; then
@@ -525,6 +533,13 @@ else
         SWITCH_BH_VERSION3=1
         SWITCH_BH_VERSION4=10
         SWITCH_BH_VERSION5=20
+    elif [[ "$SERVICE" == "bicon" ]]; then
+        iissCalculatePeriod=43200
+        termPeriod=43120
+        CREP_ROOT_HASH="0x4e17002ae5d8cdd1b9827b3222e244b7ab8ab6ec8c4420926dd844430e2fa0f4"
+        SWITCH_BH_VERSION3=1
+        SWITCH_BH_VERSION4=3400
+        SWITCH_BH_VERSION5=3500
     fi
 
     builtinScoreOwner="hx6e1dd0d4432620778b54b2bbc21ac3df961adf89"
@@ -592,19 +607,24 @@ jq --argjson SHUTDOWN_TIMER "$SHUTDOWN_TIMER" '.SHUTDOWN_TIMER = $SHUTDOWN_TIMER
 if [[ -n $SWITCH_BH_VERSION3 ]]; then
     CPrint "SWITCH_BH_VERSION3 = ${SWITCH_BH_VERSION3}"
     jq --argjson SWITCH_BH_VERSION3 "$SWITCH_BH_VERSION3" '.CHANNEL_OPTION.icon_dex.block_versions."0.3" = $SWITCH_BH_VERSION3' "$configure_json"| sponge "$configure_json"
+else
+    jq -M 'del(.CHANNEL_OPTION.icon_dex.block_versions."0.3")' "$configure_json"| sponge "$configure_json"
 fi
 
 if [[ -n $SWITCH_BH_VERSION4 ]]; then
     CPrint "SWITCH_BH_VERSION4 = ${SWITCH_BH_VERSION4}"
     jq --argjson SWITCH_BH_VERSION4 "$SWITCH_BH_VERSION4" '.CHANNEL_OPTION.icon_dex.block_versions."0.4" = $SWITCH_BH_VERSION4' "$configure_json"| sponge "$configure_json"
+else
+    jq -M 'del(.CHANNEL_OPTION.icon_dex.block_versions."0.4")' "$configure_json"| sponge "$configure_json"
 fi
 
 if [[ -n $SWITCH_BH_VERSION5 ]]; then
     CPrint "SWITCH_BH_VERSION5 = ${SWITCH_BH_VERSION5}"
     jq --argjson SWITCH_BH_VERSION5 "$SWITCH_BH_VERSION5" '.CHANNEL_OPTION.icon_dex.block_versions."0.5" = $SWITCH_BH_VERSION5' "$configure_json"| sponge "$configure_json"
+else
+    jq -M 'del(.CHANNEL_OPTION.icon_dex.block_versions."0.5")' "$configure_json"| sponge "$configure_json"
 fi
 
-# jq --arg LEADER_COMPLAIN_RATIO "$LEADER_COMPLAIN_RATIO" '.LEADER_COMPLAIN_RATIO = "\($LEADER_COMPLAIN_RATIO)"' $configure_json| sponge $configure_json
 jq --arg DEFAULT_STORAGE_PATH "$DEFAULT_STORAGE_PATH" '.DEFAULT_STORAGE_PATH = "\($DEFAULT_STORAGE_PATH)"' "$configure_json"| sponge "$configure_json"
 jq --arg LOOPCHAIN_LOG_LEVEL "$LOOPCHAIN_LOG_LEVEL" '.LOOPCHAIN_LOG_LEVEL = "\($LOOPCHAIN_LOG_LEVEL)"' "$configure_json"| sponge "$configure_json"
 jq --argjson TIMEOUT_FOR_LEADER_COMPLAIN "$TIMEOUT_FOR_LEADER_COMPLAIN" '.TIMEOUT_FOR_LEADER_COMPLAIN = $TIMEOUT_FOR_LEADER_COMPLAIN' "$configure_json"| sponge "$configure_json"
@@ -719,6 +739,7 @@ fi
 if [[ -f "${CHANNEL_MANAGE_DATA_PATH}" ]]; then
     jq --arg CHANNEL_MANAGE_DATA_PATH "$CHANNEL_MANAGE_DATA_PATH" '.CHANNEL_MANAGE_DATA_PATH = "\($CHANNEL_MANAGE_DATA_PATH)"' "$configure_json"| sponge "$configure_json"
 else
+    jq -M 'del(.CHANNEL_MANAGE_DATA_PATH)' "$configure_json"| sponge "$configure_json"
     CPrint "CHANNEL_MANAGE_DATA not found - ${CHANNEL_MANAGE_DATA_PATH}"
 fi
 jq --arg PEER_NAME "$PEER_NAME" '.PEER_NAME = "\($PEER_NAME)"' "$configure_json"| sponge "$configure_json"
@@ -742,6 +763,16 @@ if [[ "${AMQP_TARGET}" ]];then
     jq --arg AMQP_TARGET "$AMQP_TARGET" '.AMQP_TARGET = "\($AMQP_TARGET)"' "$configure_json"| sponge "$configure_json"
     jq --arg amqpTarget "$AMQP_TARGET" '.amqpTarget = "\($amqpTarget)"' "$iconservice_json"| sponge "$iconservice_json"
     jq --arg amqpTarget "$AMQP_TARGET" '.amqpTarget = "\($amqpTarget)"' "$iconrpcserver_json"| sponge "$iconrpcserver_json"
+fi
+
+if [[ "${AMQP_KEY}" ]];then
+    jq --arg AMQP_KEY "$AMQP_KEY" '.AMQP_KEY = "\($AMQP_KEY)"' "$configure_json"| sponge "$configure_json"
+    jq --arg amqpKey "$AMQP_KEY" '.amqpKey = "\($amqpKey)"' "$iconservice_json"| sponge "$iconservice_json"
+    jq --arg amqpKey "$AMQP_KEY" '.amqpKey = "\($amqpKey)"' "$iconrpcserver_json"| sponge "$iconrpcserver_json"
+fi
+
+if [[ "${PORT_PEER}" ]]; then
+    jq --argjson PORT_PEER "$PORT_PEER" '.PORT_PEER = $PORT_PEER' "$configure_json"| sponge "$configure_json"
 fi
 
 for item in "iconservice" "iconrpcserver";
@@ -917,6 +948,10 @@ else
         export AMQP_PASSWORD=$MQ_PASSWORD
     fi
 
+    if [[ "${USE_EXTERNAL_MQ}" == "false" ]] && [[ "${USE_LAZY_MQ}" == "true" ]]; then
+        rabbitmqctl set_policy Lazy "^amq" '{"queue-mode":"lazy"}' --apply-to queues
+    fi
+
 #log_stderr() {
 #    gawk -v pref="$1" '{print pref":", strftime("%F %T", systime()), $0}'
 #}
@@ -945,10 +980,12 @@ else
     PrintOK "Run iconrpcserver start!" $? "true"
 fi
 
-CHECK_PROC_LIST="/bin/loop channel icon_rc icon_service gunicorn"
+
 if [[ "${USE_EXTERNAL_MQ}" == "false" ]];then
     CHECK_PROC_LIST="${CHECK_PROC_LIST} rabbitmq-server"
 fi
+
+CPrint "CHECK_PROC_LIST = ${CHECK_PROC_LIST}"
 
 function proc_check(){
     PROC_NAME=$1
@@ -956,9 +993,7 @@ function proc_check(){
     PROC_CNT=$(pgrep -c -f "${PROC_NAME}")
 
     if [[ ${PROC_CNT} -eq 0 ]] ;then
-        if [[ ${VIEW_CONFIG} == "true" ]]; then
-            CPrint "[FAIL] '${PROC_NAME}' process down " "RED"
-        fi
+        CPrint "[FAIL] '${PROC_NAME}' process down " "RED"
         returnErrorCount "${PROC_NAME} process down" "${PROC_NAME}"
     else
         returnErrorCount "${PROC_NAME} process down" "${PROC_NAME}" "init"
