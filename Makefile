@@ -125,7 +125,7 @@ make_build_args:
 		 )
 
 test:   make_build_args print_version
-		shellcheck -S error src/*.sh
+		shellcheck -S error src/entrypoint.sh
 		$(foreach TEST_FILE, $(TEST_FILES), \
 			container-structure-test test --driver docker --image $(REPO_HUB)/$(NAME):$(TAGNAME) \
 			--config $(TEST_FILE) || exit 1 ;\
