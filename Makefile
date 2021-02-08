@@ -1,11 +1,12 @@
 REPO_HUB = iconloop
 NAME = prep-node
-VERSION = 2020.11.3
+VERSION = 2020.11.12
 RABBITMQ_VERSION = "3.7.23"
 GO_VERSION = "1.12.7"
 DOCKERIZE_VERSION = "v0.6.1"
 DOWNLOAD_PACKAGE = "https://github.com/icon-project/icon-release/releases/download/$(VERSION)/$(VERSION)_packages.tar.gz"
 IS_LOCAL = true
+BASE_IMAGE = $(REPO_HUB)/$(NAME):builder
 
 ifdef version
 VERSION = $(version)

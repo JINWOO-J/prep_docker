@@ -154,6 +154,17 @@ export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 #$@ # instead of exec $@
 #echo $@
 #exec $@
+script_name=$(basename $0)
+
+function gracefulShutdown() {
+    logging "[SHUTDOWN] Server will be shutdown"
+    echo "*** Server will be shutdown ***" 1>&2
+}
+
+trap gracefulShutdown SIGTERM SIGINT EXIT
+#trap gracefulShutdown SIGTERM
+#trap gracefulShutdown SIGINT
+#trap gracefulShutdown EXIT
 
 
 function getBlockCheck(){
@@ -1071,3 +1082,6 @@ else
         find_neighbor_func;
     done
 fi
+
+
+wait -n

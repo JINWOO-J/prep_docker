@@ -50,7 +50,9 @@ ENV TZ="Asia/Seoul"  \
     DELETE_PACKAGE="gcc gcc-6 g++* g++-6* make git automake" \
     PIP3_PACKAGE="secp256k1 iconsdk python-hosts halo termcolor pycurl" \
     IS_STATIC_BUILD=${IS_STATIC_BUILD} \
-    REMOVE_BUILD_PACKAGE=${REMOVE_BUILD_PACKAGE}
+    REMOVE_BUILD_PACKAGE=${REMOVE_BUILD_PACKAGE} \
+    S6_KILL_FINISH_MAXTIME=10000 \
+    PYTHONUNBUFFERED=1
 
 COPY src /src
 COPY src/pip.conf /etc/
@@ -126,6 +128,9 @@ RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
         rm -rf /build ;\
     fi;
 
+ADD https://github.com/just-containers/s6-overlay/releases/download/v2.2.0.1/s6-overlay-amd64-installer /tmp/
+RUN chmod +x /tmp/s6-overlay-amd64-installer && /tmp/s6-overlay-amd64-installer /
+RUN cp /src/graceful_shutdown.sh /etc/cont-finish.d/
 
 EXPOSE 9000
 EXPOSE 7100
