@@ -59,6 +59,10 @@ export USE_MQ_ADMIN=${USE_MQ_ADMIN:-"false"} # Enable RabbitMQ management Web in
 export MQ_ADMIN=${MQ_ADMIN:-"admin"}          # RabbitMQ management username
 export MQ_PASSWORD=${MQ_PASSWORD:-"iamicon"}     # RabbitMQ management password
 
+export RABBITMQ_LOG_BASE=${RABBITMQ_LOG_BASE:-"$DEFAULT_LOG_PATH"}
+export RABBITMQ_LOGS=${RABBITMQ_LOGS:-"$DEFAULT_LOG_PATH/rabbitmq_node.log"}
+export RABBITMQ_SASL_LOGS=${RABBITMQ_SASL_LOGS:-"$DEFAULT_LOG_PATH/rabbitmq_node-sasl.log"}
+
 export LOOPCHAIN_LOG_LEVEL=${LOOPCHAIN_LOG_LEVEL:-"INFO"}  # loopchain log level # DEBUG, INFO, WARNING, ERROR
 export ICON_LOG_LEVEL=${ICON_LOG_LEVEL:-"INFO"}   # iconservice log level # DEBUG, INFO, WARNING, ERROR
 export LOG_OUTPUT_TYPE=${LOG_OUTPUT_TYPE:-"file"} # loopchain's output log type # file, console, file|console
@@ -226,7 +230,7 @@ function getBlockCheck(){
 
 function gen_rabbitmq_report() {
     if [[ "${USE_EXTERNAL_MQ}" == "false" ]]; then
-        LOG_DATE=$(date +%Y%m%d)
+        LOG_DATE=$(date +%Y%m%d-%H%M%S)
         rabbitmqctl report >> "${DEFAULT_LOG_PATH}/rabbitmq_report.${LOG_DATE}"
     fi
 }
