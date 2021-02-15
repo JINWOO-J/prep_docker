@@ -137,4 +137,4 @@ EXPOSE 7100
 HEALTHCHECK --retries=4 --interval=30s --timeout=20s --start-period=60s \
     CMD python3 /src/healthcheck.py
 RUN echo 'export PS1=" \[\e[00;32m\]${APP_VERSION}\[\e[0m\]\[\e[00;37m\]@\[\e[0m\]\[\e[00;31m\]\H :\\$\[\e[0m\] "' >> /root/.bashrc
-ENTRYPOINT [ "/init /src/entrypoint.sh" ]
+ENTRYPOINT [ "/init", "/src/entrypoint.sh" ]
