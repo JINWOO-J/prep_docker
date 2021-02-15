@@ -59,9 +59,9 @@ export USE_MQ_ADMIN=${USE_MQ_ADMIN:-"false"} # Enable RabbitMQ management Web in
 export MQ_ADMIN=${MQ_ADMIN:-"admin"}          # RabbitMQ management username
 export MQ_PASSWORD=${MQ_PASSWORD:-"iamicon"}     # RabbitMQ management password
 
-export RABBITMQ_LOG_BASE=${RABBITMQ_LOG_BASE:-"$DEFAULT_LOG_PATH"}
-export RABBITMQ_LOGS=${RABBITMQ_LOGS:-"$DEFAULT_LOG_PATH/rabbitmq_node.log"}
-export RABBITMQ_SASL_LOGS=${RABBITMQ_SASL_LOGS:-"$DEFAULT_LOG_PATH/rabbitmq_node-sasl.log"}
+#export RABBITMQ_LOG_BASE=${RABBITMQ_LOG_BASE:-"$DEFAULT_LOG_PATH"}
+#export RABBITMQ_LOGS=${RABBITMQ_LOGS:-"$DEFAULT_LOG_PATH/rabbitmq_node.log"}
+#export RABBITMQ_SASL_LOGS=${RABBITMQ_SASL_LOGS:-"$DEFAULT_LOG_PATH/rabbitmq_node-sasl.log"}
 
 export LOOPCHAIN_LOG_LEVEL=${LOOPCHAIN_LOG_LEVEL:-"INFO"}  # loopchain log level # DEBUG, INFO, WARNING, ERROR
 export ICON_LOG_LEVEL=${ICON_LOG_LEVEL:-"INFO"}   # iconservice log level # DEBUG, INFO, WARNING, ERROR
