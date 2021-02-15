@@ -20,7 +20,6 @@ ARG IS_LOCAL
 ARG IS_STATIC_BUILD
 ARG DOWNLOAD_PACKAGE=$DOWNLOAD_PACKAGE
 ARG RABBITMQ_VERSION="3.7.17"
-#ARG RABBITMQ_VERSION="3.8.10"
 ARG GO_VERSION="1.12.7"
 ARG DOCKERIZE_VERSION="v0.6.1"
 ARG REMOVE_BUILD_PACKAGE="true"
@@ -138,4 +137,4 @@ EXPOSE 7100
 HEALTHCHECK --retries=4 --interval=30s --timeout=20s --start-period=60s \
     CMD python3 /src/healthcheck.py
 RUN echo 'export PS1=" \[\e[00;32m\]${APP_VERSION}\[\e[0m\]\[\e[00;37m\]@\[\e[0m\]\[\e[00;31m\]\H :\\$\[\e[0m\] "' >> /root/.bashrc
-ENTRYPOINT [ "/src/entrypoint.sh" ]
+ENTRYPOINT [ "/init /src/entrypoint.sh" ]
