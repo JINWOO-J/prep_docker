@@ -151,6 +151,7 @@ export IS_DOWNLOAD_CERT=${IS_DOWNLOAD_CERT:-"false"}
 export IS_AUTOGEN_CERT=${IS_AUTOGEN_CERT:-"false"} # auto generate cert key # true, false
 export IS_COMPRESS_LOG=${IS_COMPRESS_LOG:-"false"} # auto compress loopchain and icon log via crontab # true, false
 export IS_WRITE_BH=${IS_WRITE_BH:-"true"} # write BH, TX, UX_TX, state on booting log  # true, false
+export RECOVERY_MODE=${RECOVERY_MODE:-"false"} # recovery crash leveldb  # true, false, force
 export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 
 #for bash prompt without entrypoint
@@ -943,6 +944,33 @@ else
             fi
         fi
     fi
+
+function recovery_db() {
+    cd "${DEFAULT_PATH}"
+    CPrint "START RECOVERY LevelDB"
+    /src/recover.py >> "${LOG_PATH}/${LOG_TYPE}_${LOG_DATE}.log"
+    CPrint "[ Complete recovery LevelDB!! ]" "GREEN"
+}
+
+    if [[ "${RECOVERY_MODE}" == "true" ]]; then
+        CPrint "RECOVERY MODE = ${RECOVERY_MODE}"
+            FILE_SIZE=`du "${DEFAULT_PATH}"/.storage/db_icon_dex/MANIFEST-[0-9]* |awk '{print $1*2}'`
+            REAL_MEMSIZE=`head -n 1 /proc/meminfo |awk '{print $2}'`
+            if [[ -f "${DEFAULT_PATH}"/.recovery ]] ;then
+                RECOVERY_FILENAME=$(ls "${DEFAULT_PATH}"/.recovery)
+                CPrint "[STOP] file exist - ${RECOVERY_FILENAME}"
+                exit 0
+            elif [[ "${FILE_SIZE}" -gt "${REAL_MEMSIZE}" ]] ; then 
+                CPrint "[STOP] Not enough memory to recovery LevelDB." "RED"
+                exit 0
+            else
+                recovery_db
+            fi
+    elif [[ "${RECOVERY_MODE}" == "force" ]]; then
+        CPrint "RECOVERY MODE = ${RECOVERY_MODE}"
+            recovery_db
+    fi
+
 
 
     if [[ "${USE_EXTERNAL_MQ}" == "false" ]]; then
