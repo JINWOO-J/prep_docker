@@ -126,7 +126,7 @@ For MainNet
 version: "3"
 services:
    prep:
-      image: iconloop/prep-node:2020.11
+      image: iconloop/prep-node:2020.11.13
       container_name: "prep-mainnet"
       network_mode: host
       restart: "on-failure"
@@ -150,7 +150,7 @@ services:
 ```
 
 ## prep-node docker environment settings
-###### Generated on 2020-12-17 14:48:33 
+###### Generated on 2021-02-17 14:37:43 
 | Environment variable | Description|Default value| Allowed value|
 |--------|--------|-------|-------|
 | EXT\_IPADDR| Getting external IP address|$(curl http://checkip.amazonaws.com)||
@@ -178,6 +178,7 @@ services:
 | VIEW\_CONFIG| for check deployment state|false| boolean (true/false)|
 | AMQP\_TARGET|127.0.0.1|127.0.0.1||
 | USE\_EXTERNAL\_MQ|false|false||
+| USE\_LAZY\_MQ|false|false||
 | USE\_MQ\_ADMIN| Enable RabbitMQ management Web interface.The management UI can be accessed  using a Web browser at http://{node-hostname}:15672/. For example, for a node running on a machine with the hostname of prep-node, it can be accessed at http://prepnode:15672/|false| boolean (true/false)|
 | MQ\_ADMIN| RabbitMQ management username|admin||
 | MQ\_PASSWORD| RabbitMQ management password|iamicon||
@@ -193,6 +194,7 @@ services:
 | CREP\_ROOT\_HASH||||
 | ALLOW\_MAKE\_EMPTY\_BLOCK|true|true||
 | CHANNEL\_BUILTIN| boolean (true/false)|true||
+| RECOVERY\_MODE| boolean (true/false)|false||
 | PEER\_NAME|$(uname)|$(uname)||
 | PRIVATE\_KEY\_FILENAME| YOUR\_KEYSTORE or YOUR\_CERTKEY FILENAME|YOUR\_KEYSTORE\_FILENAME| YOUR\_KEYSTORE or YOUR\_CERTKEY FILENAME|
 | PRIVATE\_PATH| public cert key or keystore file location|${CERT\_PATH}/${PRIVATE\_KEY\_FILENAME}||
@@ -250,4 +252,5 @@ services:
 | IS\_AUTOGEN\_CERT| auto generate cert key|false| true, false|
 | IS\_COMPRESS\_LOG| auto compress loopchain and icon log via crontab|false| true, false|
 | IS\_WRITE\_BH| write BH, TX, UX\_TX, state on booting log|true| true, false|
+| REPAIRDB\_MODE| recovery crash leveldb|false| true, false, force|
 | USER\_DEFINED\_ENV||||

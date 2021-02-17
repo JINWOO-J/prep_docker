@@ -59,6 +59,10 @@ export USE_MQ_ADMIN=${USE_MQ_ADMIN:-"false"} # Enable RabbitMQ management Web in
 export MQ_ADMIN=${MQ_ADMIN:-"admin"}          # RabbitMQ management username
 export MQ_PASSWORD=${MQ_PASSWORD:-"iamicon"}     # RabbitMQ management password
 
+#export RABBITMQ_LOG_BASE=${RABBITMQ_LOG_BASE:-"$DEFAULT_LOG_PATH"}
+#export RABBITMQ_LOGS=${RABBITMQ_LOGS:-"$DEFAULT_LOG_PATH/rabbitmq_node.log"}
+#export RABBITMQ_SASL_LOGS=${RABBITMQ_SASL_LOGS:-"$DEFAULT_LOG_PATH/rabbitmq_node-sasl.log"}
+
 export LOOPCHAIN_LOG_LEVEL=${LOOPCHAIN_LOG_LEVEL:-"INFO"}  # loopchain log level # DEBUG, INFO, WARNING, ERROR
 export ICON_LOG_LEVEL=${ICON_LOG_LEVEL:-"INFO"}   # iconservice log level # DEBUG, INFO, WARNING, ERROR
 export LOG_OUTPUT_TYPE=${LOG_OUTPUT_TYPE:-"file"} # loopchain's output log type # file, console, file|console
@@ -73,6 +77,7 @@ export ICON_NID=${ICON_NID:-"0x50"}  # Setting the ICON Network ID number
 export CREP_ROOT_HASH=${CREP_ROOT_HASH:-""}
 export ALLOW_MAKE_EMPTY_BLOCK=${ALLOW_MAKE_EMPTY_BLOCK:-"true"}
 export CHANNEL_BUILTIN=${CHANNEL_BUILTIN:-"true"} # boolean (true/false)
+export RECOVERY_MODE=${RECOVERY_MODE:-"false"} # boolean (true/false)
 export PEER_NAME=${PEER_NAME:-$(uname)}
 export PRIVATE_KEY_FILENAME=${PRIVATE_KEY_FILENAME:-"YOUR_KEYSTORE_FILENAME"} # YOUR_KEYSTORE or YOUR_CERTKEY FILENAME # YOUR_KEYSTORE or YOUR_CERTKEY FILENAME
 
@@ -147,6 +152,7 @@ export IS_DOWNLOAD_CERT=${IS_DOWNLOAD_CERT:-"false"}
 export IS_AUTOGEN_CERT=${IS_AUTOGEN_CERT:-"false"} # auto generate cert key # true, false
 export IS_COMPRESS_LOG=${IS_COMPRESS_LOG:-"false"} # auto compress loopchain and icon log via crontab # true, false
 export IS_WRITE_BH=${IS_WRITE_BH:-"true"} # write BH, TX, UX_TX, state on booting log  # true, false
+export REPAIRDB_MODE=${REPAIRDB_MODE:-"false"} # recovery crash leveldb  # true, false, force
 export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 
 #for bash prompt without entrypoint
@@ -154,6 +160,17 @@ export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 #$@ # instead of exec $@
 #echo $@
 #exec $@
+script_name=$(basename $0)
+
+function gracefulShutdown() {
+    logging "[SHUTDOWN] Server will be shutdown"
+    echo "*** Server will be shutdown ***" 1>&2
+}
+
+trap gracefulShutdown SIGTERM SIGINT EXIT
+#trap gracefulShutdown SIGTERM
+#trap gracefulShutdown SIGINT
+#trap gracefulShutdown EXIT
 
 
 function getBlockCheck(){
@@ -215,7 +232,7 @@ function getBlockCheck(){
 
 function gen_rabbitmq_report() {
     if [[ "${USE_EXTERNAL_MQ}" == "false" ]]; then
-        LOG_DATE=$(date +%Y%m%d)
+        LOG_DATE=$(date +%Y%m%d-%H%M%S)
         rabbitmqctl report >> "${DEFAULT_LOG_PATH}/rabbitmq_report.${LOG_DATE}"
     fi
 }
@@ -745,6 +762,7 @@ fi
 jq --arg PEER_NAME "$PEER_NAME" '.PEER_NAME = "\($PEER_NAME)"' "$configure_json"| sponge "$configure_json"
 
 jq --argjson CHANNEL_BUILTIN "$CHANNEL_BUILTIN" '.CHANNEL_BUILTIN = $CHANNEL_BUILTIN' "$configure_json"| sponge "$configure_json"
+jq --argjson RECOVERY_MODE "$RECOVERY_MODE" '.RECOVERY_MODE = $RECOVERY_MODE' "$configure_json"| sponge "$configure_json"
 jq --argjson ALLOW_MAKE_EMPTY_BLOCK "$ALLOW_MAKE_EMPTY_BLOCK" '.ALLOW_MAKE_EMPTY_BLOCK = $ALLOW_MAKE_EMPTY_BLOCK' "$configure_json"| sponge "$configure_json"
 jq --argjson IS_BROADCAST_MULTIPROCESSING "$IS_BROADCAST_MULTIPROCESSING" '.IS_BROADCAST_MULTIPROCESSING = $IS_BROADCAST_MULTIPROCESSING' "$configure_json"| sponge "$configure_json"
 
@@ -929,6 +947,34 @@ else
         fi
     fi
 
+function repair_db() {
+    cd "${DEFAULT_PATH}"
+    CPrint "START REPAIR LevelDB"
+    /src/repairdb.py >> "${LOG_PATH}/${LOG_TYPE}_${LOG_DATE}.log"
+    touch "${DEFAULT_PATH}"/.repair
+    CPrint "[ Complete repair LevelDB!! ]" "GREEN"
+}
+
+    if [[ "${REPAIRDB_MODE}" == "true" ]]; then
+        CPrint "REPAIRDB MODE = ${REPAIRDB_MODE}"
+            FILE_SIZE=`du "${DEFAULT_PATH}"/.storage/db_icon_dex/MANIFEST-[0-9]* |awk '{print $1*2}'`
+            REAL_MEMSIZE=`head -n 1 /proc/meminfo |awk '{print $2}'`
+            if [[ -f "${DEFAULT_PATH}"/.repair ]] ;then
+                REPAIR_FILENAME=$(ls "${DEFAULT_PATH}"/.repair)
+                CPrint "[STOP] file exist - ${REPAIR_FILENAME}" "RED"
+                exit 0
+            elif [[ "${FILE_SIZE}" -gt "${REAL_MEMSIZE}" ]] ; then 
+                CPrint "[STOP] Not enough memory for repair LevelDB." "RED"
+                exit 0
+            else
+                repair_db
+            fi
+    elif [[ "${REPAIRDB_MODE}" == "force" ]]; then
+        CPrint "REPAIRDB MODE = ${REPAIRDB_MODE}"
+            repair_db
+    fi
+
+
 
     if [[ "${USE_EXTERNAL_MQ}" == "false" ]]; then
         /usr/sbin/rabbitmq-server &
@@ -1071,3 +1117,6 @@ else
         find_neighbor_func;
     done
 fi
+
+
+wait -n
