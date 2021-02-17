@@ -25,7 +25,7 @@ function logging() {
 }
 
 function kill_term() {
-  KILL_PROC="rabbit"
+  KILL_PROC="channel"
   for proc_name in $KILL_PROC
   do
     proc_id=$(pgrep  -f "${proc_name}")
