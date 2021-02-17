@@ -77,6 +77,7 @@ export ICON_NID=${ICON_NID:-"0x50"}  # Setting the ICON Network ID number
 export CREP_ROOT_HASH=${CREP_ROOT_HASH:-""}
 export ALLOW_MAKE_EMPTY_BLOCK=${ALLOW_MAKE_EMPTY_BLOCK:-"true"}
 export CHANNEL_BUILTIN=${CHANNEL_BUILTIN:-"true"} # boolean (true/false)
+export RECOVERY_MODE=${RECOVERY_MODE:-"false"} # boolean (true/false)
 export PEER_NAME=${PEER_NAME:-$(uname)}
 export PRIVATE_KEY_FILENAME=${PRIVATE_KEY_FILENAME:-"YOUR_KEYSTORE_FILENAME"} # YOUR_KEYSTORE or YOUR_CERTKEY FILENAME # YOUR_KEYSTORE or YOUR_CERTKEY FILENAME
 
@@ -151,6 +152,7 @@ export IS_DOWNLOAD_CERT=${IS_DOWNLOAD_CERT:-"false"}
 export IS_AUTOGEN_CERT=${IS_AUTOGEN_CERT:-"false"} # auto generate cert key # true, false
 export IS_COMPRESS_LOG=${IS_COMPRESS_LOG:-"false"} # auto compress loopchain and icon log via crontab # true, false
 export IS_WRITE_BH=${IS_WRITE_BH:-"true"} # write BH, TX, UX_TX, state on booting log  # true, false
+export REPAIRDB_MODE=${REPAIRDB_MODE:-"false"} # recovery crash leveldb  # true, false, force
 export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
 
 #for bash prompt without entrypoint
@@ -760,6 +762,7 @@ fi
 jq --arg PEER_NAME "$PEER_NAME" '.PEER_NAME = "\($PEER_NAME)"' "$configure_json"| sponge "$configure_json"
 
 jq --argjson CHANNEL_BUILTIN "$CHANNEL_BUILTIN" '.CHANNEL_BUILTIN = $CHANNEL_BUILTIN' "$configure_json"| sponge "$configure_json"
+jq --argjson RECOVERY_MODE "$RECOVERY_MODE" '.RECOVERY_MODE = $RECOVERY_MODE' "$configure_json"| sponge "$configure_json"
 jq --argjson ALLOW_MAKE_EMPTY_BLOCK "$ALLOW_MAKE_EMPTY_BLOCK" '.ALLOW_MAKE_EMPTY_BLOCK = $ALLOW_MAKE_EMPTY_BLOCK' "$configure_json"| sponge "$configure_json"
 jq --argjson IS_BROADCAST_MULTIPROCESSING "$IS_BROADCAST_MULTIPROCESSING" '.IS_BROADCAST_MULTIPROCESSING = $IS_BROADCAST_MULTIPROCESSING' "$configure_json"| sponge "$configure_json"
 
@@ -943,6 +946,34 @@ else
             fi
         fi
     fi
+
+function repair_db() {
+    cd "${DEFAULT_PATH}"
+    CPrint "START REPAIR LevelDB"
+    /src/repairdb.py >> "${LOG_PATH}/${LOG_TYPE}_${LOG_DATE}.log"
+    touch "${DEFAULT_PATH}"/.repair
+    CPrint "[ Complete repair LevelDB!! ]" "GREEN"
+}
+
+    if [[ "${REPAIRDB_MODE}" == "true" ]]; then
+        CPrint "REPAIRDB MODE = ${REPAIRDB_MODE}"
+            FILE_SIZE=`du "${DEFAULT_PATH}"/.storage/db_icon_dex/MANIFEST-[0-9]* |awk '{print $1*2}'`
+            REAL_MEMSIZE=`head -n 1 /proc/meminfo |awk '{print $2}'`
+            if [[ -f "${DEFAULT_PATH}"/.repair ]] ;then
+                REPAIR_FILENAME=$(ls "${DEFAULT_PATH}"/.repair)
+                CPrint "[STOP] file exist - ${REPAIR_FILENAME}" "RED"
+                exit 0
+            elif [[ "${FILE_SIZE}" -gt "${REAL_MEMSIZE}" ]] ; then 
+                CPrint "[STOP] Not enough memory for repair LevelDB." "RED"
+                exit 0
+            else
+                repair_db
+            fi
+    elif [[ "${REPAIRDB_MODE}" == "force" ]]; then
+        CPrint "REPAIRDB MODE = ${REPAIRDB_MODE}"
+            repair_db
+    fi
+
 
 
     if [[ "${USE_EXTERNAL_MQ}" == "false" ]]; then
