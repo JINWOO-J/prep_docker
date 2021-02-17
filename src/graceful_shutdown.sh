@@ -31,7 +31,8 @@ function kill_term() {
     proc_id=$(pgrep  -f "${proc_name}")
     echo "proc_name=${proc_name} proc_id=${proc_id}"
     if [[ "x${proc_id}" != "x" ]]; then
-       kill -TERM $(pgrep  -f "rabbit")
+#       kill -TERM $(pgrep  -f "rabbit")
+       kill -TERM $proc_id
     fi
   done
 }
