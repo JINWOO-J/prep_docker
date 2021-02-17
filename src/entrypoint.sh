@@ -951,6 +951,7 @@ function repair_db() {
     cd "${DEFAULT_PATH}"
     CPrint "START REPAIR LevelDB"
     /src/repairdb.py >> "${LOG_PATH}/${LOG_TYPE}_${LOG_DATE}.log"
+    touch "${DEFAULT_PATH}"/.repair
     CPrint "[ Complete repair LevelDB!! ]" "GREEN"
 }
 
