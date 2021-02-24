@@ -874,7 +874,7 @@ else
                     DOWNLOAD_URL="$FASTEST_START_POINT"
                 fi
                 CPrint "Start download - ${DOWNLOAD_URL}"
-                axel_option="-k -n 6 --verbose"
+                axel_option="-k -n $(nproc) --verbose"
                 CPrint "axel ${axel_option} ${DOWNLOAD_URL} -o ${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"
                 snapshot_log="snapshot.$(date +%Y%m%d%H%M%S)"
                 axel ${axel_option} "${DOWNLOAD_URL}" -o "${DEFAULT_PATH}/${DOWNLOAD_FILENAME}"  >> "${DEFAULT_LOG_PATH}/${snapshot_log}" &
@@ -902,7 +902,7 @@ else
                 CPrint "is_file = ${is_file}, is_unavailable = ${is_unavailable}"
                 if [[ "${is_unavailable}" == "1" ]] || [[ "${is_file}" == "0" ]];then
                     CPrint "Failed to download" "RED"
-                    exit 127;
+#                    exit 127;
                 fi
                 CPrint "$(tail -n1 "${DEFAULT_LOG_PATH}/${snapshot_log}")"
                 PrintOK "Download $LASTEST_VERSION(${DEFAULT_PATH}/${BASENAME})  to $DEFAULT_PATH" $?
@@ -922,7 +922,7 @@ else
                 tar_chk=$!
                 while true;
                 do
-                    proc_check=$(pgrep -c -f "tar")
+                    proc_check=$(pgrep -c -f "pigz")
                     if [[ ${proc_check} == 0 ]];
                     then
                         wait ${tar_chk} && PrintOK "Completed extract from archive" $? || PrintOK "Failed to extract from archive" $?
@@ -942,7 +942,6 @@ else
                 if [[ "${DEFAULT_PATH}/.score_data/score" != "${scoreRootPath}" ]]; then
                     mv "${DEFAULT_PATH}/.score_data/score" "$scoreRootPath"
                 fi
-                mv "${DEFAULT_PATH}"/.storage/*:7100_icon_dex "${DEFAULT_STORAGE_PATH}/db_${IPADDR}:7100_icon_dex"
             fi
         fi
     fi
@@ -963,7 +962,7 @@ function repair_db() {
                 REPAIR_FILENAME=$(ls "${DEFAULT_PATH}"/.repair)
                 CPrint "[STOP] file exist - ${REPAIR_FILENAME}" "RED"
                 exit 0
-            elif [[ "${FILE_SIZE}" -gt "${REAL_MEMSIZE}" ]] ; then 
+            elif [[ "${FILE_SIZE}" -gt "${REAL_MEMSIZE}" ]] ; then
                 CPrint "[STOP] Not enough memory for repair LevelDB." "RED"
                 exit 0
             else
