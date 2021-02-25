@@ -844,6 +844,8 @@ else
             NETWORK_NAME="MainctzNet"
         elif [[ "$NETWORK_NAME" == "" && $NETWORK_ENV == "testnet" ]]; then
             NETWORK_NAME="TestctzNet"
+        elif [[ "$SERVICE" == "bicon" ]]; then
+            NETWORK_NAME="BiconNet"
         elif [[ "$NETWORK_NAME" == "" && $NETWORK_ENV == "PREP-TestNet" ]]; then
             NETWORK_NAME="ZiconPrepNet"
         fi
@@ -860,6 +862,8 @@ else
                         FAST_S3_REGION=$(/src/find_region_async.py)
                     elif [[ "$NETWORK_ENV" == "testnet" ]]; then
                         FAST_S3_REGION="https://icon-leveldb-backup-jp.s3.amazonaws.com"
+                    elif [[ "$SERVICE" == "bicon" ]]; then
+                        FAST_S3_REGION="https://icon-leveldb-backup.s3.ap-northeast-2.amazonaws.com"
                     elif [[ "$NETWORK_ENV" == "PREP-TestNet" ]]; then
                         FAST_S3_REGION="https://icon-leveldb-backup-mb.s3.amazonaws.com"
                     fi
