@@ -551,6 +551,7 @@ else
         SWITCH_BH_VERSION4=10
         SWITCH_BH_VERSION5=20
     elif [[ "$SERVICE" == "bicon" ]]; then
+        mainPRepCount=4
         iissCalculatePeriod=43200
         termPeriod=43120
         CREP_ROOT_HASH="0x4e17002ae5d8cdd1b9827b3222e244b7ab8ab6ec8c4420926dd844430e2fa0f4"
