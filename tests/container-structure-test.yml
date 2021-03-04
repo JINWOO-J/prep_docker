@@ -24,6 +24,19 @@ commandTests:
     args: ["show", "loopchain"]
     expectedOutput: [".*loopchain.*"]
 
+  - name: "Generate a PKCS8 DER encrypted private key and Check peer_id"
+    command: "bash"
+    args:
+      - -c
+      - |
+        openssl ecparam -genkey -name secp256k1 | openssl ec -aes-256-cbc -out private_der.pem -passout pass:$KEY_PASSWORD &&
+        openssl ec -in private_der.pem -pubout -out public_der.pem -passin pass:$KEY_PASSWORD &&
+        openssl pkcs8 -topk8  -in private_der.pem -out private_der.der -outform der -passout pass:$KEY_PASSWORD -passin pass:$KEY_PASSWORD &&
+        openssl ec -in private_der.pem -pubout -outform DER -out pubilc_der.der -passin pass:$KEY_PASSWORD &&
+        /src/getPeerID.py /private_der.der $KEY_PASSWORD
+    expectedOutput: ["hx.*"]
+
+
   - name: "Generate a private key and Check peer_id"
     command: "bash"
     args:
