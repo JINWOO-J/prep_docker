@@ -783,7 +783,7 @@ jq --argjson RPC_WORKER "$RPC_WORKER" '.gunicornConfig.workers = $RPC_WORKER' "$
 jq --argjson RPC_GRACEFUL_TIMEOUT "$RPC_GRACEFUL_TIMEOUT" '.gunicornConfig.graceful_timeout = $RPC_GRACEFUL_TIMEOUT' "$iconrpcserver_json"| sponge "$iconrpcserver_json"
 
 jq --arg DOSGUARD_ENABLE "$DOSGUARD_ENABLE" ".dosGuardEnable = $DOSGUARD_ENABLE" "$iconrpcserver_json"| sponge "$iconrpcserver_json"
-jq --argjson DOSGUARD_RESETTIME "$DOSGUARD_RESETTIME" ".dosGuard.resetTIme = $DOSGUARD_ENABLE" "$iconservice_json"| sponge "$iconservice_json"
+jq --argjson DOSGUARD_RESETTIME "$DOSGUARD_RESETTIME" ".dosGuard.resetTIme = $DOSGUARD_RESETTIME" "$iconservice_json"| sponge "$iconservice_json"
 jq --argjson DOSGUARD_THRESHOLD "$DOSGUARD_THRESHOLD" ".dosGuard.threshold = $DOSGUARD_THRESHOLD" "$iconservice_json"| sponge "$iconservice_json"
 jq --argjson DOSGUARD_BANTIME "$DOSGUARD_BANTIME" ".dosGuard.banTime = $DOSGUARD_BANTIME" "$iconservice_json"| sponge "$iconservice_json"
 
