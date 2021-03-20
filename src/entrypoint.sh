@@ -154,6 +154,10 @@ export IS_COMPRESS_LOG=${IS_COMPRESS_LOG:-"false"} # auto compress loopchain and
 export IS_WRITE_BH=${IS_WRITE_BH:-"true"} # write BH, TX, UX_TX, state on booting log  # true, false
 export REPAIRDB_MODE=${REPAIRDB_MODE:-"false"} # recovery crash leveldb  # true, false, force
 export USER_DEFINED_ENV=${USER_DEFINED_ENV:-""}
+export DOSGUARD_ENABLE=${DOSGUARD_ENABLE:-"true"}
+export DOSGUARD_RESETTIME=${DOSGUARD_RESETTIME:-5}
+export DOSGUARD_THRESHOLD=${DOSGUARD_THRESHOLD:-200}
+export DOSGUARD_BANTIME=${DOSGUARD_BANTIME:-300}
 
 #for bash prompt without entrypoint
 
@@ -777,6 +781,12 @@ jq --arg score_fee "$score_fee" ".service.fee = $score_fee" "$iconservice_json"|
 jq --arg RPC_PORT "$RPC_PORT" '.port = "\($RPC_PORT)"' "$iconrpcserver_json"| sponge "$iconrpcserver_json"
 jq --argjson RPC_WORKER "$RPC_WORKER" '.gunicornConfig.workers = $RPC_WORKER' "$iconrpcserver_json"| sponge "$iconrpcserver_json"
 jq --argjson RPC_GRACEFUL_TIMEOUT "$RPC_GRACEFUL_TIMEOUT" '.gunicornConfig.graceful_timeout = $RPC_GRACEFUL_TIMEOUT' "$iconrpcserver_json"| sponge "$iconrpcserver_json"
+
+jq --arg DOSGUARD_ENABLE "$DOSGUARD_ENABLE" ".dosGuardEnable = $DOSGUARD_ENABLE" "$iconrpcserver_json"| sponge "$iconrpcserver_json"
+jq --argjson DOSGUARD_RESETTIME "$DOSGUARD_RESETTIME" ".dosGuard.resetTIme = $DOSGUARD_ENABLE" "$iconservice_json"| sponge "$iconservice_json"
+jq --argjson DOSGUARD_THRESHOLD "$DOSGUARD_THRESHOLD" ".dosGuard.threshold = $DOSGUARD_THRESHOLD" "$iconservice_json"| sponge "$iconservice_json"
+jq --argjson DOSGUARD_BANTIME "$DOSGUARD_BANTIME" ".dosGuard.banTime = $DOSGUARD_BANTIME" "$iconservice_json"| sponge "$iconservice_json"
+
 
 if [[ "${AMQP_TARGET}" ]];then
     jq --arg AMQP_TARGET "$AMQP_TARGET" '.AMQP_TARGET = "\($AMQP_TARGET)"' "$configure_json"| sponge "$configure_json"
