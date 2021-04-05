@@ -59,7 +59,7 @@ COPY src/pip.conf /etc/
 COPY src/erlang /etc/apt/preferences.d/erlang
 COPY conf $APP_DIR/conf
 RUN mkdir -p /etc/services.d/ntp_daemon && \
-    printf '#!/usr/bin/with-contenv bash\npython3 /src/ntp_daemon.py\n' > /etc/services.d/ntp_daemon/run && \
+    printf '#!/usr/bin/with-contenv bash\nsleep 5\nif [[ ${USE_NTP_SYNC} != "false" ]]; then\n    python3 /src/ntp_daemon.py\nfi\n' > /etc/services.d/ntp_daemon/run && \
     chmod +x /etc/services.d/ntp_daemon/run
 RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
     if [ "${IS_LOCAL}" = "true" ]; then \

@@ -25,9 +25,9 @@ class NTPDaemon:
     def __init__(self, ):
         self.chk = re.compile(r'(0\.\d+)')
         self.date_chk = re.compile(r'(\d{8})')
-        self.check_time = os.getenv('HEALTH_CHECK_INTERVAL', 30)
         self.work_dir = '/tmp'
         self.log_dir = self.get_log_path()
+        self.check_time = self.set_check_time()
         self.ntp_list = [
             "time.google.com",
             "time.cloudflare.com",
@@ -36,6 +36,17 @@ class NTPDaemon:
             "time.euro.apple.com"
         ]
 
+
+    def set_check_time(self, ):
+        if isinstance(os.getenv('NTP_REFRESH_TIME'), int):
+            return os.getenv('NTP_REFRESH_TIME')
+        else:
+            try:
+                return int(os.getenv('NTP_REFRESH_TIME').strip())
+            except Exception as e:
+                self.logger("Set the NTP_REFRESH_TIME setting to the default 180.")
+                return 180
+                
 
     def get_log_path(self, ):
         with open('/prep_peer/conf/configure.json', 'r') as f:
@@ -71,10 +82,14 @@ class NTPDaemon:
             best_ntp = os.getenv('NTP_SERVER', False)
             if best_ntp is False:
                 best_ntp = self.compare_ntp()[0]
-            self.logger(f"Best NTP is {best_ntp}")
+            self.logger(f"Best NTP Server is {best_ntp}")
             try:
-                os.system(f"ntpdate {best_ntp}")
-                self.logger("Time sync success!")
+                code = os.system(f"ntpdate {best_ntp}")
+                if int(code) == 0:
+                    self.logger("Time sync success!")
+                else:
+                    self.logger("Failed! Check NTP Server or Your Network or SYS_TIME permission.")
+                    sys.exit()
             except Exception as e:
                 self.logger("Failed! Check NTP daemon.")
                 sys.exit()
@@ -92,10 +107,9 @@ class NTPDaemon:
                     if len(rs) == i+1:
                         break
                     rs_dict[ntp] = float(re.findall(self.chk, rs[i+1])[0])
-        self.logger("---NTP Rank---")
+        self.logger("NTP Rank")
         for key, val in rs_dict.items():
             self.logger(f"{key} | {val}")
-        self.logger("--------------")
         return sorted(rs_dict.keys(), key=(lambda x: x[1]))
 
 

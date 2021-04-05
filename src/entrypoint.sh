@@ -37,7 +37,9 @@ fi
 shopt -u nocasematch # disable
 
 export SERVICE_API=${SERVICE_API:-"${ENDPOINT_URL}/api/v3"} # SERVICE_API URI #URI
-export NTP_SERVER=${NTP_SERVER:-""}     # NTP SERVER ADDRESS
+export NTP_SERVER=${NTP_SERVER:-""}                    # NTP SERVER ADDRESS
+export NTP_REFRESH_TIME=${NTP_REFRESH_TIME:-"180"}     # NTP refresh time (minutes)
+export USE_NTP_SYNC=${USE_NTP_SYNC:-"true"}            # whether use ntp or not # boolean (true/false)
 export FASTEST_START=${FASTEST_START:-"no"}            # It can be restored from Snapshot DB. # yes/no
 export FASTEST_START_POINT=${FASTEST_START_POINT:-""}
 export GENESIS_NODE=${GENESIS_NODE:-"false"}
