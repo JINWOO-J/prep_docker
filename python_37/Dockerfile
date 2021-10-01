@@ -40,7 +40,7 @@ ENV TZ="Asia/Seoul"  \
     xz-utils tk-dev libffi-dev liblzma-dev automake \
     libtool unzip jq netcat moreutils libsecp256k1-dev \
     git gnupg2 socat ntp  logrotate ntpdate vim procps \
-    iproute2 lsof jq pigz axel monit gawk libcurl4-openssl-dev" \
+    iproute2 lsof jq pigz axel monit gawk libcurl4-openssl-dev nmap" \
     ERLANG_PACKAGE="erlang-base erlang-asn1 erlang-crypto \
     erlang-eldap erlang-ftp erlang-inets \
     erlang-mnesia erlang-os-mon erlang-parsetools \
@@ -58,6 +58,9 @@ COPY src /src
 COPY src/pip.conf /etc/
 COPY src/erlang /etc/apt/preferences.d/erlang
 COPY conf $APP_DIR/conf
+RUN mkdir -p /etc/services.d/ntp_daemon && \
+    printf '#!/usr/bin/with-contenv bash\nsleep 5\nif [[ ${USE_NTP_SYNC} != "false" ]]; then\n    python3 /src/ntp_daemon.py\nfi\n' > /etc/services.d/ntp_daemon/run && \
+    chmod +x /etc/services.d/ntp_daemon/run
 RUN ln -s /usr/local/bin/python3.7 /usr/local/bin/python3.6 ; \
     if [ "${IS_LOCAL}" = "true" ]; then \
         echo "-- KR mirror" ;\

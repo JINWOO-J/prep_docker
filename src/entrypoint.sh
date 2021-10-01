@@ -37,8 +37,8 @@ fi
 shopt -u nocasematch # disable
 
 export SERVICE_API=${SERVICE_API:-"${ENDPOINT_URL}/api/v3"} # SERVICE_API URI #URI
-export NTP_SERVER=${NTP_SERVER:-"time.google.com"}     # NTP SERVER ADDRESS
-export NTP_REFRESH_TIME=${NTP_REFRESH_TIME:-"21600"}   # NTP refresh time
+export NTP_SERVER=${NTP_SERVER:-""}                    # NTP SERVER ADDRESS
+export NTP_REFRESH_TIME=${NTP_REFRESH_TIME:-"180"}     # NTP refresh time (minutes)
 export USE_NTP_SYNC=${USE_NTP_SYNC:-"true"}            # whether use ntp or not # boolean (true/false)
 export FASTEST_START=${FASTEST_START:-"no"}            # It can be restored from Snapshot DB. # yes/no
 export FASTEST_START_POINT=${FASTEST_START_POINT:-""}
@@ -207,7 +207,7 @@ function getBlockCheck(){
         touch "${NOW_COUNT_FILE}" "${PREV_COUNT_FILE}"
         echo "${blockheight}" > ${NOW_COUNT_FILE}
         PREV_ERROR_COUNT=$(cat ${PREV_COUNT_FILE})
-        if [[ "${blockheight}" -eq ${PREV_ERROR_COUNT} ]];then
+        if [[ "${blockheight}" -eq ${PREV_ERROR_COUNT} && ${state} != "Suspend" ]];then
             if [[ "${blockheight}" -ge 1 ]];then
                 echo "${blockheight}"  >> ${ERROR_COUNT_FILE}
                 ERROR_COUNT=$(grep -c "" "${ERROR_COUNT_FILE}")
@@ -433,31 +433,6 @@ function find_neighbor_func(){
     if [[ "${FIND_NEIGHBOR}" == "true" ]] && [[ -n "${ENDPOINT_URL}" ]]; then
         FIND_NEIGHBOR_HOSTS=$(/src/find_neighbor.py ${ENDPOINT_URL} ${FIND_NEIGHBOR_COUNT} ${WRITE_OPTION} ${FIND_NEIGHBOR_OPTION})
         CPrint "== ${FIND_NEIGHBOR_HOSTS}"
-    fi
-}
-
-function ntp_check(){
-    if [[ -z "${NTP_FIRST}" ]];then
-        NTP_FIRST=1
-    else
-        NTP_FIRST=0
-    fi
-    if [[ ${NTP_FIRST} -eq 1 ]];then
-        CPrint "Time synchronization with NTP / NTP SERVER: ${NTP_SERVER} - ${NTP_FIRST}"
-    fi
-    if ntpdate -s "${NTP_SERVER}"; then
-        if [[ "$VIEW_CONFIG" == "true" || ${NTP_FIRST} -eq 1 ]]; then
-            CPrint "Success Time Synchronization!!" "GREEN"
-        fi
-    else
-        ## AWS NTP NTP_SERVER
-        if ntpdate -s "169.254.169.123" ; then
-            if [[ "$VIEW_CONFIG" == "true" || ${NTP_FIRST} -eq 1 ]]; then
-                CPrint "Success Time Synchronization!! with AWS NTP Server" "GREEN"
-            fi
-        else
-            CPrint "[FAIL] Time Synchronization!!" "RED"
-        fi
     fi
 }
 
@@ -1110,24 +1085,14 @@ if [[ "${HEALTH_ENV_CHECK}" == "true" ]]; then
 #            fi
 #            PrintOK "Check health status : ${CHECK_HEALTHY_STATUS}" $?
         fi
-
         find_neighbor_func;
         getBlockCheck;
-
-        if [[ "${USE_NTP_SYNC}" == "true" ]]; then
-            ntp_check;
-        fi
     done
 else
     CPrint "Do not Health check ..."
     while true;
     do
-        if [[ "${USE_NTP_SYNC}" == "true" ]]; then
-            sleep "${NTP_REFRESH_TIME}";
-            ntp_check;
-        else
-            sleep 10;
-        fi
+        sleep 10;
         find_neighbor_func;
     done
 fi
