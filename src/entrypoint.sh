@@ -207,7 +207,7 @@ function getBlockCheck(){
         touch "${NOW_COUNT_FILE}" "${PREV_COUNT_FILE}"
         echo "${blockheight}" > ${NOW_COUNT_FILE}
         PREV_ERROR_COUNT=$(cat ${PREV_COUNT_FILE})
-        if [[ "${blockheight}" -eq ${PREV_ERROR_COUNT} ]];then
+        if [[ "${blockheight}" -eq ${PREV_ERROR_COUNT} && ${state} != "Suspend" ]];then
             if [[ "${blockheight}" -ge 1 ]];then
                 echo "${blockheight}"  >> ${ERROR_COUNT_FILE}
                 ERROR_COUNT=$(grep -c "" "${ERROR_COUNT_FILE}")
